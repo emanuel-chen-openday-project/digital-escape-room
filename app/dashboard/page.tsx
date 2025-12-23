@@ -383,8 +383,14 @@ export default function Dashboard() {
     });
 
     // Navigation based on menu item
-    if (id === 'logout') {
-      signOut(auth).then(() => router.push('/'));
+    switch (id) {
+      case 'games':
+        router.push('/games');
+        break;
+      case 'logout':
+        signOut(auth).then(() => router.push('/'));
+        break;
+      // Other menu items will be added later
     }
   };
 
