@@ -1,0 +1,231 @@
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');
+
+.factory-container {
+  position: fixed;
+  inset: 0;
+  font-family: 'Heebo', sans-serif;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.factory-canvas {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  outline: none;
+}
+
+/* Station Info - Mobile */
+.station-info {
+  position: fixed;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.94));
+  padding: 12px 20px;
+  border-radius: 18px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  display: none;
+  backdrop-filter: blur(10px);
+  z-index: 100;
+  text-align: center;
+  max-width: 90%;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.station-info.show {
+  display: block;
+  animation: slideDown 0.5s ease;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateX(-50%) translateY(-15px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+.station-name {
+  font-size: 18px;
+  margin-bottom: 6px;
+  color: #667eea;
+  font-weight: 700;
+}
+
+.station-desc {
+  font-size: 12px;
+  font-weight: 400;
+  color: #7f8c8d;
+  line-height: 1.3;
+}
+
+/* Nickname Display */
+.nickname-display {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #667eea;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+/* Instructions */
+.instructions {
+  position: fixed;
+  bottom: 85px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 16px;
+  border-radius: 18px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+  font-weight: 500;
+  color: #7f8c8d;
+  display: none;
+  backdrop-filter: blur(10px);
+  z-index: 99;
+}
+
+.instructions.show {
+  display: block;
+}
+
+/* Next Button - Mobile Touch */
+.next-btn {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 16px 40px;
+  font-size: 15px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+  font-family: 'Heebo', sans-serif;
+  z-index: 101;
+  display: none;
+  cursor: pointer;
+}
+
+.next-btn.show {
+  display: block;
+  animation: fadeInPulse 0.6s ease;
+}
+
+.next-btn:active {
+  transform: translateX(-50%) scale(0.92);
+}
+
+@keyframes fadeInPulse {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Game Modal */
+.game-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(5px);
+}
+
+.game-modal {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 24px;
+  padding: 30px;
+  max-width: 90%;
+  width: 400px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.4s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.game-modal h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+.game-modal p {
+  font-size: 16px;
+  color: #7f8c8d;
+  margin-bottom: 25px;
+}
+
+.game-modal-btn {
+  padding: 14px 35px;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+  cursor: pointer;
+  font-family: 'Heebo', sans-serif;
+  transition: transform 0.2s ease;
+}
+
+.game-modal-btn:active {
+  transform: scale(0.95);
+}
+
+/* Tour Complete Modal */
+.tour-complete-modal {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.tour-complete-modal h2 {
+  color: white;
+}
+
+.tour-complete-modal p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tour-complete-btn {
+  background: white;
+  color: #667eea;
+}
