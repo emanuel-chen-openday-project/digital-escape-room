@@ -19,6 +19,7 @@ import {
   createFireworks,
   addExitStation
 } from './factory/gameLogic';
+import { TSPGame, GameResult } from './tsp';
 
 interface FactoryTourProps {
   nickname: string;
@@ -176,7 +177,11 @@ export default function FactoryTour({ nickname, onTourComplete }: FactoryTourPro
     }, 2000);
   }, []);
 
-  const handleContinueAfterGame = useCallback(() => {
+  const handleContinueAfterGame = useCallback((result?: GameResult) => {
+    // Log game result if available
+    if (result) {
+      console.log('Game completed:', result);
+    }
     setShowGameModal(false);
     setCurrentGame(null);
     setShowNextButton(true);
@@ -253,15 +258,19 @@ export default function FactoryTour({ nickname, onTourComplete }: FactoryTourPro
 
       {/* Game Modal */}
       {showGameModal && currentGame && (
-        <div className="game-modal-overlay">
-          <div className="game-modal">
-            <h2>{GAME_STATIONS[currentStation]?.title || 'משחק'}</h2>
-            <p>המשחק יתווסף בקרוב</p>
-            <button className="game-modal-btn" onClick={handleContinueAfterGame}>
-              המשך בסיור
-            </button>
+        currentGame === 'TSP' ? (
+          <TSPGame onComplete={handleContinueAfterGame} />
+        ) : (
+          <div className="game-modal-overlay">
+            <div className="game-modal">
+              <h2>{GAME_STATIONS[currentStation]?.title || 'משחק'}</h2>
+              <p>המשחק יתווסף בקרוב</p>
+              <button className="game-modal-btn" onClick={() => handleContinueAfterGame()}>
+                המשך בסיור
+              </button>
+            </div>
           </div>
-        </div>
+        )
       )}
 
       {/* Tour Complete Modal */}
