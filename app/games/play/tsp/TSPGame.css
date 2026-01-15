@@ -18,7 +18,7 @@
 .tsp-splash {
   position: fixed;
   inset: 0;
-  background: linear-gradient(135deg, #1565C0 0%, #0D47A1 50%, #1a237e 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6B73FF 100%);
   z-index: 10000;
   display: flex;
   flex-direction: column;
@@ -29,17 +29,35 @@
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   touch-action: pan-y;
-  animation: splashFadeIn 0.4s ease-out;
+  animation: splashReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes splashFadeIn {
+/* Animated background particles */
+.tsp-splash::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 40%),
+    radial-gradient(circle at 40% 40%, rgba(255,255,255,0.1) 0%, transparent 30%);
+  animation: particleFloat 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes particleFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.5; }
+  50% { transform: translateY(-20px) scale(1.1); opacity: 0.8; }
+}
+
+@keyframes splashReveal {
   from {
     opacity: 0;
-    transform: translateY(30px) scale(0.95);
+    transform: scale(1.1);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: scale(1);
   }
 }
 
@@ -48,50 +66,113 @@
   width: 100%;
   text-align: center;
   padding-bottom: 40px;
+  position: relative;
+  z-index: 1;
 }
 
 .tsp-splash-icon {
-  font-size: 60px;
+  font-size: 70px;
   margin-bottom: 10px;
   margin-top: 20px;
+  animation: iconEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+}
+
+@keyframes iconEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(-50px) rotateY(180deg) scale(0);
+  }
+  60% {
+    transform: translateY(10px) rotateY(-10deg) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateY(0deg) scale(1);
+  }
 }
 
 .tsp-splash-title {
-  font-size: 28px;
-  font-weight: 800;
+  font-size: 32px;
+  font-weight: 900;
   color: white;
   margin-bottom: 8px;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  animation: titleSlide 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+}
+
+@keyframes titleSlide {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+    letter-spacing: 10px;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    letter-spacing: normal;
+  }
 }
 
 .tsp-splash-subtitle {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.85);
-  margin-bottom: 24px;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 28px;
+  animation: subtitleFade 0.6s ease-out 0.6s both;
+}
+
+@keyframes subtitleFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .tsp-splash-section {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 14px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   text-align: right;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.3);
+  animation: sectionPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.tsp-splash-section:nth-child(1) { animation-delay: 0.7s; }
+.tsp-splash-section:nth-child(2) { animation-delay: 0.85s; }
+.tsp-splash-section:nth-child(3) { animation-delay: 1s; }
+
+@keyframes sectionPop {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .tsp-splash-section h3 {
-  font-size: 16px;
-  color: #1565C0;
-  margin-bottom: 10px;
+  font-size: 17px;
+  color: #667eea;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
+  font-weight: 700;
 }
 
 .tsp-splash-section p {
   font-size: 14px;
   color: #37474f;
-  line-height: 1.7;
+  line-height: 1.8;
   margin: 0;
 }
 
@@ -103,37 +184,96 @@
 .tsp-splash-section li {
   font-size: 14px;
   color: #37474f;
-  line-height: 1.7;
-  margin-bottom: 6px;
+  line-height: 1.8;
+  margin-bottom: 8px;
 }
 
 .tsp-highlight {
-  color: #1565C0;
+  color: #667eea;
   font-weight: 700;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .tsp-tip {
-  margin-top: 10px;
+  margin-top: 12px;
+  padding: 10px;
+  background: linear-gradient(135deg, #fff9e6, #fff3cd);
+  border-radius: 10px;
+  border-right: 3px solid #ffc107;
 }
 
 .tsp-start-btn {
-  background: linear-gradient(135deg, #ffffff, #e3f2fd);
-  color: #1565C0;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+  color: #667eea;
   border: none;
-  padding: 16px 48px;
-  border-radius: 16px;
-  font-size: 20px;
-  font-weight: 800;
+  padding: 18px 50px;
+  border-radius: 50px;
+  font-size: 22px;
+  font-weight: 900;
   font-family: inherit;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.3),
+    0 0 0 0 rgba(255,255,255,0.4);
   transition: transform 0.2s, box-shadow 0.2s;
-  margin-top: 10px;
+  margin-top: 16px;
+  animation: buttonEntrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 1.2s both,
+             buttonPulse 2s ease-in-out 2s infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.tsp-start-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255,255,255,0.8) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  animation: buttonShine 3s ease-in-out 2s infinite;
+}
+
+@keyframes buttonShine {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}
+
+@keyframes buttonEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes buttonPulse {
+  0%, 100% {
+    box-shadow:
+      0 10px 40px rgba(0, 0, 0, 0.3),
+      0 0 0 0 rgba(255,255,255,0.4);
+  }
+  50% {
+    box-shadow:
+      0 15px 50px rgba(0, 0, 0, 0.4),
+      0 0 0 10px rgba(255,255,255,0.1);
+  }
 }
 
 .tsp-start-btn:active {
   transform: scale(0.95);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
 }
 
 .tsp-canvas {

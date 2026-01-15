@@ -20,7 +20,6 @@ import {
   addExitStation
 } from './factory/gameLogic';
 import { TSPGame, GameResult } from './tsp';
-import GameIntro from './GameIntro';
 import { savePuzzleResult } from '@/lib/gameService';
 import { PuzzleType } from '@/lib/types';
 
@@ -49,8 +48,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
   const [showInstructions, setShowInstructions] = useState(false);
   const [tourComplete, setTourComplete] = useState(false);
   const [gameTransition, setGameTransition] = useState<'entering' | 'exiting' | null>(null);
-  const [showGameIntro, setShowGameIntro] = useState(false);
-  const [currentGameInfo, setCurrentGameInfo] = useState<{ puzzleNumber: number; gameName: string; gameIcon: string } | null>(null);
 
   // Initialize Babylon.js
   useEffect(() => {
@@ -129,18 +126,15 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
             if (result.shouldShowGame) {
               const gameInfo = GAME_STATIONS[result.stationIndex];
               if (gameInfo) {
-                // Hide station info before showing game intro
+                // Hide station info before showing game
                 setShowStationInfo(false);
                 setCurrentGame(gameInfo.name);
-                // Calculate puzzle number (TSP is puzzle 1, etc.)
-                const puzzleNumber = gameInfo.name === 'TSP' ? 1 : gameInfo.name === 'Hungarian' ? 2 : 3;
-                setCurrentGameInfo({
-                  puzzleNumber,
-                  gameName: gameInfo.title,
-                  gameIcon: gameInfo.name === 'TSP' ? '🚛' : gameInfo.name === 'Hungarian' ? '👷' : '📦'
-                });
-                // Show the game intro first
-                setShowGameIntro(true);
+                setGameTransition('entering');
+                // Small delay then show game
+                setTimeout(() => {
+                  setShowGameModal(true);
+                  setGameTransition(null);
+                }, 100);
               }
             } else {
               setShowNextButton(true);
@@ -194,16 +188,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
     }, 2000);
   }, []);
 
-  const handleGameIntroComplete = useCallback(() => {
-    // Intro finished, now show the actual game
-    setShowGameIntro(false);
-    setGameTransition('entering');
-    setTimeout(() => {
-      setShowGameModal(true);
-      setGameTransition(null);
-    }, 100);
-  }, []);
-
   const handleContinueAfterGame = useCallback(async (result?: GameResult) => {
     // Save game result to Firestore if available
     if (result && sessionId && currentGame) {
@@ -223,7 +207,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
     setTimeout(() => {
       setShowGameModal(false);
       setCurrentGame(null);
-      setCurrentGameInfo(null);
       setGameTransition(null);
       setShowNextButton(true);
     }, 400);
@@ -297,17 +280,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
       >
         ➤ המשך לתחנה הבאה
       </button>
-
-      {/* Game Intro Animation */}
-      {showGameIntro && currentGameInfo && (
-        <GameIntro
-          puzzleNumber={currentGameInfo.puzzleNumber}
-          totalPuzzles={3}
-          gameName={currentGameInfo.gameName}
-          gameIcon={currentGameInfo.gameIcon}
-          onComplete={handleGameIntroComplete}
-        />
-      )}
 
       {/* Game Modal */}
       {showGameModal && currentGame && (
