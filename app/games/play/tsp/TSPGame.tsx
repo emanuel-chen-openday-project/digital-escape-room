@@ -32,10 +32,12 @@ export default function TSPGame({ onComplete }: TSPGameProps) {
   const [showResult, setShowResult] = useState(false);
   const [resultData, setResultData] = useState({ playerDistance: 0, solved: false });
   const [checkDisabled, setCheckDisabled] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  const [gameStarted, setGameStarted] = useState(false);
 
-  // Initialize game
+  // Initialize game after splash screen
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !gameStarted) return;
 
     buildGraph();
     const optimal = computeOptimalRoute();
@@ -79,6 +81,11 @@ export default function TSPGame({ onComplete }: TSPGameProps) {
       window.removeEventListener('resize', handleResize);
       sceneRefs.engine.dispose();
     };
+  }, [gameStarted]);
+
+  const handleStartGame = useCallback(() => {
+    setShowSplash(false);
+    setGameStarted(true);
   }, []);
 
   const handleNodeClick = useCallback((nodeId: number) => {
@@ -239,10 +246,53 @@ export default function TSPGame({ onComplete }: TSPGameProps) {
 
   return (
     <div className="tsp-container">
-      <canvas ref={canvasRef} className="tsp-canvas" />
+      {/* Splash Screen */}
+      {showSplash && (
+        <div className="tsp-splash">
+          <div className="tsp-splash-content">
+            <div className="tsp-splash-icon">🚚</div>
+            <h1 className="tsp-splash-title">מאסטר המסלולים</h1>
+            <p className="tsp-splash-subtitle">מצא את הדרך הקצרה!</p>
+
+            <div className="tsp-splash-section">
+              <h3>📦 על המשחק</h3>
+              <p>
+                יש <span className="tsp-highlight">משאית הובלות</span> שצריכה לאסוף חומרי גלם מכל <span className="tsp-highlight">7 המפעלים והמחסנים</span> ולחזור למרכז ההפצה.
+                <br /><br />
+                לכל מסלול יש <span className="tsp-highlight">מרחק שונה</span> - המטרה היא למצוא את המסלול הקצר ביותר!
+              </p>
+            </div>
+
+            <div className="tsp-splash-section">
+              <h3>🎯 המטרה</h3>
+              <p>
+                לבחור אילו מפעלים ומחסנים לבקר ובאיזה סדר - כאלה שייתנו את <span className="tsp-highlight">המסלול הקצר ביותר</span>, שעובר בכל האתרים וחוזר למרכז ההפצה.
+              </p>
+              <p className="tsp-tip">
+                <strong>💡 טיפ:</strong> לפני שבוחרים את הצעד הבא, כדאי לשאול: האם זה יעזור לי להגיע לכל שאר האתרים בדרך הקצרה ביותר?
+              </p>
+            </div>
+
+            <div className="tsp-splash-section">
+              <h3>👆 איך משחקים?</h3>
+              <ol>
+                <li>מקישים על מפעל או מחסן כדי לנסוע אליו</li>
+                <li>מקישים על מפעל נוסף כדי להמשיך במסלול</li>
+                <li>מקישים על &quot;בדיקה&quot; כדי לבדוק אם הגעת לפתרון הטוב ביותר</li>
+              </ol>
+            </div>
+
+            <button className="tsp-start-btn" onClick={handleStartGame}>
+              🎮 יאללה, מתחילים!
+            </button>
+          </div>
+        </div>
+      )}
+
+      <canvas ref={canvasRef} className="tsp-canvas" style={{ display: gameStarted ? 'block' : 'none' }} />
 
       {/* HUD */}
-      <div className="tsp-hud">
+      {gameStarted && <div className="tsp-hud">
         <div className="tsp-hud-stats">
           <div className="tsp-stat">
             <span className="tsp-stat-label">מרחק נוכחי:</span>
@@ -256,13 +306,13 @@ export default function TSPGame({ onComplete }: TSPGameProps) {
         <button className="tsp-check-btn" onClick={handleCheck} disabled={checkDisabled}>
           בדיקה
         </button>
-      </div>
+      </div>}
 
       {/* Message */}
-      <div className="tsp-message">{message}</div>
+      {gameStarted && <div className="tsp-message">{message}</div>}
 
       {/* Top Buttons */}
-      <div className="tsp-top-buttons">
+      {gameStarted && <div className="tsp-top-buttons">
         <button className="tsp-top-btn tsp-info-btn" onClick={() => { closeAllPanels(); setShowInfoPanel(true); }}>
           <span role="img" aria-label="info">&#x1F393;</span>
         </button>
@@ -272,10 +322,10 @@ export default function TSPGame({ onComplete }: TSPGameProps) {
         <button className="tsp-top-btn tsp-hint-btn" onClick={handleHint}>
           <span role="img" aria-label="hint">&#x1F4A1;</span>
         </button>
-      </div>
+      </div>}
 
       {/* Left Buttons */}
-      <div className="tsp-left-buttons">
+      {gameStarted && <div className="tsp-left-buttons">
         <button className="tsp-left-btn tsp-undo-btn" onClick={handleUndo}>
           <span role="img" aria-label="undo">&#x21A9;&#xFE0F;</span>
         </button>
@@ -285,16 +335,16 @@ export default function TSPGame({ onComplete }: TSPGameProps) {
         <button className="tsp-left-btn tsp-exit-btn" onClick={handleExit}>
           <span role="img" aria-label="exit">&#x2715;</span>
         </button>
-      </div>
+      </div>}
 
       {/* Overlay */}
-      <div
+      {gameStarted && <div
         className={`tsp-overlay ${showHelpPanel || showInfoPanel ? 'visible' : ''}`}
         onClick={closeAllPanels}
-      />
+      />}
 
       {/* Help Panel */}
-      <div className={`tsp-side-panel ${showHelpPanel ? 'open' : ''}`}>
+      {gameStarted && <div className={`tsp-side-panel ${showHelpPanel ? 'open' : ''}`}>
         <div className="tsp-panel-title">
           <span>&#x1F3AE;</span>
           <span>איך משחקים?</span>
@@ -319,17 +369,17 @@ export default function TSPGame({ onComplete }: TSPGameProps) {
             <li>&#x1F504; איפוס - להתחיל מחדש</li>
           </ol>
         </div>
-      </div>
-      <button
+      </div>}
+      {gameStarted && <button
         className={`tsp-panel-close ${showHelpPanel ? '' : 'hidden'}`}
         onClick={closeAllPanels}
         style={{ opacity: showHelpPanel ? 1 : 0, pointerEvents: showHelpPanel ? 'auto' : 'none' }}
       >
         &#x2715;
-      </button>
+      </button>}
 
       {/* Info Panel */}
-      <div className={`tsp-info-panel ${showInfoPanel ? 'open' : ''}`}>
+      {gameStarted && <div className={`tsp-info-panel ${showInfoPanel ? 'open' : ''}`}>
         <div className="tsp-edu-icon">&#x1F69A;</div>
         <div className="tsp-edu-title">מה לומדים כאן?</div>
 
@@ -358,17 +408,17 @@ export default function TSPGame({ onComplete }: TSPGameProps) {
             <p>בהנדסת תעשייה וניהול מפתחים דרך חשיבה שעוזרת להתמודד עם אתגרים כאלה.</p>
           </div>
         </div>
-      </div>
-      <button
+      </div>}
+      {gameStarted && <button
         className={`tsp-info-panel-close ${showInfoPanel ? '' : 'hidden'}`}
         onClick={closeAllPanels}
         style={{ opacity: showInfoPanel ? 1 : 0, pointerEvents: showInfoPanel ? 'auto' : 'none' }}
       >
         &#x2715;
-      </button>
+      </button>}
 
       {/* Result Overlay */}
-      <div className={`tsp-result-overlay ${showResult ? 'show' : ''}`}>
+      {gameStarted && <div className={`tsp-result-overlay ${showResult ? 'show' : ''}`}>
         <div className="tsp-result-card">
           <div className="tsp-result-icon">&#x1F4CA;</div>
           <div className="tsp-result-title">סיום המסלול</div>
@@ -391,15 +441,15 @@ export default function TSPGame({ onComplete }: TSPGameProps) {
           </div>
 
           <div className="tsp-modal-buttons">
-            <button className="tsp-modal-btn main" onClick={handlePlayAgain}>
-              &#x1F501; שחק שוב
+            <button className="tsp-modal-btn main" onClick={handleFinish}>
+              ➤ המשך בסיור
             </button>
-            <button className="tsp-modal-btn ghost" onClick={handleFinish}>
-              סיים
+            <button className="tsp-modal-btn ghost" onClick={handlePlayAgain}>
+              🔁 שחק שוב
             </button>
           </div>
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

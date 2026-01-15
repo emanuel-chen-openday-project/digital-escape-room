@@ -44,6 +44,7 @@ export default function FactoryTour({ nickname, onTourComplete }: FactoryTourPro
   const [currentGame, setCurrentGame] = useState<string | null>(null);
   const [showInstructions, setShowInstructions] = useState(false);
   const [tourComplete, setTourComplete] = useState(false);
+  const [gameTransition, setGameTransition] = useState<'entering' | 'exiting' | null>(null);
 
   // Initialize Babylon.js
   useEffect(() => {
@@ -122,8 +123,15 @@ export default function FactoryTour({ nickname, onTourComplete }: FactoryTourPro
             if (result.shouldShowGame) {
               const gameInfo = GAME_STATIONS[result.stationIndex];
               if (gameInfo) {
+                // Hide station info before showing game
+                setShowStationInfo(false);
                 setCurrentGame(gameInfo.name);
-                setShowGameModal(true);
+                setGameTransition('entering');
+                // Small delay for fade out, then show game
+                setTimeout(() => {
+                  setShowGameModal(true);
+                  setGameTransition(null);
+                }, 300);
               }
             } else {
               setShowNextButton(true);
@@ -182,9 +190,14 @@ export default function FactoryTour({ nickname, onTourComplete }: FactoryTourPro
     if (result) {
       console.log('Game completed:', result);
     }
-    setShowGameModal(false);
-    setCurrentGame(null);
-    setShowNextButton(true);
+    // Start exit transition
+    setGameTransition('exiting');
+    setTimeout(() => {
+      setShowGameModal(false);
+      setCurrentGame(null);
+      setGameTransition(null);
+      setShowNextButton(true);
+    }, 400);
   }, []);
 
   const handleNextStation = useCallback(() => {
@@ -259,7 +272,9 @@ export default function FactoryTour({ nickname, onTourComplete }: FactoryTourPro
       {/* Game Modal */}
       {showGameModal && currentGame && (
         currentGame === 'TSP' ? (
-          <TSPGame onComplete={handleContinueAfterGame} />
+          <div className={`game-wrapper ${gameTransition === 'exiting' ? 'fade-out' : 'fade-in'}`}>
+            <TSPGame onComplete={handleContinueAfterGame} />
+          </div>
         ) : (
           <div className="game-modal-overlay">
             <div className="game-modal">
