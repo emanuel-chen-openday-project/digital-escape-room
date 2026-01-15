@@ -419,10 +419,18 @@ export default function TSPGame({ onComplete }: TSPGameProps) {
 
       {/* Result Overlay */}
       {gameStarted && <div className={`tsp-result-overlay ${showResult ? 'show' : ''}`}>
-        <div className="tsp-result-card">
-          <div className="tsp-result-icon">&#x1F4CA;</div>
-          <div className="tsp-result-title">סיום המסלול</div>
-          <div className="tsp-result-subtitle">תוצאות</div>
+        {/* Confetti animation for success */}
+        {resultData.solved && showResult && (
+          <div className="tsp-confetti">
+            {[...Array(20)].map((_, i) => (
+              <div key={i} className="tsp-confetti-piece" style={{ '--delay': `${i * 0.1}s`, '--x': `${Math.random() * 100}%` } as React.CSSProperties} />
+            ))}
+          </div>
+        )}
+        <div className={`tsp-result-card ${resultData.solved ? 'success-card' : ''}`}>
+          <div className="tsp-result-icon">{resultData.solved ? '🏆' : '📊'}</div>
+          <div className="tsp-result-title">{resultData.solved ? 'מעולה!' : 'סיום המסלול'}</div>
+          <div className="tsp-result-subtitle">{resultData.solved ? 'פתרת את החידה בצורה מושלמת!' : 'תוצאות'}</div>
 
           <div className="tsp-results-box">
             <div className="tsp-results-row">
@@ -435,14 +443,14 @@ export default function TSPGame({ onComplete }: TSPGameProps) {
             </div>
             <div className={`tsp-result-message ${resultData.solved ? 'success' : 'fail'}`}>
               {resultData.solved
-                ? '&#x1F3C6; כל הכבוד! זה המסלול הטוב ביותר!'
-                : `&#x1F90F; המסלול ארוך ב-${resultData.playerDistance - optimalDistance} ק"מ מהטוב ביותר`}
+                ? '⭐ המסלול הקצר ביותר האפשרי!'
+                : `🤏 המסלול ארוך ב-${resultData.playerDistance - optimalDistance} ק"מ מהטוב ביותר`}
             </div>
           </div>
 
           <div className="tsp-modal-buttons">
             <button className="tsp-modal-btn main" onClick={handleFinish}>
-              ➤ המשך בסיור
+              קדימה לחידה הבאה! 🚀
             </button>
             <button className="tsp-modal-btn ghost" onClick={handlePlayAgain}>
               🔁 שחק שוב
