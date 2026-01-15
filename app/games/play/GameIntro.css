@@ -1,0 +1,241 @@
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;900&display=swap');
+
+.game-intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  font-family: 'Heebo', sans-serif;
+  overflow: hidden;
+}
+
+.game-intro-backdrop {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+/* Content */
+.game-intro-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: opacity 0.3s ease;
+}
+
+.game-intro-content.fade-out {
+  opacity: 0;
+}
+
+/* Puzzle Badge */
+.game-intro-puzzle-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Game Icon */
+.game-intro-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: iconBounce 1s ease-out;
+}
+
+@keyframes iconBounce {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Title */
+.game-intro-title {
+  font-size: 36px;
+  font-weight: 900;
+  color: white;
+  margin: 0 0 40px 0;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  animation: titleFade 0.8s ease-out;
+}
+
+@keyframes titleFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Countdown */
+.game-intro-countdown {
+  font-size: 120px;
+  font-weight: 900;
+  color: #667eea;
+  text-shadow: 0 0 40px rgba(102, 126, 234, 0.8),
+               0 0 80px rgba(102, 126, 234, 0.4);
+  animation: countdownPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes countdownPop {
+  0% { transform: scale(2); opacity: 0; }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Go Text */
+.game-intro-go {
+  font-size: 80px;
+  font-weight: 900;
+  color: #f39c12;
+  text-shadow: 0 0 40px rgba(243, 156, 18, 0.8),
+               0 0 80px rgba(243, 156, 18, 0.4);
+  animation: goFlash 0.5s ease-out;
+}
+
+@keyframes goFlash {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Industrial Doors */
+.game-intro-doors {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.game-intro-door-left,
+.game-intro-door-right {
+  width: 50%;
+  height: 100%;
+  position: relative;
+  background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+.game-intro-door-left {
+  border-right: 4px solid #34495e;
+}
+
+.game-intro-door-right {
+  border-left: 4px solid #34495e;
+}
+
+/* Door Texture - Industrial Stripes */
+.door-texture {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding: 40px 20px;
+}
+
+.door-stripe {
+  height: 60px;
+  background: repeating-linear-gradient(
+    45deg,
+    #f39c12,
+    #f39c12 20px,
+    #2c3e50 20px,
+    #2c3e50 40px
+  );
+  border-radius: 4px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Door Handle */
+.door-handle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 80px;
+  background: linear-gradient(90deg, #7f8c8d, #95a5a6, #7f8c8d);
+  border-radius: 4px;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);
+}
+
+.game-intro-door-left .door-handle {
+  right: 30px;
+}
+
+.game-intro-door-right .door-handle {
+  left: 30px;
+}
+
+/* Rivets on doors */
+.game-intro-door-left::before,
+.game-intro-door-left::after,
+.game-intro-door-right::before,
+.game-intro-door-right::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle, #7f8c8d 0%, #5d6d7e 100%);
+  border-radius: 50%;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.3),
+              0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-intro-door-left::before {
+  top: 30px;
+  left: 30px;
+}
+
+.game-intro-door-left::after {
+  bottom: 30px;
+  left: 30px;
+}
+
+.game-intro-door-right::before {
+  top: 30px;
+  right: 30px;
+}
+
+.game-intro-door-right::after {
+  bottom: 30px;
+  right: 30px;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 600px) {
+  .game-intro-puzzle-badge {
+    font-size: 14px;
+    padding: 8px 18px;
+  }
+
+  .game-intro-icon {
+    font-size: 60px;
+  }
+
+  .game-intro-title {
+    font-size: 28px;
+  }
+
+  .game-intro-countdown {
+    font-size: 90px;
+  }
+
+  .game-intro-go {
+    font-size: 60px;
+  }
+
+  .door-stripe {
+    height: 40px;
+  }
+}

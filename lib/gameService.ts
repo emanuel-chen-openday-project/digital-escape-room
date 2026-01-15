@@ -24,6 +24,10 @@ import {
   LeaderboardEntry,
   StationScore,
   LEADERBOARD_LIMIT,
+  PuzzleType,
+  MiniGameResult,
+  EnhancedGameSession,
+  EnhancedLeaderboardEntry,
 } from './types';
 
 // ============================================
@@ -96,6 +100,10 @@ export async function createGameSession(
 
   const newSession: Omit<GameSession, 'startedAt'> & {
     startedAt: ReturnType<typeof serverTimestamp>;
+    puzzleResults: Record<string, never>;
+    totalHintsUsed: number;
+    puzzlesSolved: number;
+    completedAllPuzzles: boolean;
   } = {
     odId,
     nickname,
@@ -105,6 +113,11 @@ export async function createGameSession(
     currentStation: 1,
     stationScores: {},
     totalScore: 0,
+    // Initialize puzzle tracking fields
+    puzzleResults: {},
+    totalHintsUsed: 0,
+    puzzlesSolved: 0,
+    completedAllPuzzles: false,
   };
 
   const docRef = await addDoc(sessionsRef, newSession);
@@ -326,4 +339,210 @@ export async function getUserSessions(odId: string): Promise<GameSessionWithId[]
     id: docSnap.id,
     ...docSnap.data(),
   })) as GameSessionWithId[];
+}
+
+// ============================================
+// Puzzle Results Management
+// ============================================
+
+/**
+ * Saves a puzzle result for a specific game session
+ */
+export async function savePuzzleResult(
+  sessionId: string,
+  puzzleType: PuzzleType,
+  result: { solved: boolean; hintsUsed: number; timeSeconds: number }
+): Promise<void> {
+  const sessionRef = doc(db, COLLECTIONS.GAME_SESSIONS, sessionId);
+
+  // Get current session to calculate totals
+  const sessionSnap = await getDoc(sessionRef);
+  if (!sessionSnap.exists()) {
+    throw new Error(`Session ${sessionId} not found`);
+  }
+
+  const session = sessionSnap.data() as EnhancedGameSession;
+  const currentPuzzleResults = session.puzzleResults || {};
+  const currentTotalHints = session.totalHintsUsed || 0;
+  const currentPuzzlesSolved = session.puzzlesSolved || 0;
+
+  // Create the puzzle result
+  const puzzleResult: MiniGameResult = {
+    solved: result.solved,
+    hintsUsed: result.hintsUsed,
+    timeSeconds: result.timeSeconds,
+    completedAt: Timestamp.now(),
+  };
+
+  // Calculate new totals
+  const newTotalHints = currentTotalHints + result.hintsUsed;
+  const newPuzzlesSolved = currentPuzzlesSolved + (result.solved ? 1 : 0);
+  const completedAllPuzzles = newPuzzlesSolved === 3;
+
+  await updateDoc(sessionRef, {
+    [`puzzleResults.${puzzleType}`]: puzzleResult,
+    totalHintsUsed: newTotalHints,
+    puzzlesSolved: newPuzzlesSolved,
+    completedAllPuzzles,
+  });
+}
+
+/**
+ * Gets enhanced leaderboard sorted by:
+ * 1. Completed all 3 puzzles (first)
+ * 2. Fewer hints used
+ * 3. Less total time
+ */
+export async function getEnhancedLeaderboard(
+  limitCount: number = LEADERBOARD_LIMIT
+): Promise<EnhancedLeaderboardEntry[]> {
+  const sessionsRef = collection(db, COLLECTIONS.GAME_SESSIONS);
+
+  // Query completed games
+  const q = query(
+    sessionsRef,
+    where('status', '==', 'completed'),
+    limit(limitCount * 3) // Fetch more to filter duplicates
+  );
+
+  const querySnapshot = await getDocs(q);
+
+  // Filter to keep only best result per nickname
+  const nicknameScores = new Map<string, EnhancedLeaderboardEntry>();
+
+  querySnapshot.forEach((docSnap) => {
+    const session = docSnap.data() as EnhancedGameSession;
+    const existing = nicknameScores.get(session.nickname);
+
+    // Calculate total time from puzzle results
+    const puzzleResults = session.puzzleResults || {};
+    const totalTimeSeconds =
+      (puzzleResults.TSP?.timeSeconds || 0) +
+      (puzzleResults.Hungarian?.timeSeconds || 0) +
+      (puzzleResults.Knapsack?.timeSeconds || 0);
+
+    const entry: EnhancedLeaderboardEntry = {
+      nickname: session.nickname,
+      odId: session.odId,
+      sessionId: docSnap.id,
+      finishedAt: session.finishedAt as Timestamp,
+      puzzlesSolved: session.puzzlesSolved || 0,
+      completedAllPuzzles: session.completedAllPuzzles || false,
+      totalHintsUsed: session.totalHintsUsed || 0,
+      totalTimeSeconds,
+      puzzleResults,
+    };
+
+    // Compare with existing entry for same nickname
+    if (!existing || isBetterScore(entry, existing)) {
+      nicknameScores.set(session.nickname, entry);
+    }
+  });
+
+  // Sort by: completedAllPuzzles > fewer hints > less time
+  return Array.from(nicknameScores.values())
+    .sort((a, b) => {
+      // First: completed all puzzles
+      if (a.completedAllPuzzles !== b.completedAllPuzzles) {
+        return a.completedAllPuzzles ? -1 : 1;
+      }
+      // Second: more puzzles solved
+      if (a.puzzlesSolved !== b.puzzlesSolved) {
+        return b.puzzlesSolved - a.puzzlesSolved;
+      }
+      // Third: fewer hints
+      if (a.totalHintsUsed !== b.totalHintsUsed) {
+        return a.totalHintsUsed - b.totalHintsUsed;
+      }
+      // Fourth: less time
+      return a.totalTimeSeconds - b.totalTimeSeconds;
+    })
+    .slice(0, limitCount);
+}
+
+/**
+ * Helper function to determine if a new entry is better than an existing one
+ */
+function isBetterScore(
+  newEntry: EnhancedLeaderboardEntry,
+  existing: EnhancedLeaderboardEntry
+): boolean {
+  // First: completed all puzzles wins
+  if (newEntry.completedAllPuzzles !== existing.completedAllPuzzles) {
+    return newEntry.completedAllPuzzles;
+  }
+  // Second: more puzzles solved wins
+  if (newEntry.puzzlesSolved !== existing.puzzlesSolved) {
+    return newEntry.puzzlesSolved > existing.puzzlesSolved;
+  }
+  // Third: fewer hints wins
+  if (newEntry.totalHintsUsed !== existing.totalHintsUsed) {
+    return newEntry.totalHintsUsed < existing.totalHintsUsed;
+  }
+  // Fourth: less time wins
+  return newEntry.totalTimeSeconds < existing.totalTimeSeconds;
+}
+
+/**
+ * Subscribes to real-time enhanced leaderboard updates
+ */
+export function subscribeToEnhancedLeaderboard(
+  callback: (entries: EnhancedLeaderboardEntry[]) => void,
+  limitCount: number = LEADERBOARD_LIMIT
+): Unsubscribe {
+  const sessionsRef = collection(db, COLLECTIONS.GAME_SESSIONS);
+
+  const q = query(
+    sessionsRef,
+    where('status', '==', 'completed'),
+    limit(limitCount * 3)
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const nicknameScores = new Map<string, EnhancedLeaderboardEntry>();
+
+    snapshot.forEach((docSnap) => {
+      const session = docSnap.data() as EnhancedGameSession;
+      const existing = nicknameScores.get(session.nickname);
+
+      const puzzleResults = session.puzzleResults || {};
+      const totalTimeSeconds =
+        (puzzleResults.TSP?.timeSeconds || 0) +
+        (puzzleResults.Hungarian?.timeSeconds || 0) +
+        (puzzleResults.Knapsack?.timeSeconds || 0);
+
+      const entry: EnhancedLeaderboardEntry = {
+        nickname: session.nickname,
+        odId: session.odId,
+        sessionId: docSnap.id,
+        finishedAt: session.finishedAt as Timestamp,
+        puzzlesSolved: session.puzzlesSolved || 0,
+        completedAllPuzzles: session.completedAllPuzzles || false,
+        totalHintsUsed: session.totalHintsUsed || 0,
+        totalTimeSeconds,
+        puzzleResults,
+      };
+
+      if (!existing || isBetterScore(entry, existing)) {
+        nicknameScores.set(session.nickname, entry);
+      }
+    });
+
+    const entries = Array.from(nicknameScores.values())
+      .sort((a, b) => {
+        if (a.completedAllPuzzles !== b.completedAllPuzzles) {
+          return a.completedAllPuzzles ? -1 : 1;
+        }
+        if (a.puzzlesSolved !== b.puzzlesSolved) {
+          return b.puzzlesSolved - a.puzzlesSolved;
+        }
+        if (a.totalHintsUsed !== b.totalHintsUsed) {
+          return a.totalHintsUsed - b.totalHintsUsed;
+        }
+        return a.totalTimeSeconds - b.totalTimeSeconds;
+      })
+      .slice(0, limitCount);
+
+    callback(entries);
+  });
 }

@@ -106,3 +106,55 @@ export const MINI_GAME_STATIONS: string[] = [];
 
 export const TOTAL_STATIONS = 10;
 export const LEADERBOARD_LIMIT = 10;
+
+// ============================================
+// Puzzle/Mini-Game Result Types
+// ============================================
+
+export type PuzzleType = 'TSP' | 'Hungarian' | 'Knapsack';
+
+export interface MiniGameResult {
+  solved: boolean;
+  hintsUsed: number;
+  timeSeconds: number;
+  completedAt: Timestamp;
+}
+
+export interface PuzzleResults {
+  TSP?: MiniGameResult;
+  Hungarian?: MiniGameResult;
+  Knapsack?: MiniGameResult;
+}
+
+// ============================================
+// Enhanced Game Session with Puzzle Results
+// ============================================
+
+export interface EnhancedGameSession extends GameSession {
+  puzzleResults: PuzzleResults;
+  totalHintsUsed: number;
+  puzzlesSolved: number;
+  completedAllPuzzles: boolean;
+}
+
+export interface EnhancedGameSessionWithId extends EnhancedGameSession {
+  id: string;
+}
+
+// ============================================
+// Enhanced Leaderboard (sorted by puzzles, hints, time)
+// ============================================
+
+export interface EnhancedLeaderboardEntry {
+  nickname: string;
+  odId: string;
+  sessionId: string;
+  finishedAt: Timestamp;
+  puzzlesSolved: number;
+  completedAllPuzzles: boolean;
+  totalHintsUsed: number;
+  totalTimeSeconds: number;
+  puzzleResults: PuzzleResults;
+}
+
+export const TOTAL_PUZZLES = 3;

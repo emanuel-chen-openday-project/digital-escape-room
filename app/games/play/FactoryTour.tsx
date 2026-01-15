@@ -20,13 +20,17 @@ import {
   addExitStation
 } from './factory/gameLogic';
 import { TSPGame, GameResult } from './tsp';
+import GameIntro from './GameIntro';
+import { savePuzzleResult } from '@/lib/gameService';
+import { PuzzleType } from '@/lib/types';
 
 interface FactoryTourProps {
   nickname: string;
+  sessionId?: string;
   onTourComplete: () => void;
 }
 
-export default function FactoryTour({ nickname, onTourComplete }: FactoryTourProps) {
+export default function FactoryTour({ nickname, sessionId, onTourComplete }: FactoryTourProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<BABYLON.Engine | null>(null);
   const sceneRef = useRef<BABYLON.Scene | null>(null);
@@ -45,6 +49,8 @@ export default function FactoryTour({ nickname, onTourComplete }: FactoryTourPro
   const [showInstructions, setShowInstructions] = useState(false);
   const [tourComplete, setTourComplete] = useState(false);
   const [gameTransition, setGameTransition] = useState<'entering' | 'exiting' | null>(null);
+  const [showGameIntro, setShowGameIntro] = useState(false);
+  const [currentGameInfo, setCurrentGameInfo] = useState<{ puzzleNumber: number; gameName: string; gameIcon: string } | null>(null);
 
   // Initialize Babylon.js
   useEffect(() => {
@@ -123,15 +129,18 @@ export default function FactoryTour({ nickname, onTourComplete }: FactoryTourPro
             if (result.shouldShowGame) {
               const gameInfo = GAME_STATIONS[result.stationIndex];
               if (gameInfo) {
-                // Hide station info before showing game
+                // Hide station info before showing game intro
                 setShowStationInfo(false);
                 setCurrentGame(gameInfo.name);
-                setGameTransition('entering');
-                // Small delay for fade out, then show game
-                setTimeout(() => {
-                  setShowGameModal(true);
-                  setGameTransition(null);
-                }, 300);
+                // Calculate puzzle number (TSP is puzzle 1, etc.)
+                const puzzleNumber = gameInfo.name === 'TSP' ? 1 : gameInfo.name === 'Hungarian' ? 2 : 3;
+                setCurrentGameInfo({
+                  puzzleNumber,
+                  gameName: gameInfo.title,
+                  gameIcon: gameInfo.name === 'TSP' ? '🚛' : gameInfo.name === 'Hungarian' ? '👷' : '📦'
+                });
+                // Show the game intro first
+                setShowGameIntro(true);
               }
             } else {
               setShowNextButton(true);
@@ -185,20 +194,40 @@ export default function FactoryTour({ nickname, onTourComplete }: FactoryTourPro
     }, 2000);
   }, []);
 
-  const handleContinueAfterGame = useCallback((result?: GameResult) => {
-    // Log game result if available
-    if (result) {
-      console.log('Game completed:', result);
+  const handleGameIntroComplete = useCallback(() => {
+    // Intro finished, now show the actual game
+    setShowGameIntro(false);
+    setGameTransition('entering');
+    setTimeout(() => {
+      setShowGameModal(true);
+      setGameTransition(null);
+    }, 100);
+  }, []);
+
+  const handleContinueAfterGame = useCallback(async (result?: GameResult) => {
+    // Save game result to Firestore if available
+    if (result && sessionId && currentGame) {
+      try {
+        await savePuzzleResult(sessionId, currentGame as PuzzleType, {
+          solved: result.solved,
+          hintsUsed: result.hintsUsed,
+          timeSeconds: result.timeSeconds,
+        });
+        console.log('Puzzle result saved:', currentGame, result);
+      } catch (error) {
+        console.error('Failed to save puzzle result:', error);
+      }
     }
     // Start exit transition
     setGameTransition('exiting');
     setTimeout(() => {
       setShowGameModal(false);
       setCurrentGame(null);
+      setCurrentGameInfo(null);
       setGameTransition(null);
       setShowNextButton(true);
     }, 400);
-  }, []);
+  }, [sessionId, currentGame]);
 
   const handleNextStation = useCallback(() => {
     const gameState = gameStateRef.current;
@@ -268,6 +297,17 @@ export default function FactoryTour({ nickname, onTourComplete }: FactoryTourPro
       >
         ➤ המשך לתחנה הבאה
       </button>
+
+      {/* Game Intro Animation */}
+      {showGameIntro && currentGameInfo && (
+        <GameIntro
+          puzzleNumber={currentGameInfo.puzzleNumber}
+          totalPuzzles={3}
+          gameName={currentGameInfo.gameName}
+          gameIcon={currentGameInfo.gameIcon}
+          onComplete={handleGameIntroComplete}
+        />
+      )}
 
       {/* Game Modal */}
       {showGameModal && currentGame && (
