@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { gsap } from 'gsap';
+import { useEffect, useState } from 'react';
 import './GameIntro.css';
 
 interface GameIntroProps {
@@ -19,101 +18,66 @@ export default function GameIntro({
   gameIcon,
   onComplete
 }: GameIntroProps) {
-  const [countdown, setCountdown] = useState<number | null>(null);
-  const [phase, setPhase] = useState<'intro' | 'countdown' | 'doors' | 'done'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'countdown' | 'go' | 'done'>('intro');
+  const [countdown, setCountdown] = useState(3);
 
-  const startSequence = useCallback(() => {
-    // Phase 1: Show intro (1 second)
-    setTimeout(() => {
+  useEffect(() => {
+    // Phase 1: Show intro for 1 second
+    const timer = setTimeout(() => {
       setPhase('countdown');
-      setCountdown(3);
     }, 1000);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
-    startSequence();
-  }, [startSequence]);
-
-  useEffect(() => {
-    if (countdown === null) return;
+    if (phase !== 'countdown') return;
 
     if (countdown > 0) {
-      // Animate the countdown number
       const timer = setTimeout(() => {
         setCountdown(countdown - 1);
-      }, 800);
+      }, 500);
       return () => clearTimeout(timer);
     } else {
-      // Countdown finished, open doors
-      setPhase('doors');
-
-      // Animate doors opening
-      gsap.to('.game-intro-door-left', {
-        x: '-100%',
-        duration: 0.8,
-        ease: 'power2.inOut'
-      });
-      gsap.to('.game-intro-door-right', {
-        x: '100%',
-        duration: 0.8,
-        ease: 'power2.inOut',
-        onComplete: () => {
-          setPhase('done');
-          setTimeout(onComplete, 200);
-        }
-      });
+      // Show "Go!" briefly
+      setPhase('go');
+      setTimeout(() => {
+        setPhase('done');
+        setTimeout(onComplete, 300);
+      }, 400);
     }
-  }, [countdown, onComplete]);
+  }, [phase, countdown, onComplete]);
 
   return (
-    <div className="game-intro-overlay">
-      {/* Background */}
+    <div className={`game-intro-overlay ${phase === 'done' ? 'slide-out' : ''}`}>
       <div className="game-intro-backdrop" />
 
-      {/* Content - shown during intro and countdown */}
-      {phase !== 'done' && (
-        <div className={`game-intro-content ${phase === 'doors' ? 'fade-out' : ''}`}>
-          {/* Puzzle indicator */}
-          <div className="game-intro-puzzle-badge">
-            🔧 חידה {puzzleNumber} מתוך {totalPuzzles}
+      <div className="game-intro-content">
+        {/* Badge - always visible until done */}
+        {phase !== 'done' && (
+          <div className="game-intro-badge">
+            🎯 חידה {puzzleNumber} מתוך {totalPuzzles}
           </div>
+        )}
 
-          {/* Game icon and name */}
-          <div className="game-intro-icon">{gameIcon}</div>
-          <h1 className="game-intro-title">{gameName}</h1>
+        {/* Intro content */}
+        {phase === 'intro' && (
+          <>
+            <div className="game-intro-icon">{gameIcon}</div>
+            <h1 className="game-intro-title">{gameName}</h1>
+          </>
+        )}
 
-          {/* Countdown */}
-          {phase === 'countdown' && countdown !== null && countdown > 0 && (
-            <div className="game-intro-countdown" key={countdown}>
-              {countdown}
-            </div>
-          )}
-
-          {/* Go text */}
-          {countdown === 0 && phase === 'countdown' && (
-            <div className="game-intro-go">!יאללה</div>
-          )}
-        </div>
-      )}
-
-      {/* Industrial Doors */}
-      <div className="game-intro-doors">
-        <div className="game-intro-door-left">
-          <div className="door-texture">
-            <div className="door-stripe" />
-            <div className="door-stripe" />
-            <div className="door-stripe" />
+        {/* Countdown numbers */}
+        {phase === 'countdown' && countdown > 0 && (
+          <div className="game-intro-countdown" key={countdown}>
+            {countdown}
           </div>
-          <div className="door-handle" />
-        </div>
-        <div className="game-intro-door-right">
-          <div className="door-texture">
-            <div className="door-stripe" />
-            <div className="door-stripe" />
-            <div className="door-stripe" />
-          </div>
-          <div className="door-handle" />
-        </div>
+        )}
+
+        {/* Go text */}
+        {phase === 'go' && (
+          <div className="game-intro-go">!יאללה</div>
+        )}
       </div>
     </div>
   );
