@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@babylonjs/core": "^8.39.2",
-    "@babylonjs/gui": "^8.39.2",
+    "@babylonjs/gui": "^8.42.0",
     "@babylonjs/loaders": "^8.42.0",
     "firebase": "^12.6.0",
     "gsap": "^3.14.2",
