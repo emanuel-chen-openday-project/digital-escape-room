@@ -5,11 +5,51 @@
   inset: 0;
   font-family: 'Heebo', sans-serif;
   overflow: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1565C0 0%, #0D47A1 50%, #1a237e 100%);
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* Loading Overlay */
+.factory-loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #1565C0 0%, #0D47A1 50%, #1a237e 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  transition: opacity 0.8s ease-out, filter 0.8s ease-out;
+}
+
+.factory-loading-overlay.fade-out {
+  opacity: 0;
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.factory-loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: factorySpinner 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes factorySpinner {
+  to { transform: rotate(360deg); }
+}
+
+.factory-loading-text {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  opacity: 0.9;
 }
 
 .factory-canvas {
@@ -19,6 +59,18 @@
   top: 0;
   left: 0;
   outline: none;
+  animation: canvasReveal 1s ease-out 0.3s both;
+}
+
+@keyframes canvasReveal {
+  from {
+    opacity: 0;
+    filter: blur(15px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
 }
 
 /* Station Info - Mobile */

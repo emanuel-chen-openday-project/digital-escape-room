@@ -48,6 +48,7 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
   const [showInstructions, setShowInstructions] = useState(false);
   const [tourComplete, setTourComplete] = useState(false);
   const [gameTransition, setGameTransition] = useState<'entering' | 'exiting' | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Initialize Babylon.js
   useEffect(() => {
@@ -175,6 +176,11 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
     gameState.currentStation = 1;
     gameState.isMoving = false;
 
+    // Hide loading overlay after a moment
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+
     setShowInstructions(true);
 
     // Open door after delay
@@ -258,6 +264,12 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
   return (
     <div className="factory-container" dir="rtl">
       <canvas ref={canvasRef} className="factory-canvas" />
+
+      {/* Loading Overlay */}
+      <div className={`factory-loading-overlay ${!isLoading ? 'fade-out' : ''}`}>
+        <div className="factory-loading-spinner" />
+        <div className="factory-loading-text">מכינים את המפעל...</div>
+      </div>
 
       {/* Nickname Display */}
       <div className="nickname-display">{nickname}</div>
