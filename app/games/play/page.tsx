@@ -1,11 +1,12 @@
 // @ts-nocheck
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useGame } from '@/lib/contexts/GameContext';
 import { useAuth } from '@/lib/hooks/useAuth';
+import TourIntro from './TourIntro';
 
 const FactoryTour = dynamic(() => import('./FactoryTour'), {
   ssr: false,
@@ -23,6 +24,7 @@ export default function GamePlay() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { nickname, isGameActive, completeGame, resetGame } = useGame();
+  const [showIntro, setShowIntro] = useState(true);
 
   // Redirect if not authenticated or no active game
   useEffect(() => {
@@ -45,12 +47,20 @@ export default function GamePlay() {
     }
   };
 
+  const handleIntroStart = () => {
+    setShowIntro(false);
+  };
+
   if (authLoading || !isGameActive) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
+  }
+
+  if (showIntro) {
+    return <TourIntro onStart={handleIntroStart} />;
   }
 
   return (

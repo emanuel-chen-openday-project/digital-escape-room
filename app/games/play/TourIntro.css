@@ -1,0 +1,226 @@
+/* Tour Intro Screen */
+.tour-intro-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #1565C0 0%, #0D47A1 50%, #1a237e 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+  font-family: "Heebo", Arial, sans-serif;
+  direction: rtl;
+  z-index: 1000;
+}
+
+/* Background Shapes */
+.tour-intro-bg-shapes {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tour-intro-shape {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tour-intro-shape-1 {
+  width: 300px;
+  height: 300px;
+  top: -100px;
+  right: -100px;
+}
+
+.tour-intro-shape-2 {
+  width: 200px;
+  height: 200px;
+  bottom: -50px;
+  left: -50px;
+}
+
+.tour-intro-shape-3 {
+  width: 150px;
+  height: 150px;
+  top: 50%;
+  left: 10%;
+}
+
+/* Rotating Gear */
+.tour-intro-gear-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  opacity: 0.1;
+}
+
+.tour-intro-gear {
+  font-size: 80px;
+  animation: tourIntroRotate 10s linear infinite;
+}
+
+@keyframes tourIntroRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Content */
+.tour-intro-content {
+  text-align: center;
+  z-index: 10;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Main Icon */
+.tour-intro-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  opacity: 0;
+  transform: scale(0);
+}
+
+/* Title */
+.tour-intro-title {
+  font-size: 42px;
+  font-weight: 900;
+  color: white;
+  margin-bottom: 10px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+/* Subtitle */
+.tour-intro-subtitle {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 30px;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+/* Info Card */
+.tour-intro-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  text-align: right;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.tour-intro-card h3 {
+  font-size: 18px;
+  color: #1565C0;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tour-intro-card p {
+  font-size: 15px;
+  color: #37474f;
+  line-height: 1.9;
+  margin-bottom: 12px;
+}
+
+.tour-intro-highlight {
+  color: #1565C0;
+  font-weight: 700;
+}
+
+/* Puzzle Tags */
+.tour-intro-puzzles {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.tour-intro-puzzle-tag {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Start Button */
+.tour-intro-btn {
+  background: linear-gradient(135deg, #ffffff, #e3f2fd);
+  color: #1565C0;
+  border: none;
+  padding: 18px 50px;
+  border-radius: 50px;
+  font-size: 22px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  opacity: 0;
+  transform: translateY(30px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tour-intro-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.tour-intro-btn:active {
+  transform: scale(0.95);
+}
+
+.tour-intro-btn-icon {
+  font-size: 24px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 500px) {
+  .tour-intro-title {
+    font-size: 32px;
+  }
+
+  .tour-intro-subtitle {
+    font-size: 16px;
+  }
+
+  .tour-intro-icon {
+    font-size: 60px;
+  }
+
+  .tour-intro-card {
+    padding: 20px;
+  }
+
+  .tour-intro-puzzle-tag {
+    font-size: 11px;
+    padding: 8px 14px;
+  }
+
+  .tour-intro-btn {
+    padding: 16px 40px;
+    font-size: 20px;
+  }
+
+  .tour-intro-gear {
+    font-size: 60px;
+  }
+}
