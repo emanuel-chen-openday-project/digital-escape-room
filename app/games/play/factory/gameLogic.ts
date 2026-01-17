@@ -296,10 +296,11 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   arrowPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
   const arrowMaterial = new BABYLON.StandardMaterial("arrowMaterial", scene);
-  arrowMaterial.diffuseTexture = dynamicTexture;
-  arrowMaterial.diffuseTexture.hasAlpha = true;
+  arrowMaterial.emissiveTexture = dynamicTexture; // Use emissive for glow effect
+  arrowMaterial.emissiveTexture.hasAlpha = true;
   arrowMaterial.useAlphaFromDiffuseTexture = true;
-  arrowMaterial.emissiveColor = new BABYLON.Color3(0.2, 1, 0.1);
+  arrowMaterial.opacityTexture = dynamicTexture; // Use same texture for alpha
+  arrowMaterial.disableLighting = true; // Pure emissive, no lighting needed
   arrowMaterial.backFaceCulling = false;
   arrowPlane.material = arrowMaterial;
 
@@ -321,17 +322,18 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
 
   // Add bouncing animation
   gsap.to(indicatorRoot.position, {
-    y: indicatorRoot.position.y + 0.3 * SCALE,
-    duration: 0.8,
+    y: indicatorRoot.position.y + 0.4 * SCALE,
+    duration: 0.7,
     ease: "power1.inOut",
     yoyo: true,
     repeat: -1
   });
 
-  // Add pulsing glow effect
-  gsap.to(arrowMaterial, {
-    emissiveColor: new BABYLON.Color3(0.4, 1, 0.2),
-    duration: 0.6,
+  // Add pulsing scale effect for glow
+  gsap.to(arrowPlane.scaling, {
+    x: 1.1,
+    y: 1.1,
+    duration: 0.5,
     ease: "power1.inOut",
     yoyo: true,
     repeat: -1

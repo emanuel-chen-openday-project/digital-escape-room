@@ -49,10 +49,10 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
   const [showNextButton, setShowNextButton] = useState(false);
   const [showGameModal, setShowGameModal] = useState(false);
   const [currentGame, setCurrentGame] = useState<string | null>(null);
-  const [showInstructions, setShowInstructions] = useState(false);
   const [tourComplete, setTourComplete] = useState(false);
   const [gameTransition, setGameTransition] = useState<'entering' | 'exiting' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showArrowHint, setShowArrowHint] = useState(false);
 
   // Initialize Babylon.js
   useEffect(() => {
@@ -139,6 +139,7 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
                   removeArrowIndicator(arrowIndicatorRef.current);
                 }
                 arrowIndicatorRef.current = createArrowIndicator(sceneRef.current, station);
+                setShowArrowHint(true);
               }
             } else {
               setShowNextButton(true);
@@ -178,8 +179,9 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
           removeArrowIndicator(arrowIndicatorRef.current);
           arrowIndicatorRef.current = null;
 
-          // Hide station info and show game
+          // Hide station info and arrow hint, show game
           setShowStationInfo(false);
+          setShowArrowHint(false);
           setCurrentGame(gameInfo.name);
           setGameTransition('entering');
 
@@ -214,8 +216,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
     setTimeout(() => {
       setIsLoading(false);
     }, 800);
-
-    setShowInstructions(true);
 
     // Open door after delay
     setTimeout(() => {
@@ -314,9 +314,9 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
         <div className="station-desc">{stationInfo.description}</div>
       </div>
 
-      {/* Instructions */}
-      <div className={`instructions ${showInstructions && !showGameModal ? 'show' : ''}`}>
-        👆 לחץ על הכפתור למעבר לתחנה הבאה
+      {/* Arrow Hint - shown when arrow indicator is visible */}
+      <div className={`arrow-hint ${showArrowHint && !showGameModal ? 'show' : ''}`}>
+        🎮 לחץ לפתיחת החידה
       </div>
 
       {/* Next Button */}
