@@ -17,7 +17,9 @@ import {
   movePlayerToStation,
   updateCamera,
   createFireworks,
-  addExitStation
+  addExitStation,
+  createStationIndicator,
+  removeStationIndicator
 } from './factory/gameLogic';
 import { TSPGame, GameResult } from './tsp';
 import { StageType } from '@/lib/types';
@@ -40,6 +42,8 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
   const doorRefsRef = useRef<DoorRefs | null>(null);
   const stationsRef = useRef<Station[]>([]);
   const gameStateRef = useRef<GameState>(createInitialGameState());
+  const indicatorRef = useRef<BABYLON.TransformNode | null>(null);
+  const pendingGameRef = useRef<{ name: string; stationIndex: number } | null>(null);
 
   const [currentStation, setCurrentStation] = useState(0);
   const [showStationInfo, setShowStationInfo] = useState(false);
@@ -51,6 +55,7 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
   const [tourComplete, setTourComplete] = useState(false);
   const [gameTransition, setGameTransition] = useState<'entering' | 'exiting' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showClickToPlay, setShowClickToPlay] = useState(false);
 
   // Initialize Babylon.js
   useEffect(() => {
@@ -126,30 +131,21 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
               setShowStationInfo(true);
             }
 
-            if (result.shouldShowGame) {
+            if (result.isGameStation) {
               const gameInfo = GAME_STATIONS[result.stationIndex];
-              if (gameInfo) {
-                // Hide station info before showing game
-                setShowStationInfo(false);
-                setCurrentGame(gameInfo.name);
-                setGameTransition('entering');
+              if (gameInfo && sceneRef.current) {
+                // Store pending game info for when user clicks
+                pendingGameRef.current = { name: gameInfo.name, stationIndex: result.stationIndex };
 
-                // Call startStage for realtime leaderboard tracking
-                const stageMap: Record<string, StageType> = {
-                  'TSP': 'tsp',
-                  'Hungarian': 'hungarian',
-                  'Knapsack': 'knapsack'
-                };
-                const stageType = stageMap[gameInfo.name];
-                if (stageType) {
-                  startStage(stageType).catch(console.error);
+                // Create bouncing indicator above the station
+                if (indicatorRef.current) {
+                  removeStationIndicator(indicatorRef.current);
                 }
+                indicatorRef.current = createStationIndicator(sceneRef.current, station);
 
-                // Small delay then show game
-                setTimeout(() => {
-                  setShowGameModal(true);
-                  setGameTransition(null);
-                }, 100);
+                // Show "click to start" hint
+                setShowNextButton(false);
+                setShowClickToPlay(true);
               }
             } else {
               setShowNextButton(true);
@@ -174,6 +170,55 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
     // Handle resize
     const handleResize = () => engine.resize();
     window.addEventListener('resize', handleResize);
+
+    // Handle click on indicator to start game
+    scene.onPointerDown = (evt, pickInfo) => {
+      if (pickInfo.hit && pendingGameRef.current && indicatorRef.current) {
+        // Check if clicked on indicator or its children
+        const clickedMesh = pickInfo.pickedMesh;
+        const indicatorMeshes = indicatorRef.current.getChildMeshes();
+        const clickedOnIndicator = indicatorMeshes.some(mesh => mesh === clickedMesh);
+
+        if (clickedOnIndicator) {
+          // User clicked on indicator - start the game
+          const gameInfo = pendingGameRef.current;
+
+          // Remove indicator
+          removeStationIndicator(indicatorRef.current);
+          indicatorRef.current = null;
+
+          // Hide station info and click to play hint
+          setShowStationInfo(false);
+          setShowClickToPlay(false);
+          setCurrentGame(gameInfo.name);
+          setGameTransition('entering');
+
+          // Clear waiting state
+          const gameState = gameStateRef.current;
+          gameState.waitingForGameClick = false;
+
+          // Call startStage for realtime leaderboard tracking
+          const stageMap: Record<string, StageType> = {
+            'TSP': 'tsp',
+            'Hungarian': 'hungarian',
+            'Knapsack': 'knapsack'
+          };
+          const stageType = stageMap[gameInfo.name];
+          if (stageType) {
+            startStage(stageType).catch(console.error);
+          }
+
+          // Clear pending game
+          pendingGameRef.current = null;
+
+          // Show game modal
+          setTimeout(() => {
+            setShowGameModal(true);
+            setGameTransition(null);
+          }, 100);
+        }
+      }
+    };
 
     // Start the tour immediately (no start screen)
     startTour();
@@ -299,8 +344,13 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
       </div>
 
       {/* Instructions */}
-      <div className={`instructions ${showInstructions && !showGameModal ? 'show' : ''}`}>
+      <div className={`instructions ${showInstructions && !showGameModal && !showClickToPlay ? 'show' : ''}`}>
         👆 לחץ על הכפתור למעבר לתחנה הבאה
+      </div>
+
+      {/* Click to Play Instructions */}
+      <div className={`instructions click-to-play ${showClickToPlay && !showGameModal ? 'show' : ''}`}>
+        🎮 לחץ על הסמן הירוק כדי להתחיל את המשחק
       </div>
 
       {/* Next Button */}
