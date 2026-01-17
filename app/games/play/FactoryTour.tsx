@@ -52,7 +52,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
   const [tourComplete, setTourComplete] = useState(false);
   const [gameTransition, setGameTransition] = useState<'entering' | 'exiting' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showArrowHint, setShowArrowHint] = useState(false);
 
   // Initialize Babylon.js
   useEffect(() => {
@@ -136,7 +135,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
                   removeArrowIndicator(arrowIndicatorRef.current);
                 }
                 arrowIndicatorRef.current = createArrowIndicator(sceneRef.current, station);
-                setShowArrowHint(true);
               }
             } else {
               // Only show station info for non-game stations
@@ -181,9 +179,8 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
           removeArrowIndicator(arrowIndicatorRef.current);
           arrowIndicatorRef.current = null;
 
-          // Hide station info and arrow hint, show game
+          // Hide station info, show game
           setShowStationInfo(false);
-          setShowArrowHint(false);
           setCurrentGame(gameInfo.name);
           setGameTransition('entering');
 
@@ -314,11 +311,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
       <div className={`station-info ${showStationInfo ? 'show' : ''}`}>
         <div className="station-name">{stationInfo.name}</div>
         <div className="station-desc">{stationInfo.description}</div>
-      </div>
-
-      {/* Arrow Hint - shown when arrow indicator is visible */}
-      <div className={`arrow-hint ${showArrowHint && !showGameModal ? 'show' : ''}`}>
-        לחץ על החץ לפתיחת החידה
       </div>
 
       {/* Next Button */}
