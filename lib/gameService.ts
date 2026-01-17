@@ -28,6 +28,10 @@ import {
   MiniGameResult,
   EnhancedGameSession,
   EnhancedLeaderboardEntry,
+  StageType,
+  RealtimeGameSession,
+  LeaderboardPlayer,
+  GameStageResult,
 } from './types';
 
 // ============================================
@@ -544,5 +548,199 @@ export function subscribeToEnhancedLeaderboard(
       .slice(0, limitCount);
 
     callback(entries);
+  });
+}
+
+// ============================================
+// Stage Management (for Realtime Leaderboard)
+// ============================================
+
+const DEFAULT_STAGE_RESULT: GameStageResult = {
+  completed: false,
+  timeSeconds: 0,
+  hintsUsed: 0,
+  startedAt: null,
+  completedAt: null,
+};
+
+/**
+ * Creates a new realtime game session with stage tracking
+ */
+export async function createRealtimeGameSession(
+  odId: string,
+  nickname: string
+): Promise<string> {
+  const sessionsRef = collection(db, COLLECTIONS.GAME_SESSIONS);
+
+  const newSession = {
+    odId,
+    oduhod: odId,
+    nickname,
+    status: 'active' as const,
+    currentStage: 1,
+    startTime: serverTimestamp(),
+    endTime: null,
+    totalHints: 0,
+    stages: {
+      tsp: DEFAULT_STAGE_RESULT,
+      hungarian: DEFAULT_STAGE_RESULT,
+      knapsack: DEFAULT_STAGE_RESULT,
+    },
+    // Keep legacy fields for backwards compatibility
+    startedAt: serverTimestamp(),
+    finishedAt: null,
+    currentStation: 1,
+    stationScores: {},
+    totalScore: 0,
+    puzzleResults: {},
+    totalHintsUsed: 0,
+    puzzlesSolved: 0,
+    completedAllPuzzles: false,
+  };
+
+  const docRef = await addDoc(sessionsRef, newSession);
+
+  // Increment user's games played count
+  try {
+    const userRef = doc(db, COLLECTIONS.USERS, odId);
+    await updateDoc(userRef, {
+      gamesPlayed: increment(1),
+    });
+  } catch (e) {
+    console.log('User doc not found, skipping increment');
+  }
+
+  return docRef.id;
+}
+
+/**
+ * Marks the start of a specific stage
+ */
+export async function startStage(
+  sessionId: string,
+  stage: StageType
+): Promise<void> {
+  const sessionRef = doc(db, COLLECTIONS.GAME_SESSIONS, sessionId);
+
+  await updateDoc(sessionRef, {
+    [`stages.${stage}.startedAt`]: serverTimestamp(),
+    currentStage: stage === 'tsp' ? 1 : stage === 'hungarian' ? 2 : 3,
+  });
+}
+
+/**
+ * Records a hint used in a specific stage
+ */
+export async function useHint(
+  sessionId: string,
+  stage: StageType
+): Promise<void> {
+  const sessionRef = doc(db, COLLECTIONS.GAME_SESSIONS, sessionId);
+
+  await updateDoc(sessionRef, {
+    [`stages.${stage}.hintsUsed`]: increment(1),
+    totalHints: increment(1),
+    totalHintsUsed: increment(1),
+  });
+}
+
+/**
+ * Completes a specific stage with time and hints
+ */
+export async function completeStage(
+  sessionId: string,
+  stage: StageType,
+  timeSeconds: number,
+  hintsUsed: number
+): Promise<void> {
+  const sessionRef = doc(db, COLLECTIONS.GAME_SESSIONS, sessionId);
+
+  // Calculate next stage
+  const nextStage = stage === 'tsp' ? 2 : stage === 'hungarian' ? 3 : 3;
+
+  await updateDoc(sessionRef, {
+    [`stages.${stage}.completed`]: true,
+    [`stages.${stage}.timeSeconds`]: timeSeconds,
+    [`stages.${stage}.hintsUsed`]: hintsUsed,
+    [`stages.${stage}.completedAt`]: serverTimestamp(),
+    currentStage: nextStage,
+    // Legacy puzzle results
+    [`puzzleResults.${stage.toUpperCase()}`]: {
+      solved: true,
+      hintsUsed,
+      timeSeconds,
+      completedAt: Timestamp.now(),
+    },
+    puzzlesSolved: increment(1),
+  });
+}
+
+/**
+ * Marks the entire game as finished
+ */
+export async function finishRealtimeGame(sessionId: string): Promise<void> {
+  const sessionRef = doc(db, COLLECTIONS.GAME_SESSIONS, sessionId);
+
+  await updateDoc(sessionRef, {
+    status: 'finished',
+    endTime: serverTimestamp(),
+    finishedAt: serverTimestamp(),
+    completedAllPuzzles: true,
+  });
+}
+
+/**
+ * Subscribes to all game sessions for realtime leaderboard
+ */
+export function subscribeToRealtimeLeaderboard(
+  callback: (players: LeaderboardPlayer[]) => void
+): Unsubscribe {
+  const sessionsRef = collection(db, COLLECTIONS.GAME_SESSIONS);
+
+  const q = query(
+    sessionsRef,
+    orderBy('startTime', 'desc'),
+    limit(100)
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const players: LeaderboardPlayer[] = [];
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      // Skip sessions without stages (old format)
+      if (!data.stages) return;
+
+      const stages = data.stages as RealtimeGameSession['stages'];
+
+      players.push({
+        id: docSnap.id,
+        nickname: data.nickname || 'אורח',
+        status: data.status || 'active',
+        currentStage: data.currentStage || 1,
+        startTime: data.startTime?.toMillis?.() || Date.now(),
+        endTime: data.endTime?.toMillis?.() || null,
+        hints: data.totalHints || 0,
+        stageTimes: [
+          stages.tsp?.timeSeconds || 0,
+          stages.hungarian?.timeSeconds || 0,
+          stages.knapsack?.timeSeconds || 0,
+        ],
+      });
+    });
+
+    // Sort: finished first (by total time), then active
+    players.sort((a, b) => {
+      if (a.status === 'finished' && b.status !== 'finished') return -1;
+      if (a.status !== 'finished' && b.status === 'finished') return 1;
+
+      const aTime = a.endTime ? a.endTime - a.startTime : Date.now() - a.startTime;
+      const bTime = b.endTime ? b.endTime - b.startTime : Date.now() - b.startTime;
+
+      return aTime - bTime;
+    });
+
+    callback(players);
   });
 }

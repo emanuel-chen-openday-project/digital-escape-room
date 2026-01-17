@@ -16,9 +16,10 @@ import './TSPGame.css';
 
 interface TSPGameProps {
   onComplete: (result: GameResult) => void;
+  onUseHint?: () => void;
 }
 
-export default function TSPGame({ onComplete }: TSPGameProps) {
+export default function TSPGame({ onComplete, onUseHint }: TSPGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRefsRef = useRef<SceneRefs | null>(null);
   const gameStateRef = useRef<TSPGameState>(createInitialGameState());
@@ -171,7 +172,11 @@ export default function TSPGame({ onComplete }: TSPGameProps) {
     gameState.hintsUsed++;
     const hint = getHint(gameState);
     setMessage('רמז: ' + hint);
-  }, []);
+    // Track hint usage for realtime leaderboard
+    if (onUseHint) {
+      onUseHint();
+    }
+  }, [onUseHint]);
 
   const handleUndo = useCallback(() => {
     const gameState = gameStateRef.current;

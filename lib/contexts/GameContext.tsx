@@ -9,13 +9,17 @@ import React, {
 } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import {
-  createGameSession,
+  createRealtimeGameSession,
   updateCurrentStation as updateStationInDB,
   saveStationScore,
   completeGame as completeGameInDB,
   abandonGame as abandonGameInDB,
+  startStage as startStageInDB,
+  useHint as useHintInDB,
+  completeStage as completeStageInDB,
+  finishRealtimeGame,
 } from '../gameService';
-import { GameState, GameContextValue, TOTAL_STATIONS } from '../types';
+import { GameState, GameContextValue, TOTAL_STATIONS, StageType } from '../types';
 
 // ============================================
 // Initial State
@@ -148,7 +152,7 @@ export function GameProvider({ children }: GameProviderProps) {
         throw new Error('User must be authenticated to start a game');
       }
 
-      const sessionId = await createGameSession(user.uid, nickname);
+      const sessionId = await createRealtimeGameSession(user.uid, nickname);
 
       dispatch({
         type: 'START_GAME',
@@ -158,6 +162,51 @@ export function GameProvider({ children }: GameProviderProps) {
       return sessionId;
     },
     [user]
+  );
+
+  // Start a specific stage (TSP, Hungarian, Knapsack)
+  const startStage = useCallback(
+    async (stage: StageType): Promise<void> => {
+      if (!state.sessionId) {
+        throw new Error('No active game session');
+      }
+      await startStageInDB(state.sessionId, stage);
+    },
+    [state.sessionId]
+  );
+
+  // Use a hint in a specific stage
+  const useHint = useCallback(
+    async (stage: StageType): Promise<void> => {
+      if (!state.sessionId) {
+        throw new Error('No active game session');
+      }
+      await useHintInDB(state.sessionId, stage);
+    },
+    [state.sessionId]
+  );
+
+  // Complete a specific stage
+  const completeStage = useCallback(
+    async (stage: StageType, timeSeconds: number, hintsUsed: number): Promise<void> => {
+      if (!state.sessionId) {
+        throw new Error('No active game session');
+      }
+      await completeStageInDB(state.sessionId, stage, timeSeconds, hintsUsed);
+    },
+    [state.sessionId]
+  );
+
+  // Finish the entire game (all stages done)
+  const finishGame = useCallback(
+    async (): Promise<void> => {
+      if (!state.sessionId) {
+        throw new Error('No active game session');
+      }
+      await finishRealtimeGame(state.sessionId);
+      dispatch({ type: 'COMPLETE_GAME' });
+    },
+    [state.sessionId]
   );
 
   // Set current station
@@ -236,6 +285,11 @@ export function GameProvider({ children }: GameProviderProps) {
     completeGame,
     abandonGame,
     resetGame,
+    // New stage management functions
+    startStage,
+    useHint,
+    completeStage,
+    finishGame,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

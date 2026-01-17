@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  signInWithPopup,
-  signInAnonymously,
-} from "firebase/auth";
-import { auth, googleProvider } from "@/lib/firebase";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously } from "firebase/auth";
+import app from "@/lib/firebase";
 import { Lock, User } from "lucide-react";
 
 export default function LoginPage() {
   const [error, setError] = useState("");
   const [isVisible, setIsVisible] = useState(false);
+
+  const auth = getAuth(app);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -22,12 +21,10 @@ export default function LoginPage() {
   const handleGoogle = async () => {
     try {
       if (navigator.vibrate) navigator.vibrate(5);
-      await signInWithPopup(auth, googleProvider);
+      await signInWithPopup(auth, new GoogleAuthProvider());
       window.location.href = "/dashboard";
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      }
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
@@ -36,10 +33,8 @@ export default function LoginPage() {
       if (navigator.vibrate) navigator.vibrate(5);
       await signInAnonymously(auth);
       window.location.href = "/dashboard";
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      }
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 

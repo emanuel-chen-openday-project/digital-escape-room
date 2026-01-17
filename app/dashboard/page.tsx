@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getAuth, signOut } from "firebase/auth";
+import app from "@/lib/firebase";
 import {
   Gamepad2,
   Trophy,
@@ -16,58 +16,51 @@ import {
 
 const menuItems = [
   {
-    id: 'games',
+    id: 'escape-room',
     label: 'חדר בריחה דיגיטלי',
     icon: Gamepad2,
     color: 'from-violet-500 to-purple-600',
-    shadow: 'shadow-purple-500/30'
+    shadow: 'shadow-purple-500/30',
+    href: '/escape-room'
   },
   {
     id: 'leaderboard',
     label: 'לוח ביצועים',
     icon: Trophy,
     color: 'from-amber-400 to-orange-500',
-    shadow: 'shadow-orange-500/30'
+    shadow: 'shadow-orange-500/30',
+    href: '/leaderboard'
   },
   {
     id: 'register',
     label: 'להרשמה מהירה',
     icon: UserPlus,
     color: 'from-cyan-400 to-blue-500',
-    shadow: 'shadow-blue-500/30'
+    shadow: 'shadow-blue-500/30',
+    href: '/register'
   },
   {
     id: 'info',
     label: 'מידע נוסף',
     icon: Info,
     color: 'from-emerald-400 to-teal-500',
-    shadow: 'shadow-teal-500/30'
+    shadow: 'shadow-teal-500/30',
+    href: '/info'
   },
   {
     id: 'feedback',
     label: 'משוב',
     icon: MessageSquare,
     color: 'from-rose-400 to-pink-500',
-    shadow: 'shadow-pink-500/30'
+    shadow: 'shadow-pink-500/30',
+    href: '/feedback'
   }
 ];
 
-export default function Dashboard() {
+export default function DashboardPage() {
   const [isVisible, setIsVisible] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const router = useRouter();
-
-  // Check auth state
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        router.push('/');
-      } else {
-        setUser(currentUser);
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
+  const auth = getAuth(app);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -76,24 +69,8 @@ export default function Dashboard() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleMenuClick = (id: string) => {
-    switch (id) {
-      case 'games':
-        router.push('/games');
-        break;
-      case 'leaderboard':
-        router.push('/leaderboard');
-        break;
-      case 'register':
-        router.push('/register');
-        break;
-      case 'info':
-        router.push('/info');
-        break;
-      case 'feedback':
-        router.push('/feedback');
-        break;
-    }
+  const handleMenuClick = (href: string) => {
+    router.push(href);
   };
 
   const handleLogout = async () => {
@@ -146,7 +123,7 @@ export default function Dashboard() {
             return (
               <button
                 key={item.id}
-                onClick={() => handleMenuClick(item.id)}
+                onClick={() => handleMenuClick(item.href)}
                 className={`group relative flex items-center justify-between w-full p-4 md:p-5 bg-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500 ease-out overflow-hidden ${
                   isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
                 }`}

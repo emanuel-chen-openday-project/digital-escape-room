@@ -22,7 +22,7 @@ const FactoryTour = dynamic(() => import('./FactoryTour'), {
 export default function GamePlay() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { nickname, isGameActive, completeGame } = useGame();
+  const { nickname, sessionId, isGameActive, finishGame, startStage, completeStage, useHint } = useGame();
 
   // Redirect if not authenticated or no active game
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function GamePlay() {
 
   const handleTourComplete = async () => {
     try {
-      await completeGame();
+      await finishGame();
       router.push('/dashboard');
     } catch (error) {
       console.error('Error completing game:', error);
@@ -56,7 +56,11 @@ export default function GamePlay() {
   return (
     <FactoryTour
       nickname={nickname || 'אורח'}
+      sessionId={sessionId || undefined}
       onTourComplete={handleTourComplete}
+      startStage={startStage}
+      completeStage={completeStage}
+      useHint={useHint}
     />
   );
 }

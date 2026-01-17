@@ -15,6 +15,47 @@ export interface UserProfile {
 export type CreateUserData = Omit<UserProfile, 'createdAt' | 'lastLoginAt' | 'gamesPlayed'>;
 
 // ============================================
+// Game Stage Types (for Leaderboard)
+// ============================================
+
+export type StageType = 'tsp' | 'hungarian' | 'knapsack';
+
+export interface GameStageResult {
+  completed: boolean;
+  timeSeconds: number;
+  hintsUsed: number;
+  startedAt: Timestamp | null;
+  completedAt: Timestamp | null;
+}
+
+export interface RealtimeGameSession {
+  odId: string;
+  oduhod: string;
+  nickname: string;
+  status: 'active' | 'finished';
+  currentStage: number; // 1 = TSP, 2 = Hungarian, 3 = Knapsack
+  startTime: Timestamp;
+  endTime: Timestamp | null;
+  totalHints: number;
+  stages: {
+    tsp: GameStageResult;
+    hungarian: GameStageResult;
+    knapsack: GameStageResult;
+  };
+}
+
+export interface LeaderboardPlayer {
+  id: string;
+  nickname: string;
+  status: 'active' | 'finished';
+  currentStage: number;
+  startTime: number;
+  endTime: number | null;
+  hints: number;
+  stageTimes: [number, number, number];
+}
+
+// ============================================
 // Game Session Types
 // ============================================
 
@@ -86,6 +127,11 @@ export interface GameContextValue extends GameState {
   completeGame: () => Promise<number>;
   abandonGame: () => Promise<void>;
   resetGame: () => void;
+  // Stage management for realtime leaderboard
+  startStage: (stage: StageType) => Promise<void>;
+  useHint: (stage: StageType) => Promise<void>;
+  completeStage: (stage: StageType, timeSeconds: number, hintsUsed: number) => Promise<void>;
+  finishGame: () => Promise<void>;
 }
 
 // ============================================

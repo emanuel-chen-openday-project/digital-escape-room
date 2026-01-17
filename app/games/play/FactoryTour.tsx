@@ -20,16 +20,18 @@ import {
   addExitStation
 } from './factory/gameLogic';
 import { TSPGame, GameResult } from './tsp';
-import { savePuzzleResult } from '@/lib/gameService';
-import { PuzzleType } from '@/lib/types';
+import { StageType } from '@/lib/types';
 
 interface FactoryTourProps {
   nickname: string;
   sessionId?: string;
   onTourComplete: () => void;
+  startStage: (stage: StageType) => Promise<void>;
+  completeStage: (stage: StageType, timeSeconds: number, hintsUsed: number) => Promise<void>;
+  useHint: (stage: StageType) => Promise<void>;
 }
 
-export default function FactoryTour({ nickname, sessionId, onTourComplete }: FactoryTourProps) {
+export default function FactoryTour({ nickname, sessionId, onTourComplete, startStage, completeStage, useHint }: FactoryTourProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<BABYLON.Engine | null>(null);
   const sceneRef = useRef<BABYLON.Scene | null>(null);
@@ -131,6 +133,18 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
                 setShowStationInfo(false);
                 setCurrentGame(gameInfo.name);
                 setGameTransition('entering');
+
+                // Call startStage for realtime leaderboard tracking
+                const stageMap: Record<string, StageType> = {
+                  'TSP': 'tsp',
+                  'Hungarian': 'hungarian',
+                  'Knapsack': 'knapsack'
+                };
+                const stageType = stageMap[gameInfo.name];
+                if (stageType) {
+                  startStage(stageType).catch(console.error);
+                }
+
                 // Small delay then show game
                 setTimeout(() => {
                   setShowGameModal(true);
@@ -195,17 +209,21 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
   }, []);
 
   const handleContinueAfterGame = useCallback(async (result?: GameResult) => {
-    // Save game result to Firestore if available
-    if (result && sessionId && currentGame) {
+    // Save game result to Firestore using completeStage for realtime leaderboard
+    if (result && currentGame) {
       try {
-        await savePuzzleResult(sessionId, currentGame as PuzzleType, {
-          solved: result.solved,
-          hintsUsed: result.hintsUsed,
-          timeSeconds: result.timeSeconds,
-        });
-        console.log('Puzzle result saved:', currentGame, result);
+        const stageMap: Record<string, StageType> = {
+          'TSP': 'tsp',
+          'Hungarian': 'hungarian',
+          'Knapsack': 'knapsack'
+        };
+        const stageType = stageMap[currentGame];
+        if (stageType) {
+          await completeStage(stageType, result.timeSeconds, result.hintsUsed);
+          console.log('Stage completed:', currentGame, result);
+        }
       } catch (error) {
-        console.error('Failed to save puzzle result:', error);
+        console.error('Failed to save stage result:', error);
       }
     }
     // Start exit transition
@@ -216,7 +234,7 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
       setGameTransition(null);
       setShowNextButton(true);
     }, 400);
-  }, [sessionId, currentGame]);
+  }, [currentGame, completeStage]);
 
   const handleNextStation = useCallback(() => {
     const gameState = gameStateRef.current;
@@ -297,7 +315,10 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
       {showGameModal && currentGame && (
         currentGame === 'TSP' ? (
           <div className={`game-wrapper ${gameTransition === 'exiting' ? 'fade-out' : 'fade-in'}`}>
-            <TSPGame onComplete={handleContinueAfterGame} />
+            <TSPGame
+              onComplete={handleContinueAfterGame}
+              onUseHint={() => useHint('tsp').catch(console.error)}
+            />
           </div>
         ) : (
           <div className="game-modal-overlay">
