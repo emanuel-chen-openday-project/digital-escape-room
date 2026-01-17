@@ -123,10 +123,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
 
           if (result.shouldStop) {
             const station = stationsRef.current[result.stationIndex];
-            if (station.hasInfo) {
-              setStationInfo({ name: station.name, description: station.description });
-              setShowStationInfo(true);
-            }
 
             if (result.shouldShowGame) {
               const gameInfo = GAME_STATIONS[result.stationIndex];
@@ -135,6 +131,7 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
                 pendingGameRef.current = { name: gameInfo.name, stationIndex: result.stationIndex };
 
                 // Create arrow indicator above station (don't auto-open game)
+                // Don't show station info for game stations
                 if (arrowIndicatorRef.current) {
                   removeArrowIndicator(arrowIndicatorRef.current);
                 }
@@ -142,6 +139,11 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
                 setShowArrowHint(true);
               }
             } else {
+              // Only show station info for non-game stations
+              if (station.hasInfo) {
+                setStationInfo({ name: station.name, description: station.description });
+                setShowStationInfo(true);
+              }
               setShowNextButton(true);
             }
           }
@@ -316,7 +318,7 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
 
       {/* Arrow Hint - shown when arrow indicator is visible */}
       <div className={`arrow-hint ${showArrowHint && !showGameModal ? 'show' : ''}`}>
-        🎮 לחץ לפתיחת החידה
+        לחץ על החץ לפתיחת החידה
       </div>
 
       {/* Next Button */}
