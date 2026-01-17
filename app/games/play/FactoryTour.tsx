@@ -17,7 +17,9 @@ import {
   movePlayerToStation,
   updateCamera,
   createFireworks,
-  addExitStation
+  addExitStation,
+  createArrowIndicator,
+  removeArrowIndicator
 } from './factory/gameLogic';
 import { TSPGame, GameResult } from './tsp';
 import { savePuzzleResult } from '@/lib/gameService';
@@ -38,6 +40,8 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
   const doorRefsRef = useRef<DoorRefs | null>(null);
   const stationsRef = useRef<Station[]>([]);
   const gameStateRef = useRef<GameState>(createInitialGameState());
+  const arrowIndicatorRef = useRef<BABYLON.TransformNode | null>(null);
+  const pendingGameRef = useRef<{ name: string; stationIndex: number } | null>(null);
 
   const [currentStation, setCurrentStation] = useState(0);
   const [showStationInfo, setShowStationInfo] = useState(false);
@@ -126,16 +130,15 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
 
             if (result.shouldShowGame) {
               const gameInfo = GAME_STATIONS[result.stationIndex];
-              if (gameInfo) {
-                // Hide station info before showing game
-                setShowStationInfo(false);
-                setCurrentGame(gameInfo.name);
-                setGameTransition('entering');
-                // Small delay then show game
-                setTimeout(() => {
-                  setShowGameModal(true);
-                  setGameTransition(null);
-                }, 100);
+              if (gameInfo && sceneRef.current) {
+                // Store pending game info
+                pendingGameRef.current = { name: gameInfo.name, stationIndex: result.stationIndex };
+
+                // Create arrow indicator above station (don't auto-open game)
+                if (arrowIndicatorRef.current) {
+                  removeArrowIndicator(arrowIndicatorRef.current);
+                }
+                arrowIndicatorRef.current = createArrowIndicator(sceneRef.current, station);
               }
             } else {
               setShowNextButton(true);
@@ -160,6 +163,37 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
     // Handle resize
     const handleResize = () => engine.resize();
     window.addEventListener('resize', handleResize);
+
+    // Handle click on arrow indicator to start game
+    scene.onPointerDown = (evt, pickInfo) => {
+      if (pickInfo.hit && pendingGameRef.current && arrowIndicatorRef.current) {
+        const clickedMesh = pickInfo.pickedMesh;
+        const indicatorMeshes = arrowIndicatorRef.current.getChildMeshes();
+        const clickedOnArrow = indicatorMeshes.some(mesh => mesh === clickedMesh);
+
+        if (clickedOnArrow) {
+          const gameInfo = pendingGameRef.current;
+
+          // Remove arrow indicator
+          removeArrowIndicator(arrowIndicatorRef.current);
+          arrowIndicatorRef.current = null;
+
+          // Hide station info and show game
+          setShowStationInfo(false);
+          setCurrentGame(gameInfo.name);
+          setGameTransition('entering');
+
+          // Clear pending game
+          pendingGameRef.current = null;
+
+          // Show game modal
+          setTimeout(() => {
+            setShowGameModal(true);
+            setGameTransition(null);
+          }, 100);
+        }
+      }
+    };
 
     // Start the tour immediately (no start screen)
     startTour();
