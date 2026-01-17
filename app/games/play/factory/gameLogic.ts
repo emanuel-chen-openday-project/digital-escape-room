@@ -231,109 +231,104 @@ export function addExitStation(stations: Station[]): void {
   });
 }
 
-// Create arrow indicator above game station
+// Create puzzle button above game station
 export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BABYLON.TransformNode {
-  const indicatorRoot = new BABYLON.TransformNode("arrowIndicator", scene);
+  const indicatorRoot = new BABYLON.TransformNode("puzzleButton", scene);
   indicatorRoot.position = station.position.clone();
   indicatorRoot.position.y += 4 * SCALE; // Position above the station
 
-  // Create dynamic texture for the neon arrow SVG
-  const textureSize = 256;
-  const dynamicTexture = new BABYLON.DynamicTexture("arrowTexture", textureSize, scene, true);
+  // Create dynamic texture for the puzzle button
+  const textureSize = 512;
+  const dynamicTexture = new BABYLON.DynamicTexture("puzzleButtonTexture", textureSize, scene, true);
   const ctx = dynamicTexture.getContext();
 
-  // Draw the neon arrow circle
   const centerX = textureSize / 2;
   const centerY = textureSize / 2;
-  const radius = 90;
+  const radius = 200;
 
   // Clear with transparent background
   ctx.clearRect(0, 0, textureSize, textureSize);
 
-  // Draw glow effect (multiple circles with decreasing opacity)
-  for (let i = 3; i >= 0; i--) {
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius + i * 8, 0, 2 * Math.PI);
-    ctx.strokeStyle = `rgba(57, 255, 20, ${0.1 - i * 0.02})`;
-    ctx.lineWidth = 10;
-    ctx.stroke();
-  }
+  // Draw outer glow
+  const glowGradient = ctx.createRadialGradient(centerX, centerY, radius - 20, centerX, centerY, radius + 40);
+  glowGradient.addColorStop(0, 'rgba(61, 220, 255, 0.4)');
+  glowGradient.addColorStop(1, 'rgba(61, 220, 255, 0)');
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius + 40, 0, 2 * Math.PI);
+  ctx.fillStyle = glowGradient;
+  ctx.fill();
 
-  // Draw main circle
+  // Draw main circle background (dark gradient)
+  const bgGradient = ctx.createLinearGradient(centerX, centerY - radius, centerX, centerY + radius);
+  bgGradient.addColorStop(0, '#0f1e2b');
+  bgGradient.addColorStop(1, '#05080c');
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-  ctx.strokeStyle = "#39ff14";
-  ctx.lineWidth = 12;
-  ctx.lineCap = "round";
+  ctx.fillStyle = bgGradient;
+  ctx.fill();
+
+  // Draw highlight (top-left shine)
+  const highlightGradient = ctx.createRadialGradient(centerX - 60, centerY - 60, 0, centerX - 60, centerY - 60, 120);
+  highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
+  highlightGradient.addColorStop(1, 'transparent');
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.fillStyle = highlightGradient;
+  ctx.fill();
+
+  // Draw border
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius - 3, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(61, 220, 255, 0.65)';
+  ctx.lineWidth = 4;
   ctx.stroke();
 
-  // Draw arrow - vertical line
-  ctx.beginPath();
-  ctx.moveTo(centerX, centerY - 40);
-  ctx.lineTo(centerX, centerY + 25);
-  ctx.strokeStyle = "#39ff14";
-  ctx.lineWidth = 16;
-  ctx.lineCap = "round";
-  ctx.stroke();
+  // Draw text
+  ctx.fillStyle = '#eafcff';
+  ctx.font = 'bold 42px Assistant, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
 
-  // Draw arrow head
-  ctx.beginPath();
-  ctx.moveTo(centerX - 30, centerY + 5);
-  ctx.lineTo(centerX, centerY + 40);
-  ctx.lineTo(centerX + 30, centerY + 5);
-  ctx.strokeStyle = "#39ff14";
-  ctx.lineWidth = 16;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.stroke();
+  // Split text into two lines
+  ctx.fillText('לחץ כאן', centerX, centerY - 25);
+  ctx.fillText('לפתיחת החידה', centerX, centerY + 30);
 
   dynamicTexture.update();
 
-  // Create the visible arrow plane
-  const arrowPlane = BABYLON.MeshBuilder.CreatePlane("arrowPlane", { size: 2 * SCALE }, scene);
-  arrowPlane.parent = indicatorRoot;
-  arrowPlane.position.y = 0;
-  arrowPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+  // Create the visible button plane
+  const buttonPlane = BABYLON.MeshBuilder.CreatePlane("buttonPlane", { size: 2.5 * SCALE }, scene);
+  buttonPlane.parent = indicatorRoot;
+  buttonPlane.position.y = 0;
+  buttonPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
-  const arrowMaterial = new BABYLON.StandardMaterial("arrowMaterial", scene);
-  arrowMaterial.emissiveTexture = dynamicTexture; // Use emissive for glow effect
-  arrowMaterial.emissiveTexture.hasAlpha = true;
-  arrowMaterial.useAlphaFromDiffuseTexture = true;
-  arrowMaterial.opacityTexture = dynamicTexture; // Use same texture for alpha
-  arrowMaterial.disableLighting = true; // Pure emissive, no lighting needed
-  arrowMaterial.backFaceCulling = false;
-  arrowPlane.material = arrowMaterial;
+  const buttonMaterial = new BABYLON.StandardMaterial("buttonMaterial", scene);
+  buttonMaterial.emissiveTexture = dynamicTexture;
+  buttonMaterial.emissiveTexture.hasAlpha = true;
+  buttonMaterial.opacityTexture = dynamicTexture;
+  buttonMaterial.disableLighting = true;
+  buttonMaterial.backFaceCulling = false;
+  buttonPlane.material = buttonMaterial;
 
-  // Create larger transparent clickable area behind the arrow
+  // Create larger transparent clickable area
   const clickArea = BABYLON.MeshBuilder.CreatePlane("clickArea", { size: 4 * SCALE }, scene);
   clickArea.parent = indicatorRoot;
   clickArea.position.y = 0;
-  clickArea.position.z = 0.01; // Slightly behind
+  clickArea.position.z = 0.01;
   clickArea.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
   const clickMaterial = new BABYLON.StandardMaterial("clickMaterial", scene);
-  clickMaterial.alpha = 0.01; // Almost invisible but clickable
+  clickMaterial.alpha = 0.01;
   clickMaterial.backFaceCulling = false;
   clickArea.material = clickMaterial;
 
   // Mark as pickable
-  arrowPlane.isPickable = true;
+  buttonPlane.isPickable = true;
   clickArea.isPickable = true;
 
-  // Add bouncing animation
+  // Add floating animation
   gsap.to(indicatorRoot.position, {
-    y: indicatorRoot.position.y + 0.4 * SCALE,
-    duration: 0.7,
-    ease: "power1.inOut",
-    yoyo: true,
-    repeat: -1
-  });
-
-  // Add pulsing scale effect for glow
-  gsap.to(arrowPlane.scaling, {
-    x: 1.1,
-    y: 1.1,
-    duration: 0.5,
+    y: indicatorRoot.position.y + 0.3 * SCALE,
+    duration: 1.2,
     ease: "power1.inOut",
     yoyo: true,
     repeat: -1
