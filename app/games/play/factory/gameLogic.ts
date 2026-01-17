@@ -230,3 +230,127 @@ export function addExitStation(stations: Station[]): void {
     shouldStop: false
   });
 }
+
+// Create arrow indicator above game station
+export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BABYLON.TransformNode {
+  const indicatorRoot = new BABYLON.TransformNode("arrowIndicator", scene);
+  indicatorRoot.position = station.position.clone();
+  indicatorRoot.position.y += 4 * SCALE; // Position above the station
+
+  // Create dynamic texture for the neon arrow SVG
+  const textureSize = 256;
+  const dynamicTexture = new BABYLON.DynamicTexture("arrowTexture", textureSize, scene, true);
+  const ctx = dynamicTexture.getContext();
+
+  // Draw the neon arrow circle
+  const centerX = textureSize / 2;
+  const centerY = textureSize / 2;
+  const radius = 90;
+
+  // Clear with transparent background
+  ctx.clearRect(0, 0, textureSize, textureSize);
+
+  // Draw glow effect (multiple circles with decreasing opacity)
+  for (let i = 3; i >= 0; i--) {
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius + i * 8, 0, 2 * Math.PI);
+    ctx.strokeStyle = `rgba(57, 255, 20, ${0.1 - i * 0.02})`;
+    ctx.lineWidth = 10;
+    ctx.stroke();
+  }
+
+  // Draw main circle
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.strokeStyle = "#39ff14";
+  ctx.lineWidth = 12;
+  ctx.lineCap = "round";
+  ctx.stroke();
+
+  // Draw arrow - vertical line
+  ctx.beginPath();
+  ctx.moveTo(centerX, centerY - 40);
+  ctx.lineTo(centerX, centerY + 25);
+  ctx.strokeStyle = "#39ff14";
+  ctx.lineWidth = 16;
+  ctx.lineCap = "round";
+  ctx.stroke();
+
+  // Draw arrow head
+  ctx.beginPath();
+  ctx.moveTo(centerX - 30, centerY + 5);
+  ctx.lineTo(centerX, centerY + 40);
+  ctx.lineTo(centerX + 30, centerY + 5);
+  ctx.strokeStyle = "#39ff14";
+  ctx.lineWidth = 16;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.stroke();
+
+  dynamicTexture.update();
+
+  // Create the visible arrow plane
+  const arrowPlane = BABYLON.MeshBuilder.CreatePlane("arrowPlane", { size: 2 * SCALE }, scene);
+  arrowPlane.parent = indicatorRoot;
+  arrowPlane.position.y = 0;
+  arrowPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+  const arrowMaterial = new BABYLON.StandardMaterial("arrowMaterial", scene);
+  arrowMaterial.diffuseTexture = dynamicTexture;
+  arrowMaterial.diffuseTexture.hasAlpha = true;
+  arrowMaterial.useAlphaFromDiffuseTexture = true;
+  arrowMaterial.emissiveColor = new BABYLON.Color3(0.2, 1, 0.1);
+  arrowMaterial.backFaceCulling = false;
+  arrowPlane.material = arrowMaterial;
+
+  // Create larger transparent clickable area behind the arrow
+  const clickArea = BABYLON.MeshBuilder.CreatePlane("clickArea", { size: 4 * SCALE }, scene);
+  clickArea.parent = indicatorRoot;
+  clickArea.position.y = 0;
+  clickArea.position.z = 0.01; // Slightly behind
+  clickArea.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+  const clickMaterial = new BABYLON.StandardMaterial("clickMaterial", scene);
+  clickMaterial.alpha = 0.01; // Almost invisible but clickable
+  clickMaterial.backFaceCulling = false;
+  clickArea.material = clickMaterial;
+
+  // Mark as pickable
+  arrowPlane.isPickable = true;
+  clickArea.isPickable = true;
+
+  // Add bouncing animation
+  gsap.to(indicatorRoot.position, {
+    y: indicatorRoot.position.y + 0.3 * SCALE,
+    duration: 0.8,
+    ease: "power1.inOut",
+    yoyo: true,
+    repeat: -1
+  });
+
+  // Add pulsing glow effect
+  gsap.to(arrowMaterial, {
+    emissiveColor: new BABYLON.Color3(0.4, 1, 0.2),
+    duration: 0.6,
+    ease: "power1.inOut",
+    yoyo: true,
+    repeat: -1
+  });
+
+  return indicatorRoot;
+}
+
+// Remove arrow indicator
+export function removeArrowIndicator(indicator: BABYLON.TransformNode): void {
+  if (indicator) {
+    gsap.killTweensOf(indicator.position);
+    indicator.getChildMeshes().forEach(mesh => {
+      if (mesh.material) {
+        gsap.killTweensOf(mesh.material);
+        mesh.material.dispose();
+      }
+      mesh.dispose();
+    });
+    indicator.dispose();
+  }
+}
