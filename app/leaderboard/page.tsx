@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { subscribeToRealtimeLeaderboard } from "@/lib/gameService";
+import { subscribeToRealtimeLeaderboard, resetLeaderboard } from "@/lib/gameService";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { LeaderboardPlayer } from "@/lib/types";
 import {
@@ -17,7 +17,8 @@ import {
   Medal,
   Hourglass,
   PieChart,
-  ChevronRight
+  ChevronRight,
+  RotateCcw
 } from 'lucide-react';
 
 // נתוני משחקים - פלטת צבעים חדשה: "Cool Tech" (Sky, Rose, Indigo)
@@ -100,6 +101,26 @@ export default function LeaderboardPage() {
   const [players, setPlayers] = useState<LeaderboardPlayer[]>([]);
   const [filterText, setFilterText] = useState('');
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  const handleReset = async () => {
+    if (!showResetConfirm) {
+      setShowResetConfirm(true);
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const count = await resetLeaderboard();
+      console.log(`Deleted ${count} sessions`);
+      setShowResetConfirm(false);
+    } catch (error) {
+      console.error('Failed to reset leaderboard:', error);
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -198,6 +219,30 @@ export default function LeaderboardPage() {
         <ChevronRight className="w-5 h-5" />
         <span className="font-medium">חזרה</span>
       </button>
+
+      {/* Reset Button - Fixed position */}
+      <div className="fixed top-4 left-4 z-50 flex items-center gap-2">
+        {showResetConfirm && (
+          <button
+            onClick={() => setShowResetConfirm(false)}
+            className="text-slate-500 hover:text-slate-700 transition-colors bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm border border-slate-200"
+          >
+            ביטול
+          </button>
+        )}
+        <button
+          onClick={handleReset}
+          disabled={isResetting}
+          className={`flex items-center gap-2 transition-colors backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm border ${
+            showResetConfirm
+              ? 'bg-red-500 text-white border-red-500 hover:bg-red-600'
+              : 'text-slate-500 hover:text-red-500 bg-white/80 border-slate-200'
+          } ${isResetting ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          <RotateCcw className={`w-5 h-5 ${isResetting ? 'animate-spin' : ''}`} />
+          <span className="font-medium">{showResetConfirm ? 'אישור איפוס' : 'איפוס'}</span>
+        </button>
+      </div>
 
       {/* Centered Header Section */}
       <header className="flex flex-col items-center justify-center bg-white px-6 py-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
