@@ -454,19 +454,32 @@ export default function LeaderboardPage() {
                            {GAME_STAGES.map((stage, i) => {
                              const timeInStage = player.stageTimes[i];
                              const isDone = timeInStage > 0;
+                             const solvedStatus = player.stageSolved?.[i]; // true = solved, false = failed, null = not done
                              // Skipped if not done, but currentStage is beyond this one OR player is finished overall
                              const isSkipped = !isDone && (player.currentStage > i + 1 || player.status === 'finished');
                              const isCurrent = player.currentStage === i + 1 && !isFinished && !isSkipped;
                              const StageIcon = stage.icon;
 
-                             let bgColor = 'bg-slate-100 text-slate-300';
-                             if (isDone) bgColor = 'bg-emerald-500 text-white shadow-sm';
-                             else if (isSkipped) bgColor = 'bg-red-500 text-white shadow-sm';
-                             else if (isCurrent) bgColor = 'bg-slate-200 text-slate-500 ring-2 ring-slate-200'; // Current active
+                             let bgColor = 'bg-slate-100 text-slate-300'; // default: not started
+                             if (isDone) {
+                               // Check if solved correctly or failed
+                               if (solvedStatus === true) {
+                                 bgColor = 'bg-emerald-500 text-white shadow-sm'; // Solved - green
+                               } else if (solvedStatus === false) {
+                                 bgColor = 'bg-orange-500 text-white shadow-sm'; // Failed - orange
+                               } else {
+                                 bgColor = 'bg-emerald-500 text-white shadow-sm'; // Legacy data without solved status
+                               }
+                             } else if (isSkipped) {
+                               bgColor = 'bg-red-500 text-white shadow-sm'; // Skipped - red
+                             } else if (isCurrent) {
+                               bgColor = 'bg-slate-200 text-slate-500 ring-2 ring-slate-200'; // Current active
+                             }
 
                              return (
                                <div
                                 key={stage.id}
+                                title={isDone ? (solvedStatus === true ? 'נפתר בהצלחה ✓' : solvedStatus === false ? 'לא נפתר ✗' : 'הושלם') : isSkipped ? 'דילג' : isCurrent ? 'משחק נוכחי' : 'טרם התחיל'}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${bgColor} ${isCurrent ? 'scale-110' : ''}`}
                                >
                                  <StageIcon size={14} />
