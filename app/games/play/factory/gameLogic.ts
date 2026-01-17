@@ -235,9 +235,9 @@ export function addExitStation(stations: Station[]): void {
 export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BABYLON.TransformNode {
   const indicatorRoot = new BABYLON.TransformNode("puzzleButton", scene);
   indicatorRoot.position = station.position.clone();
-  indicatorRoot.position.y += 4 * SCALE; // Position above the station
+  indicatorRoot.position.y += 4 * SCALE;
 
-  // Create dynamic texture for the puzzle button
+  // Create dynamic texture for the main button
   const textureSize = 512;
   const dynamicTexture = new BABYLON.DynamicTexture("puzzleButtonTexture", textureSize, scene, true);
   const ctx = dynamicTexture.getContext();
@@ -250,53 +250,74 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.clearRect(0, 0, textureSize, textureSize);
 
   // Draw outer glow
-  const glowGradient = ctx.createRadialGradient(centerX, centerY, radius - 20, centerX, centerY, radius + 40);
-  glowGradient.addColorStop(0, 'rgba(61, 220, 255, 0.4)');
-  glowGradient.addColorStop(1, 'rgba(61, 220, 255, 0)');
+  const outerGlow = ctx.createRadialGradient(centerX, centerY, radius - 30, centerX, centerY, radius + 50);
+  outerGlow.addColorStop(0, 'rgba(0, 180, 255, 0.5)');
+  outerGlow.addColorStop(0.5, 'rgba(0, 180, 255, 0.2)');
+  outerGlow.addColorStop(1, 'rgba(0, 180, 255, 0)');
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius + 40, 0, 2 * Math.PI);
-  ctx.fillStyle = glowGradient;
+  ctx.arc(centerX, centerY, radius + 50, 0, 2 * Math.PI);
+  ctx.fillStyle = outerGlow;
   ctx.fill();
 
   // Draw main circle background (dark gradient)
-  const bgGradient = ctx.createLinearGradient(centerX, centerY - radius, centerX, centerY + radius);
-  bgGradient.addColorStop(0, '#0f1e2b');
-  bgGradient.addColorStop(1, '#05080c');
+  const bgGradient = ctx.createLinearGradient(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+  bgGradient.addColorStop(0, '#2a3040');
+  bgGradient.addColorStop(0.4, '#1a1f2a');
+  bgGradient.addColorStop(1, '#12151c');
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
   ctx.fillStyle = bgGradient;
   ctx.fill();
 
-  // Draw highlight (top-left shine)
-  const highlightGradient = ctx.createRadialGradient(centerX - 60, centerY - 60, 0, centerX - 60, centerY - 60, 120);
-  highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
-  highlightGradient.addColorStop(1, 'transparent');
+  // Draw inner highlight (top-left cyan glow)
+  const innerHighlight = ctx.createRadialGradient(centerX - 50, centerY - 60, 0, centerX - 50, centerY - 60, 140);
+  innerHighlight.addColorStop(0, 'rgba(0, 180, 255, 0.3)');
+  innerHighlight.addColorStop(1, 'transparent');
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-  ctx.fillStyle = highlightGradient;
+  ctx.fillStyle = innerHighlight;
   ctx.fill();
 
-  // Draw border
+  // Draw shine/gloss at top
+  ctx.save();
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius - 3, 0, 2 * Math.PI);
-  ctx.strokeStyle = 'rgba(61, 220, 255, 0.65)';
-  ctx.lineWidth = 4;
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.clip();
+
+  const shineGradient = ctx.createLinearGradient(centerX, centerY - radius, centerX, centerY - radius + 120);
+  shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+  shineGradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.05)');
+  shineGradient.addColorStop(1, 'transparent');
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY - radius + 60, radius * 0.64, 60, 0, 0, 2 * Math.PI);
+  ctx.fillStyle = shineGradient;
+  ctx.fill();
+  ctx.restore();
+
+  // Draw cyan border
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius - 2, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(0, 180, 255, 0.9)';
+  ctx.lineWidth = 6;
   ctx.stroke();
 
-  // Draw text
-  ctx.fillStyle = '#eafcff';
-  ctx.font = 'bold 42px Assistant, sans-serif';
+  // Draw text with glow effect
+  ctx.fillStyle = '#e0f0ff';
+  ctx.font = 'bold 46px Heebo, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // Split text into two lines
-  ctx.fillText('לחץ כאן', centerX, centerY - 25);
-  ctx.fillText('לפתיחת החידה', centerX, centerY + 30);
+  // Text glow
+  ctx.shadowColor = 'rgba(0, 180, 255, 0.8)';
+  ctx.shadowBlur = 20;
+  ctx.fillText('לחץ כאן', centerX, centerY - 30);
+  ctx.fillText('לפתיחת החידה', centerX, centerY + 35);
+  ctx.shadowBlur = 0;
 
   dynamicTexture.update();
 
   // Create the visible button plane
-  const buttonPlane = BABYLON.MeshBuilder.CreatePlane("buttonPlane", { size: 2.5 * SCALE }, scene);
+  const buttonPlane = BABYLON.MeshBuilder.CreatePlane("buttonPlane", { size: 3 * SCALE }, scene);
   buttonPlane.parent = indicatorRoot;
   buttonPlane.position.y = 0;
   buttonPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
@@ -309,11 +330,37 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   buttonMaterial.backFaceCulling = false;
   buttonPlane.material = buttonMaterial;
 
+  // Create pulsing glow ring
+  const ringTexture = new BABYLON.DynamicTexture("ringTexture", 256, scene, true);
+  const ringCtx = ringTexture.getContext();
+  ringCtx.clearRect(0, 0, 256, 256);
+  ringCtx.beginPath();
+  ringCtx.arc(128, 128, 100, 0, 2 * Math.PI);
+  ringCtx.strokeStyle = 'rgba(0, 180, 255, 0.5)';
+  ringCtx.lineWidth = 4;
+  ringCtx.stroke();
+  ringTexture.update();
+
+  const ringPlane = BABYLON.MeshBuilder.CreatePlane("ringPlane", { size: 4 * SCALE }, scene);
+  ringPlane.parent = indicatorRoot;
+  ringPlane.position.y = 0;
+  ringPlane.position.z = 0.02;
+  ringPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+  const ringMaterial = new BABYLON.StandardMaterial("ringMaterial", scene);
+  ringMaterial.emissiveTexture = ringTexture;
+  ringMaterial.emissiveTexture.hasAlpha = true;
+  ringMaterial.opacityTexture = ringTexture;
+  ringMaterial.disableLighting = true;
+  ringMaterial.backFaceCulling = false;
+  ringMaterial.alpha = 0.7;
+  ringPlane.material = ringMaterial;
+
   // Create larger transparent clickable area
-  const clickArea = BABYLON.MeshBuilder.CreatePlane("clickArea", { size: 4 * SCALE }, scene);
+  const clickArea = BABYLON.MeshBuilder.CreatePlane("clickArea", { size: 5 * SCALE }, scene);
   clickArea.parent = indicatorRoot;
   clickArea.position.y = 0;
-  clickArea.position.z = 0.01;
+  clickArea.position.z = 0.03;
   clickArea.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
   const clickMaterial = new BABYLON.StandardMaterial("clickMaterial", scene);
@@ -324,13 +371,30 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   // Mark as pickable
   buttonPlane.isPickable = true;
   clickArea.isPickable = true;
+  ringPlane.isPickable = true;
 
   // Add floating animation
   gsap.to(indicatorRoot.position, {
-    y: indicatorRoot.position.y + 0.3 * SCALE,
-    duration: 1.2,
+    y: indicatorRoot.position.y + 0.35 * SCALE,
+    duration: 1.5,
     ease: "power1.inOut",
     yoyo: true,
+    repeat: -1
+  });
+
+  // Add pulsing ring animation
+  gsap.to(ringPlane.scaling, {
+    x: 1.6,
+    y: 1.6,
+    duration: 2,
+    ease: "power1.out",
+    repeat: -1
+  });
+
+  gsap.to(ringMaterial, {
+    alpha: 0,
+    duration: 2,
+    ease: "power1.out",
     repeat: -1
   });
 
