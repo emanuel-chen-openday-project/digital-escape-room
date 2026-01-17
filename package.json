@@ -13,7 +13,12 @@
     "@babylonjs/gui": "^8.42.0",
     "@babylonjs/loaders": "^8.42.0",
     "firebase": "^12.6.0",
+<<<<<<< HEAD
     "gsap": "^3.14.2",
+=======
+    "gsap": "^3.13.0",
+    "lucide-react": "^0.562.0",
+>>>>>>> origin/claude/update-login-design-YiqxU
     "next": "16.0.6",
     "react": "19.2.0",
     "react-dom": "19.2.0",
