@@ -705,8 +705,6 @@ export function subscribeToRealtimeLeaderboard(
 
   return onSnapshot(q, (snapshot) => {
     const players: LeaderboardPlayer[] = [];
-    const now = Date.now();
-    const MAX_ACTIVE_TIME = 30 * 60 * 1000; // 30 minutes timeout for active players
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
@@ -715,27 +713,13 @@ export function subscribeToRealtimeLeaderboard(
       if (!data.stages) return;
 
       const stages = data.stages as RealtimeGameSession['stages'];
-      const startTime = data.startTime?.toMillis?.() || Date.now();
-
-      // Skip active players who have been playing for more than 30 minutes (timed out)
-      if (data.status === 'active' && (now - startTime) > MAX_ACTIVE_TIME) {
-        return;
-      }
-
-      // Extract solved status from puzzleResults
-      const puzzleResults = data.puzzleResults || {};
-      const stageSolved: [boolean | null, boolean | null, boolean | null] = [
-        puzzleResults.TSP?.solved !== undefined ? puzzleResults.TSP.solved : null,
-        puzzleResults.Hungarian?.solved !== undefined ? puzzleResults.Hungarian.solved : null,
-        puzzleResults.Knapsack?.solved !== undefined ? puzzleResults.Knapsack.solved : null,
-      ];
 
       players.push({
         id: docSnap.id,
         nickname: data.nickname || 'אורח',
         status: data.status || 'active',
         currentStage: data.currentStage || 1,
-        startTime: startTime,
+        startTime: data.startTime?.toMillis?.() || Date.now(),
         endTime: data.endTime?.toMillis?.() || null,
         hints: data.totalHints || 0,
         stageTimes: [
@@ -743,7 +727,6 @@ export function subscribeToRealtimeLeaderboard(
           stages.hungarian?.timeSeconds || 0,
           stages.knapsack?.timeSeconds || 0,
         ],
-        stageSolved,
       });
     });
 
@@ -760,25 +743,4 @@ export function subscribeToRealtimeLeaderboard(
 
     callback(players);
   });
-}
-
-/**
- * Resets/clears all game sessions from the leaderboard
- */
-export async function resetLeaderboard(): Promise<number> {
-  const sessionsRef = collection(db, COLLECTIONS.GAME_SESSIONS);
-  const q = query(sessionsRef);
-  const snapshot = await getDocs(q);
-
-  let deletedCount = 0;
-  const { deleteDoc } = await import('firebase/firestore');
-
-  const deletePromises = snapshot.docs.map(async (docSnap) => {
-    await deleteDoc(doc(db, COLLECTIONS.GAME_SESSIONS, docSnap.id));
-    deletedCount++;
-  });
-
-  await Promise.all(deletePromises);
-
-  return deletedCount;
 }
