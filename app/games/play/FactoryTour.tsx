@@ -17,23 +17,19 @@ import {
   movePlayerToStation,
   updateCamera,
   createFireworks,
-  addExitStation,
-  createStationIndicator,
-  removeStationIndicator
+  addExitStation
 } from './factory/gameLogic';
 import { TSPGame, GameResult } from './tsp';
-import { StageType } from '@/lib/types';
+import { savePuzzleResult } from '@/lib/gameService';
+import { PuzzleType } from '@/lib/types';
 
 interface FactoryTourProps {
   nickname: string;
   sessionId?: string;
   onTourComplete: () => void;
-  startStage: (stage: StageType) => Promise<void>;
-  completeStage: (stage: StageType, timeSeconds: number, hintsUsed: number) => Promise<void>;
-  useHint: (stage: StageType) => Promise<void>;
 }
 
-export default function FactoryTour({ nickname, sessionId, onTourComplete, startStage, completeStage, useHint }: FactoryTourProps) {
+export default function FactoryTour({ nickname, sessionId, onTourComplete }: FactoryTourProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<BABYLON.Engine | null>(null);
   const sceneRef = useRef<BABYLON.Scene | null>(null);
@@ -42,8 +38,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
   const doorRefsRef = useRef<DoorRefs | null>(null);
   const stationsRef = useRef<Station[]>([]);
   const gameStateRef = useRef<GameState>(createInitialGameState());
-  const indicatorRef = useRef<BABYLON.TransformNode | null>(null);
-  const pendingGameRef = useRef<{ name: string; stationIndex: number } | null>(null);
 
   const [currentStation, setCurrentStation] = useState(0);
   const [showStationInfo, setShowStationInfo] = useState(false);
@@ -55,7 +49,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
   const [tourComplete, setTourComplete] = useState(false);
   const [gameTransition, setGameTransition] = useState<'entering' | 'exiting' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showClickToPlay, setShowClickToPlay] = useState(false);
 
   // Initialize Babylon.js
   useEffect(() => {
@@ -131,21 +124,18 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
               setShowStationInfo(true);
             }
 
-            if (result.isGameStation) {
+            if (result.shouldShowGame) {
               const gameInfo = GAME_STATIONS[result.stationIndex];
-              if (gameInfo && sceneRef.current) {
-                // Store pending game info for when user clicks
-                pendingGameRef.current = { name: gameInfo.name, stationIndex: result.stationIndex };
-
-                // Create bouncing indicator above the station
-                if (indicatorRef.current) {
-                  removeStationIndicator(indicatorRef.current);
-                }
-                indicatorRef.current = createStationIndicator(sceneRef.current, station);
-
-                // Show "click to start" hint
-                setShowNextButton(false);
-                setShowClickToPlay(true);
+              if (gameInfo) {
+                // Hide station info before showing game
+                setShowStationInfo(false);
+                setCurrentGame(gameInfo.name);
+                setGameTransition('entering');
+                // Small delay then show game
+                setTimeout(() => {
+                  setShowGameModal(true);
+                  setGameTransition(null);
+                }, 100);
               }
             } else {
               setShowNextButton(true);
@@ -170,55 +160,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
     // Handle resize
     const handleResize = () => engine.resize();
     window.addEventListener('resize', handleResize);
-
-    // Handle click on indicator to start game
-    scene.onPointerDown = (evt, pickInfo) => {
-      if (pickInfo.hit && pendingGameRef.current && indicatorRef.current) {
-        // Check if clicked on indicator or its children
-        const clickedMesh = pickInfo.pickedMesh;
-        const indicatorMeshes = indicatorRef.current.getChildMeshes();
-        const clickedOnIndicator = indicatorMeshes.some(mesh => mesh === clickedMesh);
-
-        if (clickedOnIndicator) {
-          // User clicked on indicator - start the game
-          const gameInfo = pendingGameRef.current;
-
-          // Remove indicator
-          removeStationIndicator(indicatorRef.current);
-          indicatorRef.current = null;
-
-          // Hide station info and click to play hint
-          setShowStationInfo(false);
-          setShowClickToPlay(false);
-          setCurrentGame(gameInfo.name);
-          setGameTransition('entering');
-
-          // Clear waiting state
-          const gameState = gameStateRef.current;
-          gameState.waitingForGameClick = false;
-
-          // Call startStage for realtime leaderboard tracking
-          const stageMap: Record<string, StageType> = {
-            'TSP': 'tsp',
-            'Hungarian': 'hungarian',
-            'Knapsack': 'knapsack'
-          };
-          const stageType = stageMap[gameInfo.name];
-          if (stageType) {
-            startStage(stageType).catch(console.error);
-          }
-
-          // Clear pending game
-          pendingGameRef.current = null;
-
-          // Show game modal
-          setTimeout(() => {
-            setShowGameModal(true);
-            setGameTransition(null);
-          }, 100);
-        }
-      }
-    };
 
     // Start the tour immediately (no start screen)
     startTour();
@@ -254,21 +195,17 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
   }, []);
 
   const handleContinueAfterGame = useCallback(async (result?: GameResult) => {
-    // Save game result to Firestore using completeStage for realtime leaderboard
-    if (result && currentGame) {
+    // Save game result to Firestore if available
+    if (result && sessionId && currentGame) {
       try {
-        const stageMap: Record<string, StageType> = {
-          'TSP': 'tsp',
-          'Hungarian': 'hungarian',
-          'Knapsack': 'knapsack'
-        };
-        const stageType = stageMap[currentGame];
-        if (stageType) {
-          await completeStage(stageType, result.timeSeconds, result.hintsUsed);
-          console.log('Stage completed:', currentGame, result);
-        }
+        await savePuzzleResult(sessionId, currentGame as PuzzleType, {
+          solved: result.solved,
+          hintsUsed: result.hintsUsed,
+          timeSeconds: result.timeSeconds,
+        });
+        console.log('Puzzle result saved:', currentGame, result);
       } catch (error) {
-        console.error('Failed to save stage result:', error);
+        console.error('Failed to save puzzle result:', error);
       }
     }
     // Start exit transition
@@ -279,7 +216,7 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
       setGameTransition(null);
       setShowNextButton(true);
     }, 400);
-  }, [currentGame, completeStage]);
+  }, [sessionId, currentGame]);
 
   const handleNextStation = useCallback(() => {
     const gameState = gameStateRef.current;
@@ -344,13 +281,8 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
       </div>
 
       {/* Instructions */}
-      <div className={`instructions ${showInstructions && !showGameModal && !showClickToPlay ? 'show' : ''}`}>
+      <div className={`instructions ${showInstructions && !showGameModal ? 'show' : ''}`}>
         👆 לחץ על הכפתור למעבר לתחנה הבאה
-      </div>
-
-      {/* Click to Play Instructions */}
-      <div className={`instructions click-to-play ${showClickToPlay && !showGameModal ? 'show' : ''}`}>
-        🎮 לחץ על הסמן הירוק כדי להתחיל את המשחק
       </div>
 
       {/* Next Button */}
@@ -365,10 +297,7 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete, start
       {showGameModal && currentGame && (
         currentGame === 'TSP' ? (
           <div className={`game-wrapper ${gameTransition === 'exiting' ? 'fade-out' : 'fade-in'}`}>
-            <TSPGame
-              onComplete={handleContinueAfterGame}
-              onUseHint={() => useHint('tsp').catch(console.error)}
-            />
+            <TSPGame onComplete={handleContinueAfterGame} />
           </div>
         ) : (
           <div className="game-modal-overlay">

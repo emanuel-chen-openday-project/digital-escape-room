@@ -158,27 +158,6 @@
   display: block;
 }
 
-/* Click to Play Instructions - More prominent */
-.instructions.click-to-play {
-  background: linear-gradient(135deg, rgba(46, 204, 113, 0.95), rgba(39, 174, 96, 0.95));
-  color: white;
-  font-weight: 600;
-  font-size: 14px;
-  padding: 12px 20px;
-  animation: clickToPlayPulse 2s ease-in-out infinite;
-}
-
-@keyframes clickToPlayPulse {
-  0%, 100% {
-    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
-    transform: translateX(-50%) scale(1);
-  }
-  50% {
-    box-shadow: 0 8px 25px rgba(39, 174, 96, 0.6);
-    transform: translateX(-50%) scale(1.03);
-  }
-}
-
 /* Next Button - Mobile Touch */
 .next-btn {
   position: fixed;

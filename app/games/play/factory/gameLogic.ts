@@ -1,6 +1,6 @@
 import * as BABYLON from '@babylonjs/core';
 import { gsap } from 'gsap';
-import { SCALE, Station, getStopPosition } from './stations';
+import { SCALE, Station } from './stations';
 import { PlayerRefs, animateWalk, stopWalkAnimation } from './createPlayer';
 
 export interface GameState {
@@ -12,7 +12,6 @@ export interface GameState {
   waitingForInput: boolean;
   doorClosedAfterEntry: boolean;
   exitStationAdded: boolean;
-  waitingForGameClick: boolean; // NEW: waiting for user to click on station to start game
 }
 
 export function createInitialGameState(): GameState {
@@ -24,15 +23,14 @@ export function createInitialGameState(): GameState {
     rotationSpeed: 0.12,
     waitingForInput: false,
     doorClosedAfterEntry: false,
-    exitStationAdded: false,
-    waitingForGameClick: false
+    exitStationAdded: false
   };
 }
 
 export interface MoveResult {
   reachedStation: boolean;
   stationIndex: number;
-  isGameStation: boolean; // CHANGED: indicates this is a game station (user needs to click to start)
+  shouldShowGame: boolean;
   shouldStop: boolean;
   isTourComplete: boolean;
 }
@@ -46,7 +44,7 @@ export function movePlayerToStation(
   const result: MoveResult = {
     reachedStation: false,
     stationIndex: gameState.currentStation,
-    isGameStation: false,
+    shouldShowGame: false,
     shouldStop: false,
     isTourComplete: false
   };
@@ -54,8 +52,7 @@ export function movePlayerToStation(
   if (!gameState.isMoving || !playerRefs.playerRoot) return result;
 
   const targetStation = stations[gameState.currentStation];
-  // Use stop position (with offset) for game stations
-  const target = getStopPosition(targetStation);
+  const target = targetStation.position;
   const direction = target.subtract(playerRefs.playerRoot.position);
   direction.y = 0;
   const distance = direction.length();
@@ -81,7 +78,6 @@ export function movePlayerToStation(
       result.isTourComplete = true;
       gameState.isMoving = false;
       gameState.waitingForInput = false;
-      gameState.waitingForGameClick = false;
       stopWalkAnimation(playerRefs);
       gameState.isActive = false;
       return result;
@@ -93,10 +89,9 @@ export function movePlayerToStation(
       gameState.waitingForInput = true;
       result.shouldStop = true;
 
-      // Check if this is a game station - DON'T auto-open, just mark it
-      if (targetStation.isGameStation) {
-        result.isGameStation = true;
-        gameState.waitingForGameClick = true; // Wait for user to click
+      // Check if this is a game station (2, 4, or 8)
+      if ([2, 4, 8].includes(gameState.currentStation)) {
+        result.shouldShowGame = true;
       }
 
       stopWalkAnimation(playerRefs);
@@ -232,81 +227,6 @@ export function addExitStation(stations: Station[]): void {
     name: "🚶‍♂️ יציאה מהמפעל",
     description: "סיימת את הסיור!",
     hasInfo: false,
-    shouldStop: false,
-    isGameStation: false
+    shouldStop: false
   });
-}
-
-// Helper function to create bouncing indicator mesh above a station
-export function createStationIndicator(
-  scene: BABYLON.Scene,
-  station: Station
-): BABYLON.TransformNode {
-  const indicatorRoot = new BABYLON.TransformNode("stationIndicator", scene);
-  indicatorRoot.position = station.position.clone();
-  indicatorRoot.position.y += 3 * SCALE; // Position above the station
-
-  // Create green circle
-  const circle = BABYLON.MeshBuilder.CreateTorus("indicatorCircle", {
-    diameter: 1.2 * SCALE,
-    thickness: 0.15 * SCALE,
-    tessellation: 32
-  }, scene);
-  circle.rotation.x = Math.PI / 2; // Make it horizontal
-  circle.parent = indicatorRoot;
-
-  // Create arrow (cone pointing down)
-  const arrow = BABYLON.MeshBuilder.CreateCylinder("indicatorArrow", {
-    diameterTop: 0,
-    diameterBottom: 0.5 * SCALE,
-    height: 0.6 * SCALE,
-    tessellation: 16
-  }, scene);
-  arrow.rotation.x = Math.PI; // Point downward
-  arrow.position.y = -0.4 * SCALE;
-  arrow.parent = indicatorRoot;
-
-  // Green material
-  const greenMat = new BABYLON.StandardMaterial("greenMat", scene);
-  greenMat.diffuseColor = new BABYLON.Color3(0.2, 0.9, 0.3);
-  greenMat.emissiveColor = new BABYLON.Color3(0.1, 0.5, 0.15);
-  greenMat.specularColor = new BABYLON.Color3(0.3, 1, 0.4);
-
-  circle.material = greenMat;
-  arrow.material = greenMat;
-
-  // Bouncing animation
-  const bounceAnimation = new BABYLON.Animation(
-    "bounceAnim",
-    "position.y",
-    30,
-    BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-    BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-  );
-
-  const startY = indicatorRoot.position.y;
-  const keys = [
-    { frame: 0, value: startY },
-    { frame: 15, value: startY + 0.3 * SCALE },
-    { frame: 30, value: startY }
-  ];
-  bounceAnimation.setKeys(keys);
-
-  // Add easing
-  const easingFunction = new BABYLON.SineEase();
-  easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-  bounceAnimation.setEasingFunction(easingFunction);
-
-  indicatorRoot.animations.push(bounceAnimation);
-  scene.beginAnimation(indicatorRoot, 0, 30, true);
-
-  return indicatorRoot;
-}
-
-// Helper function to remove indicator
-export function removeStationIndicator(indicator: BABYLON.TransformNode): void {
-  if (indicator) {
-    indicator.getChildMeshes().forEach(mesh => mesh.dispose());
-    indicator.dispose();
-  }
 }
