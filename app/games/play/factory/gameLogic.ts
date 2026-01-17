@@ -235,7 +235,10 @@ export function addExitStation(stations: Station[]): void {
 export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BABYLON.TransformNode {
   const indicatorRoot = new BABYLON.TransformNode("puzzleButton", scene);
   indicatorRoot.position = station.position.clone();
-  indicatorRoot.position.y += 4 * SCALE;
+
+  // Higher position for CNC machine so it doesn't hide the machine
+  const isCNC = station.name.includes('CNC');
+  indicatorRoot.position.y += isCNC ? 5.5 * SCALE : 4.5 * SCALE;
 
   // Create dynamic texture for the main button
   const textureSize = 512;
@@ -316,8 +319,8 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
 
   dynamicTexture.update();
 
-  // Create the visible button plane
-  const buttonPlane = BABYLON.MeshBuilder.CreatePlane("buttonPlane", { size: 3 * SCALE }, scene);
+  // Create the visible button plane (smaller size)
+  const buttonPlane = BABYLON.MeshBuilder.CreatePlane("buttonPlane", { size: 2.2 * SCALE }, scene);
   buttonPlane.parent = indicatorRoot;
   buttonPlane.position.y = 0;
   buttonPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
@@ -330,7 +333,7 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   buttonMaterial.backFaceCulling = false;
   buttonPlane.material = buttonMaterial;
 
-  // Create pulsing glow ring
+  // Create pulsing glow ring (smaller)
   const ringTexture = new BABYLON.DynamicTexture("ringTexture", 256, scene, true);
   const ringCtx = ringTexture.getContext();
   ringCtx.clearRect(0, 0, 256, 256);
@@ -341,7 +344,7 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ringCtx.stroke();
   ringTexture.update();
 
-  const ringPlane = BABYLON.MeshBuilder.CreatePlane("ringPlane", { size: 4 * SCALE }, scene);
+  const ringPlane = BABYLON.MeshBuilder.CreatePlane("ringPlane", { size: 3 * SCALE }, scene);
   ringPlane.parent = indicatorRoot;
   ringPlane.position.y = 0;
   ringPlane.position.z = 0.02;
@@ -357,7 +360,7 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ringPlane.material = ringMaterial;
 
   // Create larger transparent clickable area
-  const clickArea = BABYLON.MeshBuilder.CreatePlane("clickArea", { size: 5 * SCALE }, scene);
+  const clickArea = BABYLON.MeshBuilder.CreatePlane("clickArea", { size: 4 * SCALE }, scene);
   clickArea.parent = indicatorRoot;
   clickArea.position.y = 0;
   clickArea.position.z = 0.03;
@@ -375,7 +378,7 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
 
   // Add floating animation
   gsap.to(indicatorRoot.position, {
-    y: indicatorRoot.position.y + 0.35 * SCALE,
+    y: indicatorRoot.position.y + 0.3 * SCALE,
     duration: 1.5,
     ease: "power1.inOut",
     yoyo: true,
@@ -384,8 +387,8 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
 
   // Add pulsing ring animation
   gsap.to(ringPlane.scaling, {
-    x: 1.6,
-    y: 1.6,
+    x: 1.5,
+    y: 1.5,
     duration: 2,
     ease: "power1.out",
     repeat: -1
