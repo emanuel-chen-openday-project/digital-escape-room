@@ -734,6 +734,14 @@ export function subscribeToRealtimeLeaderboard(
         return;
       }
 
+      // Get solved status from puzzleResults
+      const puzzleResults = data.puzzleResults || {};
+      const stageSolved: [boolean | null, boolean | null, boolean | null] = [
+        puzzleResults.TSP?.solved ?? null,
+        puzzleResults.Hungarian?.solved ?? null,
+        puzzleResults.Knapsack?.solved ?? null,
+      ];
+
       players.push({
         id: docSnap.id,
         nickname: data.nickname || 'אורח',
@@ -741,12 +749,13 @@ export function subscribeToRealtimeLeaderboard(
         currentStage: data.currentStage || 1,
         startTime: startTime,
         endTime: data.endTime?.toMillis?.() || null,
-        hints: data.totalHints || 0,
+        hints: data.totalHintsUsed || data.totalHints || 0,
         stageTimes: [
           stages.tsp?.timeSeconds || 0,
           stages.hungarian?.timeSeconds || 0,
           stages.knapsack?.timeSeconds || 0,
         ],
+        stageSolved,
       });
     });
 
