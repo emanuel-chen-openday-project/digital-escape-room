@@ -366,7 +366,6 @@ export async function savePuzzleResult(
   }
 
   const session = sessionSnap.data() as EnhancedGameSession;
-  const currentPuzzleResults = session.puzzleResults || {};
   const currentTotalHints = session.totalHintsUsed || 0;
   const currentPuzzlesSolved = session.puzzlesSolved || 0;
 
@@ -383,11 +382,24 @@ export async function savePuzzleResult(
   const newPuzzlesSolved = currentPuzzlesSolved + (result.solved ? 1 : 0);
   const completedAllPuzzles = newPuzzlesSolved === 3;
 
+  // Map puzzle type to stage key (TSP -> tsp, Hungarian -> hungarian, Knapsack -> knapsack)
+  const stageKey = puzzleType.toLowerCase() as StageType;
+
+  // Calculate next stage number
+  const nextStage = stageKey === 'tsp' ? 2 : stageKey === 'hungarian' ? 3 : 3;
+
   await updateDoc(sessionRef, {
+    // Save to puzzleResults (for backward compatibility)
     [`puzzleResults.${puzzleType}`]: puzzleResult,
     totalHintsUsed: newTotalHints,
     puzzlesSolved: newPuzzlesSolved,
     completedAllPuzzles,
+    // Also update stages (for realtime leaderboard)
+    [`stages.${stageKey}.completed`]: true,
+    [`stages.${stageKey}.timeSeconds`]: result.timeSeconds,
+    [`stages.${stageKey}.hintsUsed`]: result.hintsUsed,
+    [`stages.${stageKey}.completedAt`]: Timestamp.now(),
+    currentStage: nextStage,
   });
 }
 
@@ -705,6 +717,8 @@ export function subscribeToRealtimeLeaderboard(
 
   return onSnapshot(q, (snapshot) => {
     const players: LeaderboardPlayer[] = [];
+    const now = Date.now();
+    const MAX_ACTIVE_TIME = 30 * 60 * 1000; // 30 minutes timeout for active players
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
@@ -713,13 +727,19 @@ export function subscribeToRealtimeLeaderboard(
       if (!data.stages) return;
 
       const stages = data.stages as RealtimeGameSession['stages'];
+      const startTime = data.startTime?.toMillis?.() || Date.now();
+
+      // Skip active players who have been playing for more than 30 minutes (timed out)
+      if (data.status === 'active' && (now - startTime) > MAX_ACTIVE_TIME) {
+        return;
+      }
 
       players.push({
         id: docSnap.id,
         nickname: data.nickname || 'אורח',
         status: data.status || 'active',
         currentStage: data.currentStage || 1,
-        startTime: data.startTime?.toMillis?.() || Date.now(),
+        startTime: startTime,
         endTime: data.endTime?.toMillis?.() || null,
         hints: data.totalHints || 0,
         stageTimes: [
@@ -743,4 +763,24 @@ export function subscribeToRealtimeLeaderboard(
 
     callback(players);
   });
+}
+
+/**
+ * Resets/clears the leaderboard by deleting all game sessions
+ */
+export async function resetLeaderboard(): Promise<number> {
+  const sessionsRef = collection(db, COLLECTIONS.GAME_SESSIONS);
+  const q = query(sessionsRef);
+  const snapshot = await getDocs(q);
+
+  let deletedCount = 0;
+  const { deleteDoc } = await import('firebase/firestore');
+
+  const deletePromises = snapshot.docs.map(async (docSnap) => {
+    await deleteDoc(doc(db, COLLECTIONS.GAME_SESSIONS, docSnap.id));
+    deletedCount++;
+  });
+
+  await Promise.all(deletePromises);
+  return deletedCount;
 }
