@@ -21,7 +21,7 @@ const menuItems = [
     icon: Gamepad2,
     color: 'from-violet-500 to-purple-600',
     shadow: 'shadow-purple-500/30',
-    href: '/escape-room'
+    href: '/games'
   },
   {
     id: 'leaderboard',
