@@ -37,7 +37,8 @@ const menuItems = [
     icon: UserPlus,
     color: 'from-cyan-400 to-blue-500',
     shadow: 'shadow-blue-500/30',
-    href: '/register'
+    href: 'https://yedion.jce.ac.il/yedion/fireflyweb.aspx?prgname=RegForm&arguments=-N60#',
+    external: true
   },
   {
     id: 'info',
@@ -69,8 +70,12 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleMenuClick = (href: string) => {
-    router.push(href);
+  const handleMenuClick = (href: string, external?: boolean) => {
+    if (external) {
+      window.open(href, '_blank');
+    } else {
+      router.push(href);
+    }
   };
 
   const handleLogout = async () => {
@@ -123,7 +128,7 @@ export default function DashboardPage() {
             return (
               <button
                 key={item.id}
-                onClick={() => handleMenuClick(item.href)}
+                onClick={() => handleMenuClick(item.href, (item as any).external)}
                 className={`group relative flex items-center justify-between w-full p-4 md:p-5 bg-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500 ease-out overflow-hidden ${
                   isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
                 }`}
