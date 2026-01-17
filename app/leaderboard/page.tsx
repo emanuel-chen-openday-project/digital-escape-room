@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { subscribeToRealtimeLeaderboard, resetLeaderboard } from "@/lib/gameService";
+import { subscribeToRealtimeLeaderboard } from "@/lib/gameService";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { LeaderboardPlayer } from "@/lib/types";
 import {
@@ -17,8 +17,7 @@ import {
   Medal,
   Hourglass,
   PieChart,
-  ChevronRight,
-  RotateCcw
+  ChevronRight
 } from 'lucide-react';
 
 // נתוני משחקים - פלטת צבעים חדשה: "Cool Tech" (Sky, Rose, Indigo)
@@ -101,26 +100,6 @@ export default function LeaderboardPage() {
   const [players, setPlayers] = useState<LeaderboardPlayer[]>([]);
   const [filterText, setFilterText] = useState('');
   const [currentTime, setCurrentTime] = useState(Date.now());
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
-
-  const handleReset = async () => {
-    if (!showResetConfirm) {
-      setShowResetConfirm(true);
-      return;
-    }
-
-    setIsResetting(true);
-    try {
-      const count = await resetLeaderboard();
-      console.log(`Deleted ${count} sessions`);
-      setShowResetConfirm(false);
-    } catch (error) {
-      console.error('Failed to reset leaderboard:', error);
-    } finally {
-      setIsResetting(false);
-    }
-  };
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -219,30 +198,6 @@ export default function LeaderboardPage() {
         <ChevronRight className="w-5 h-5" />
         <span className="font-medium">חזרה</span>
       </button>
-
-      {/* Reset Button - Fixed position */}
-      <div className="fixed top-4 left-4 z-50 flex items-center gap-2">
-        {showResetConfirm && (
-          <button
-            onClick={() => setShowResetConfirm(false)}
-            className="text-slate-500 hover:text-slate-700 transition-colors bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm border border-slate-200"
-          >
-            ביטול
-          </button>
-        )}
-        <button
-          onClick={handleReset}
-          disabled={isResetting}
-          className={`flex items-center gap-2 transition-colors backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm border ${
-            showResetConfirm
-              ? 'bg-red-500 text-white border-red-500 hover:bg-red-600'
-              : 'text-slate-500 hover:text-red-500 bg-white/80 border-slate-200'
-          } ${isResetting ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          <RotateCcw className={`w-5 h-5 ${isResetting ? 'animate-spin' : ''}`} />
-          <span className="font-medium">{showResetConfirm ? 'אישור איפוס' : 'איפוס'}</span>
-        </button>
-      </div>
 
       {/* Centered Header Section */}
       <header className="flex flex-col items-center justify-center bg-white px-6 py-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
@@ -457,32 +412,19 @@ export default function LeaderboardPage() {
                            {GAME_STAGES.map((stage, i) => {
                              const timeInStage = player.stageTimes[i];
                              const isDone = timeInStage > 0;
-                             const solvedStatus = player.stageSolved?.[i]; // true = solved, false = failed, null = not attempted
                              // Skipped if not done, but currentStage is beyond this one OR player is finished overall
                              const isSkipped = !isDone && (player.currentStage > i + 1 || player.status === 'finished');
                              const isCurrent = player.currentStage === i + 1 && !isFinished && !isSkipped;
                              const StageIcon = stage.icon;
 
                              let bgColor = 'bg-slate-100 text-slate-300';
-                             if (isDone) {
-                               // Check if solved correctly or failed
-                               if (solvedStatus === true) {
-                                 bgColor = 'bg-emerald-500 text-white shadow-sm'; // Solved correctly - green
-                               } else if (solvedStatus === false) {
-                                 bgColor = 'bg-orange-500 text-white shadow-sm'; // Failed (wrong answer) - orange
-                               } else {
-                                 bgColor = 'bg-emerald-500 text-white shadow-sm'; // Legacy data without solved status
-                               }
-                             } else if (isSkipped) {
-                               bgColor = 'bg-red-500 text-white shadow-sm';
-                             } else if (isCurrent) {
-                               bgColor = 'bg-slate-200 text-slate-500 ring-2 ring-slate-200'; // Current active
-                             }
+                             if (isDone) bgColor = 'bg-emerald-500 text-white shadow-sm';
+                             else if (isSkipped) bgColor = 'bg-red-500 text-white shadow-sm';
+                             else if (isCurrent) bgColor = 'bg-slate-200 text-slate-500 ring-2 ring-slate-200'; // Current active
 
                              return (
                                <div
                                 key={stage.id}
-                                title={isDone ? (solvedStatus === true ? 'נפתר בהצלחה' : solvedStatus === false ? 'לא נפתר' : 'הושלם') : isSkipped ? 'דילג' : isCurrent ? 'נוכחי' : 'טרם התחיל'}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${bgColor} ${isCurrent ? 'scale-110' : ''}`}
                                >
                                  <StageIcon size={14} />

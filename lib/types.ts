@@ -53,7 +53,6 @@ export interface LeaderboardPlayer {
   endTime: number | null;
   hints: number;
   stageTimes: [number, number, number];
-  stageSolved: [boolean | null, boolean | null, boolean | null]; // null = not attempted, true = solved, false = failed
 }
 
 // ============================================
