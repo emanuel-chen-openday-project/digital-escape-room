@@ -1,35 +1,105 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { subscribeToRealtimeLeaderboard } from "@/lib/gameService";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { LeaderboardPlayer } from "@/lib/types";
-import { ChevronRight, Trophy, Clock, Lightbulb, Users } from "lucide-react";
+import {
+  Trophy,
+  Clock,
+  Search,
+  Users,
+  Activity,
+  Box,
+  Truck,
+  Map,
+  Medal,
+  Hourglass,
+  PieChart,
+  ChevronRight
+} from 'lucide-react';
 
-function formatTime(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
-}
+// נתוני משחקים - פלטת צבעים חדשה: "Cool Tech" (Sky, Rose, Indigo)
+const GAME_STAGES = [
+  {
+    id: 1,
+    name: 'מאסטר המסלולים',
+    shortName: 'מסלולים',
+    icon: Map,
+    color: 'text-sky-600',
+    bg: 'bg-sky-100',
+    barColor: 'bg-sky-500',
+    gradient: 'from-sky-400 to-blue-500'
+  },
+  {
+    id: 2,
+    name: 'מאסטר המשלוחים',
+    shortName: 'משלוחים',
+    icon: Truck,
+    color: 'text-rose-500',
+    bg: 'bg-rose-100',
+    barColor: 'bg-rose-500',
+    gradient: 'from-rose-400 to-red-500'
+  },
+  {
+    id: 3,
+    name: 'חבילה למשלוח',
+    shortName: 'חבילה',
+    icon: Box,
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-100',
+    barColor: 'bg-indigo-500',
+    gradient: 'from-indigo-400 to-violet-500'
+  }
+];
 
-function getStageLabel(stage: number): string {
-  const labels = ["TSP", "Hungarian", "Knapsack"];
-  return labels[stage - 1] || "סיום";
-}
+// SVG Donut Chart Component helper
+const DonutChart = ({ data, total }: { data: { label: string; value: number; color: string }[]; total: number }) => {
+  const radius = 35;
+  const circumference = 2 * Math.PI * radius;
+  let cumulativePercent = 0;
 
-function getStageIcon(stage: number): string {
-  const icons = ["🚚", "👷", "🎒"];
-  return icons[stage - 1] || "✅";
-}
+  return (
+    <div className="relative w-36 h-36 flex items-center justify-center">
+      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90 transform">
+        {data.map((item, index) => {
+          const percent = total > 0 ? item.value / total : 0;
+          const strokeDasharray = `${percent * circumference} ${circumference}`;
+          const strokeDashoffset = -cumulativePercent * circumference;
+          cumulativePercent += percent;
+
+          return (
+            <circle
+              key={index}
+              cx="50"
+              cy="50"
+              r={radius}
+              fill="transparent"
+              stroke={item.color}
+              strokeWidth="12"
+              strokeDasharray={strokeDasharray}
+              strokeDashoffset={strokeDashoffset}
+              className="transition-all duration-1000 ease-out hover:opacity-80 drop-shadow-sm"
+            />
+          );
+        })}
+      </svg>
+      {/* Center Text */}
+      <div className="absolute inset-0 flex items-center justify-center flex-col">
+        <span className="text-3xl font-bold text-slate-700">{total}</span>
+        <span className="text-[10px] text-slate-400 font-medium tracking-wide">סה״כ שחקנים</span>
+      </div>
+    </div>
+  );
+};
 
 export default function LeaderboardPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [players, setPlayers] = useState<LeaderboardPlayer[]>([]);
-  const [isVisible, setIsVisible] = useState(false);
-  const [now, setNow] = useState(Date.now());
+  const [filterText, setFilterText] = useState('');
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -38,24 +108,72 @@ export default function LeaderboardPage() {
     }
   }, [user, authLoading, router]);
 
-  // Subscribe to realtime leaderboard
+  // Subscribe to realtime leaderboard and update timer
   useEffect(() => {
     const unsubscribe = subscribeToRealtimeLeaderboard((updatedPlayers) => {
       setPlayers(updatedPlayers);
     });
 
-    // Fade in animation
-    const timer = setTimeout(() => setIsVisible(true), 100);
-
-    // Update current time every second for live times
-    const interval = setInterval(() => setNow(Date.now()), 1000);
+    // Update timer every second
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
 
     return () => {
       unsubscribe();
-      clearTimeout(timer);
-      clearInterval(interval);
+      clearInterval(timer);
     };
   }, []);
+
+  const formatTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const getTotalTime = (player: LeaderboardPlayer) => {
+    if (player.status === 'finished') {
+      return (player.endTime || currentTime) - player.startTime;
+    }
+    return currentTime - player.startTime;
+  };
+
+  // עיבוד נתונים לטבלה ולגרפים
+  const { sortedPlayers, topThree, avgTimes, systemStats } = useMemo(() => {
+    // סינון ומיון
+    let filtered = players.filter(p =>
+      p.nickname.toLowerCase().includes(filterText.toLowerCase())
+    );
+    const sorted = [...filtered].sort((a, b) => {
+      if (a.status === 'finished' && b.status !== 'finished') return -1;
+      if (a.status !== 'finished' && b.status === 'finished') return 1;
+      return getTotalTime(a) - getTotalTime(b);
+    });
+
+    const winners = players.filter(p => p.status === 'finished').sort((a, b) => getTotalTime(a) - getTotalTime(b)).slice(0, 3);
+
+    // חישוב זמנים ממוצעים
+    const times = GAME_STAGES.map((stage, idx) => {
+      const relevantPlayers = players.filter(p => p.stageTimes[idx] > 0);
+      const totalSeconds = relevantPlayers.reduce((acc, p) => acc + p.stageTimes[idx], 0);
+      const avg = relevantPlayers.length ? totalSeconds / relevantPlayers.length : 0;
+      return { ...stage, avgTime: avg };
+    });
+
+    // חישוב נתוני תפוקת מערכת (לדונאט)
+    const finishedCount = players.filter(p => p.status === 'finished').length;
+    const activeCount = players.filter(p => p.status === 'active').length;
+
+    const statsData = [
+      { label: 'סיימו בהצלחה', value: finishedCount, color: '#10b981' }, // Emerald-500
+      { label: 'פעילים במשחק', value: activeCount, color: '#0ea5e9' }, // Sky-500
+    ];
+
+    return { sortedPlayers: sorted, topThree: winners, avgTimes: times, systemStats: statsData };
+  }, [players, filterText, currentTime]);
+
+  const maxAvgTime = Math.max(...avgTimes.map(t => t.avgTime)) || 1;
 
   const goBack = () => {
     router.push("/dashboard");
@@ -69,233 +187,283 @@ export default function LeaderboardPage() {
     );
   }
 
-  const finishedPlayers = players.filter((p) => p.status === "finished");
-  const activePlayers = players.filter((p) => p.status === "active");
-
   return (
-    <div className="bg-slate-50 min-h-screen w-full relative select-none" dir="rtl">
-      {/* Animated Background Blobs */}
-      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute -top-20 -right-20 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-        <div className="absolute -bottom-32 -left-20 w-96 h-96 bg-cyan-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-      </div>
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans p-4 md:p-8 flex flex-col gap-6" dir="rtl">
 
-      {/* Main Content */}
-      <div className="relative z-10 w-full min-h-screen flex flex-col p-4 md:p-6">
-        {/* Header */}
-        <div
-          className={`flex items-center justify-between mb-6 transition-all duration-700 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}
-        >
-          <button
-            onClick={goBack}
-            className="flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors"
-          >
-            <ChevronRight className="w-5 h-5" />
-            <span className="font-medium">חזרה</span>
-          </button>
+      {/* Back Button - Fixed position */}
+      <button
+        onClick={goBack}
+        className="fixed top-4 right-4 z-50 flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm border border-slate-200"
+      >
+        <ChevronRight className="w-5 h-5" />
+        <span className="font-medium">חזרה</span>
+      </button>
 
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-              <Trophy className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-slate-800">טבלת המובילים</h1>
-          </div>
+      {/* Centered Header Section */}
+      <header className="flex flex-col items-center justify-center bg-white px-6 py-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+        {/* Updated Header Gradient */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500 via-indigo-500 to-rose-500"></div>
+
+        <div className="flex items-center gap-3 z-10 text-center">
+             {/* Title First (Right side) */}
+              <h1 className="text-3xl font-bold text-slate-800">
+                לוח ביצועים
+              </h1>
+
+              {/* Icon Second (Left side) */}
+              <div className="p-2 bg-slate-50 rounded-xl text-slate-700 shadow-sm border border-slate-100">
+                <Activity size={24} />
+              </div>
         </div>
+        <p className="text-slate-500 text-sm font-medium mt-1">הנדסת תעשייה וניהול | חדר בריחה</p>
+      </header>
 
-        {/* Stats Summary */}
-        <div
-          className={`grid grid-cols-2 gap-4 mb-6 transition-all duration-700 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}
-          style={{ transitionDelay: "100ms" }}
-        >
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-slate-200/50 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                <Users className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-800">{activePlayers.length}</p>
-                <p className="text-sm text-slate-500">משחקים עכשיו</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-slate-200/50 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
-                <Trophy className="w-5 h-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-800">{finishedPlayers.length}</p>
-                <p className="text-sm text-slate-500">סיימו את המשחק</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Top Section: Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        {/* Active Players Section */}
-        {activePlayers.length > 0 && (
-          <div
-            className={`mb-6 transition-all duration-700 ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-            }`}
-            style={{ transitionDelay: "200ms" }}
-          >
-            <h2 className="text-lg font-bold text-slate-700 mb-3 flex items-center gap-2">
-              <span className="animate-pulse">🔴</span> משחקים עכשיו
+        {/* 1. Bar Chart: Average Times */}
+        <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 flex flex-col">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold flex items-center gap-2 text-slate-700">
+              <Hourglass className="text-sky-500" size={20} />
+              זמן ממוצע בכל משימה
             </h2>
-            <div className="space-y-3">
-              {activePlayers.map((player, index) => {
-                const elapsedTime = now - player.startTime;
-                return (
-                  <div
-                    key={player.id}
-                    className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 border border-blue-200/50 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{getStageIcon(player.currentStage)}</span>
-                        <div>
-                          <p className="font-bold text-slate-800">{player.nickname}</p>
-                          <p className="text-sm text-blue-600 font-medium">
-                            שלב {player.currentStage}: {getStageLabel(player.currentStage)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-left">
-                        <div className="flex items-center gap-1 text-slate-600">
-                          <Clock className="w-4 h-4" />
-                          <span className="font-mono font-bold">{formatTime(elapsedTime)}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-amber-600 text-sm">
-                          <Lightbulb className="w-3 h-3" />
-                          <span>{player.hints} רמזים</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Stage Progress */}
-                    <div className="flex gap-2 mt-3">
-                      {[1, 2, 3].map((stage) => (
-                        <div
-                          key={stage}
-                          className={`flex-1 h-2 rounded-full ${
-                            stage < player.currentStage
-                              ? "bg-green-400"
-                              : stage === player.currentStage
-                              ? "bg-blue-400 animate-pulse"
-                              : "bg-slate-200"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
-        )}
 
-        {/* Finished Players Section */}
-        <div
-          className={`transition-all duration-700 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}
-          style={{ transitionDelay: "300ms" }}
-        >
-          <h2 className="text-lg font-bold text-slate-700 mb-3 flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-amber-500" /> סיימו את המשחק
-          </h2>
-
-          {finishedPlayers.length === 0 ? (
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 border border-slate-200/50 shadow-sm text-center">
-              <p className="text-slate-500">אף אחד עוד לא סיים... היה הראשון!</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {finishedPlayers.map((player, index) => {
-                const totalTime = player.endTime
-                  ? player.endTime - player.startTime
-                  : player.stageTimes.reduce((a, b) => a + b * 1000, 0);
-                const isTopThree = index < 3;
-                const rankColors = ["bg-amber-400", "bg-slate-400", "bg-amber-600"];
-                const rankEmojis = ["🥇", "🥈", "🥉"];
-
-                return (
-                  <div
-                    key={player.id}
-                    className={`bg-white/90 backdrop-blur-xl rounded-2xl p-4 border shadow-sm ${
-                      isTopThree ? "border-amber-200/50" : "border-slate-200/50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {isTopThree ? (
-                          <span className="text-2xl">{rankEmojis[index]}</span>
-                        ) : (
-                          <span className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold text-sm">
-                            {index + 1}
-                          </span>
-                        )}
-                        <div>
-                          <p className="font-bold text-slate-800">{player.nickname}</p>
-                          <p className="text-sm text-green-600 font-medium">סיים!</p>
-                        </div>
+          <div className="flex-1 flex items-end justify-around gap-4 pb-2">
+            {avgTimes.map((item) => {
+              const heightPercent = maxAvgTime > 0 ? (item.avgTime / maxAvgTime) * 100 : 0;
+              const StageIcon = item.icon;
+              return (
+                <div key={item.id} className="flex flex-col items-center justify-end h-full w-1/3 group">
+                   <div className="text-xs font-bold text-slate-500 mb-1">
+                     {Math.round(item.avgTime)}s
+                   </div>
+                   <div className="w-full bg-slate-50 rounded-t-xl relative h-32 flex items-end overflow-hidden">
+                      <div
+                        className={`w-full bg-gradient-to-t ${item.gradient} rounded-t-xl transition-all duration-1000 ease-out relative group-hover:brightness-110 shadow-lg`}
+                        style={{ height: `${heightPercent}%` }}
+                      >
+                         <div className="absolute top-0 left-0 w-full h-full bg-white/10"></div>
                       </div>
-                      <div className="text-left">
-                        <div className="flex items-center gap-1 text-slate-800">
-                          <Clock className="w-4 h-4" />
-                          <span className="font-mono font-bold">{formatTime(totalTime)}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-amber-600 text-sm">
-                          <Lightbulb className="w-3 h-3" />
-                          <span>{player.hints} רמזים</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Stage Times Breakdown */}
-                    <div className="flex gap-2 mt-3 text-xs">
-                      {["TSP", "Hungarian", "Knapsack"].map((stage, i) => (
-                        <div
-                          key={stage}
-                          className="flex-1 bg-slate-50 rounded-lg p-2 text-center"
-                        >
-                          <p className="text-slate-400 mb-1">{stage}</p>
-                          <p className="font-mono font-bold text-slate-700">
-                            {player.stageTimes[i] > 0
-                              ? formatTime(player.stageTimes[i] * 1000)
-                              : "-"}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                   </div>
+                   <div className="mt-3 flex flex-col items-center">
+                     <div className={`p-1.5 rounded-full ${item.bg} ${item.color} mb-1.5`}>
+                       <StageIcon size={14} />
+                     </div>
+                     <span className="text-xs font-medium text-slate-500 text-center leading-tight">{item.shortName}</span>
+                   </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Empty State */}
-        {players.length === 0 && (
-          <div
-            className={`flex-1 flex items-center justify-center transition-all duration-700 ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-            }`}
-          >
-            <div className="text-center">
-              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-10 h-10 text-slate-400" />
-              </div>
-              <p className="text-slate-500 text-lg">טוען את טבלת המובילים...</p>
-            </div>
+        {/* 2. Podium */}
+        <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 relative overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between mb-2">
+             <h2 className="text-lg font-bold flex items-center gap-2 text-slate-700">
+                <Trophy className="text-yellow-500" size={20} />
+                המובילים
+              </h2>
           </div>
-        )}
+
+          <div className="flex items-end justify-center gap-3 flex-1 pb-2">
+             {/* 2nd Place */}
+             {topThree[1] && (
+              <div className="flex flex-col items-center w-1/3 animate-slide-up" style={{animationDelay: '0.2s'}}>
+                <div className="mb-8 text-center w-full">
+                  <span className="block font-bold text-slate-600 text-sm truncate w-full">{topThree[1].nickname}</span>
+                  <span className="text-xs bg-slate-100 px-2 py-0.5 rounded-full text-slate-500 font-mono relative z-10">{formatTime(getTotalTime(topThree[1]))}</span>
+                </div>
+                <div className="w-full bg-gradient-to-t from-slate-300 to-slate-200 rounded-t-2xl h-24 flex items-end justify-center pb-2 shadow-inner relative">
+                  <div className="absolute -top-5 bg-white border-4 border-slate-200 w-8 h-8 rounded-full flex items-center justify-center font-bold text-slate-400 text-sm shadow-sm z-20">2</div>
+                </div>
+              </div>
+            )}
+
+            {/* 1st Place */}
+            {topThree[0] ? (
+              <div className="flex flex-col items-center w-1/3 z-10 animate-slide-up">
+                <div className="mb-8 text-center w-full">
+                  <Trophy size={20} className="mx-auto text-yellow-500 fill-yellow-500 animate-bounce mb-2" />
+                  <span className="block font-bold text-slate-800 text-base truncate w-full">{topThree[0].nickname}</span>
+                  <span className="text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 px-2.5 py-0.5 rounded-full font-mono font-bold shadow-sm relative z-10">
+                    {formatTime(getTotalTime(topThree[0]))}
+                  </span>
+                </div>
+                <div className="w-full bg-gradient-to-t from-yellow-400 to-yellow-300 rounded-t-2xl h-36 flex items-end justify-center pb-3 shadow-lg relative">
+                  <div className="absolute -top-6 bg-white border-4 border-yellow-400 w-10 h-10 rounded-full flex items-center justify-center font-bold text-yellow-500 text-lg shadow-md z-20">1</div>
+                  <Medal size={24} className="text-yellow-600 opacity-50" />
+                </div>
+              </div>
+            ) : (
+              <div className="text-slate-400 flex flex-col items-center justify-center h-full text-sm">
+                <Clock className="mb-2 animate-spin" size={20} />
+                ממתין לתוצאות...
+              </div>
+            )}
+
+            {/* 3rd Place */}
+            {topThree[2] && (
+              <div className="flex flex-col items-center w-1/3 animate-slide-up" style={{animationDelay: '0.4s'}}>
+                <div className="mb-8 text-center w-full">
+                  <span className="block font-bold text-slate-600 text-sm truncate w-full">{topThree[2].nickname}</span>
+                  <span className="text-xs bg-orange-50 px-2 py-0.5 rounded-full text-orange-800/70 font-mono relative z-10">{formatTime(getTotalTime(topThree[2]))}</span>
+                </div>
+                <div className="w-full bg-gradient-to-t from-orange-300 to-orange-200 rounded-t-2xl h-16 flex items-end justify-center pb-2 shadow-inner relative">
+                  <div className="absolute -top-5 bg-white border-4 border-orange-200 w-7 h-7 rounded-full flex items-center justify-center font-bold text-orange-400 text-xs shadow-sm z-20">3</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 3. Donut Chart: Player Status */}
+        <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 flex flex-col justify-between">
+          <div>
+            <h2 className="text-lg font-bold flex items-center gap-2 mb-2 text-slate-700">
+              <PieChart className="text-indigo-500" size={20} />
+              סטטוס משתתפים
+            </h2>
+          </div>
+
+          <div className="flex-1 flex items-center justify-between gap-2">
+             <DonutChart data={systemStats} total={players.length} />
+
+             {/* Legend */}
+             <div className="flex flex-col gap-4 flex-1 pr-2">
+                {systemStats.map((stat, i) => (
+                  <div key={i} className="flex flex-col">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: stat.color }}></div>
+                      <span className="text-slate-500 text-xs font-medium">{stat.label}</span>
+                    </div>
+                    <span className="text-xl font-black text-slate-700 mr-4 leading-none">{stat.value}</span>
+                  </div>
+                ))}
+             </div>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-slate-50 text-center">
+          </div>
+        </div>
       </div>
+
+      {/* Main Table */}
+      <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden flex flex-col flex-1 min-h-[400px]">
+        <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-center bg-white gap-4">
+          <h3 className="font-bold text-slate-700 flex items-center gap-2 text-lg">
+            <Users size={20} className="text-slate-400" />
+            משתתפים בזמן אמת
+          </h3>
+          <div className="relative w-full sm:w-auto">
+             <input
+              type="text"
+              placeholder="חיפוש לפי כינוי..."
+              className="pl-4 pr-10 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white shadow-sm w-full sm:w-64 transition-all"
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+            />
+            <Search className="absolute right-3 top-3 text-slate-400" size={16} />
+          </div>
+        </div>
+
+        <div className="overflow-auto flex-1">
+          <table className="w-full text-right">
+            <thead className="bg-slate-50 sticky top-0 z-10 text-slate-500 text-xs uppercase tracking-wider">
+              <tr>
+                <th className="p-4 font-medium w-20 pr-6">#</th>
+                <th className="p-4 font-medium">כינוי</th>
+                <th className="p-4 font-medium">התקדמות</th>
+                <th className="p-4 font-medium text-center">רמזים</th>
+                <th className="p-4 font-medium text-left pl-8">זמן משוקלל</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50 text-sm">
+              {sortedPlayers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-slate-400">
+                    <Clock className="mx-auto mb-2 animate-spin" size={24} />
+                    ממתין לשחקנים...
+                  </td>
+                </tr>
+              ) : (
+                sortedPlayers.map((player, index) => {
+                  const isFinished = player.status === 'finished';
+                  const totalTime = getTotalTime(player);
+
+                  return (
+                    <tr key={player.id} className="hover:bg-sky-50/50 transition-colors group">
+                      <td className="p-4 text-slate-400 font-mono pr-6">{index + 1}</td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                           <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-md transition-transform group-hover:scale-105
+                            ${isFinished ? 'bg-gradient-to-br from-emerald-400 to-teal-500' : 'bg-gradient-to-br from-sky-400 to-indigo-500'}`}>
+                             {player.nickname.substring(0,2).toUpperCase()}
+                           </div>
+                           <div>
+                              <span className="font-bold text-slate-700 block text-base">{player.nickname}</span>
+                           </div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex gap-2">
+                           {GAME_STAGES.map((stage, i) => {
+                             const timeInStage = player.stageTimes[i];
+                             const isDone = timeInStage > 0;
+                             // Skipped if not done, but currentStage is beyond this one OR player is finished overall
+                             const isSkipped = !isDone && (player.currentStage > i + 1 || player.status === 'finished');
+                             const isCurrent = player.currentStage === i + 1 && !isFinished && !isSkipped;
+                             const StageIcon = stage.icon;
+
+                             let bgColor = 'bg-slate-100 text-slate-300';
+                             if (isDone) bgColor = 'bg-emerald-500 text-white shadow-sm';
+                             else if (isSkipped) bgColor = 'bg-red-500 text-white shadow-sm';
+                             else if (isCurrent) bgColor = 'bg-slate-200 text-slate-500 ring-2 ring-slate-200'; // Current active
+
+                             return (
+                               <div
+                                key={stage.id}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${bgColor} ${isCurrent ? 'scale-110' : ''}`}
+                               >
+                                 <StageIcon size={14} />
+                               </div>
+                             )
+                           })}
+                        </div>
+                      </td>
+                      <td className="p-4 text-center">
+                         <span className={`inline-block w-8 h-6 leading-6 text-center rounded-lg font-bold text-xs ${player.hints === 0 ? 'bg-emerald-100 text-emerald-700' : player.hints >= 3 ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                           {player.hints}
+                         </span>
+                      </td>
+                      <td className="p-4 text-left pl-8">
+                        <span className={`font-mono font-bold text-base ${isFinished ? 'text-emerald-600' : 'text-slate-700'}`}>
+                          {formatTime(totalTime)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <style jsx global>{`
+        @keyframes slide-up {
+          from { transform: translateY(100px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
     </div>
   );
 }
