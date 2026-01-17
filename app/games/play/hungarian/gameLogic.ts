@@ -1,6 +1,7 @@
-// Hungarian Game Logic
+// Hungarian Game Logic - Algorithm and Calculations
+// Converted 1:1 from original HTML
 
-import { COURIERS, ORDERS, MINUTES_PER_UNIT, Courier, Order, HungarianGameState } from './types';
+import { Courier, Order, COURIERS, ORDERS, MINUTES_PER_UNIT, HungarianGameState } from './types';
 
 // Calculate distance from courier to order (via restaurant to customer)
 export function getDistance(courier: Courier, order: Order): number {
@@ -15,20 +16,23 @@ export function getTimeMinutes(courier: Courier, order: Order): number {
   return Math.round(dist * MINUTES_PER_UNIT * 10) / 10;
 }
 
-// Calculate total time for current assignments
+// Calculate total time for all assignments
 export function getTotalTime(assignments: Record<number, number>): number {
   let total = 0;
   Object.entries(assignments).forEach(([cId, oId]) => {
-    const courier = COURIERS.find(c => c.id === parseInt(cId));
-    const order = ORDERS.find(o => o.id === oId);
-    if (courier && order) {
-      total += getTimeMinutes(courier, order);
-    }
+    const c = COURIERS.find(x => x.id === parseInt(cId));
+    const o = ORDERS.find(x => x.id === oId);
+    if (c && o) total += getTimeMinutes(c, o);
   });
   return Math.round(total * 10) / 10;
 }
 
-// Hungarian Algorithm implementation
+// Format minutes for display
+export function formatMinutes(mins: number): string {
+  return mins + " דק'";
+}
+
+// Hungarian Algorithm - exact implementation from original HTML
 export function hungarianAlgorithm(cost: number[][]): number[] {
   const n = cost.length;
   const u = new Array(n + 1).fill(0);
@@ -89,11 +93,10 @@ export function hungarianAlgorithm(cost: number[][]): number[] {
   return result;
 }
 
-// Get optimal solution using Hungarian algorithm
+// Get the optimal solution using Hungarian algorithm
 export function getOptimalSolution(): { assignments: Record<number, number>; total: number } {
   const cost = COURIERS.map(c => ORDERS.map(o => getTimeMinutes(c, o)));
   const assignment = hungarianAlgorithm(cost);
-
   let total = 0;
   const opt: Record<number, number> = {};
 
@@ -105,32 +108,32 @@ export function getOptimalSolution(): { assignments: Record<number, number>; tot
   return { assignments: opt, total: Math.round(total * 10) / 10 };
 }
 
-// Get hint based on current state
+// Get hint based on current assignments
 export function getHint(gameState: HungarianGameState): string {
   const optimal = getOptimalSolution();
   const current = gameState.assignments;
 
-  // Check for wrong assignments
+  // Check if any current assignment is wrong
   for (const [cId, oId] of Object.entries(current)) {
     if (optimal.assignments[parseInt(cId)] !== oId) {
       const courier = COURIERS.find(c => c.id === parseInt(cId));
       const correctOrder = ORDERS.find(o => o.id === optimal.assignments[parseInt(cId)]);
       if (courier && correctOrder) {
-        return `נסה לשבץ את ${courier.name} ל${correctOrder.family}`;
+        return `💡 נסה לשבץ את ${courier.name} ל${correctOrder.family}`;
       }
     }
   }
 
-  // Suggest next assignment
+  // If no wrong assignments, suggest next unassigned
   if (Object.keys(current).length < 4) {
     const unassigned = COURIERS.find(c => !current[c.id]);
     if (unassigned) {
       const correctOrder = ORDERS.find(o => o.id === optimal.assignments[unassigned.id]);
       if (correctOrder) {
-        return `נסה לשבץ את ${unassigned.name} ל${correctOrder.family}`;
+        return `💡 נסה לשבץ את ${unassigned.name} ל${correctOrder.family}`;
       }
     }
   }
 
-  return 'מצוין! נראה שזו הדרך הנכונה!';
+  return '🎉 מצוין! נראה שזו הדרך הנכונה!';
 }

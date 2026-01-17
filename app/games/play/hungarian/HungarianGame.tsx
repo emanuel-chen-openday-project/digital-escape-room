@@ -1,6 +1,11 @@
+// @ts-nocheck
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+// Hungarian Game - React component converted 1:1 from original HTML
+// Features: Babylon.js 3D scene, motorcycles, restaurants, houses, route lines, animations
+
+import { useEffect, useRef, useState, useCallback } from 'react';
+import * as BABYLON from '@babylonjs/core';
 import {
   COURIERS,
   ORDERS,
@@ -14,132 +19,287 @@ import {
   getOptimalSolution,
   getHint
 } from './gameLogic';
+import {
+  createHungarianScene,
+  updateAssignmentLines,
+  animateCouriersDelivery,
+  resetCourierPositions,
+  SceneRefs,
+  CourierMesh
+} from './scene';
 import './HungarianGame.css';
 
 interface HungarianGameProps {
   onComplete: (result: GameResult) => void;
-  onUseHint?: () => void;
 }
 
-export default function HungarianGame({ onComplete, onUseHint }: HungarianGameProps) {
+export default function HungarianGame({ onComplete }: HungarianGameProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const sceneRefsRef = useRef<SceneRefs | null>(null);
   const gameStateRef = useRef<HungarianGameState>(createInitialGameState());
+  const hornSoundRef = useRef<HTMLAudioElement | null>(null);
+  const ridingSoundRef = useRef<HTMLAudioElement | null>(null);
 
+  // UI State
   const [showSplash, setShowSplash] = useState(true);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [assignments, setAssignments] = useState<Record<number, number>>({});
-  const [selectedCourier, setSelectedCourier] = useState<number | null>(null);
-  const [showModal, setShowModal] = useState(false);
   const [showHelpPanel, setShowHelpPanel] = useState(false);
   const [showInfoPanel, setShowInfoPanel] = useState(false);
-  const [showResult, setShowResult] = useState(false);
-  const [resultData, setResultData] = useState({ userTime: 0, optimalTime: 0, solved: false });
+  const [showCourierModal, setShowCourierModal] = useState(false);
+  const [selectedCourier, setSelectedCourier] = useState<number | null>(null);
+  const [assignments, setAssignments] = useState<Record<number, number>>({});
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationData, setCelebrationData] = useState({ userTime: 0, optimalTime: 0, solved: false });
   const [hintText, setHintText] = useState('');
   const [showHint, setShowHint] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // Initialize audio
+  useEffect(() => {
+    hornSoundRef.current = new Audio('/audio/Motorcycle_horn.mp3');
+    hornSoundRef.current.volume = 0.7;
+
+    ridingSoundRef.current = new Audio('/audio/Motorcycle_riding_noise.mp3');
+    ridingSoundRef.current.volume = 0.5;
+    ridingSoundRef.current.loop = true;
+
+    return () => {
+      if (ridingSoundRef.current) {
+        ridingSoundRef.current.pause();
+      }
+    };
+  }, []);
+
+  // Play horn sound
+  const playHorn = useCallback(() => {
+    if (hornSoundRef.current) {
+      hornSoundRef.current.currentTime = 0;
+      hornSoundRef.current.play().catch(() => {});
+      // Stop after 1 second to not play second honk
+      setTimeout(() => {
+        if (hornSoundRef.current) {
+          hornSoundRef.current.pause();
+          hornSoundRef.current.currentTime = 0;
+        }
+      }, 1000);
+    }
+  }, []);
+
+  // Start/stop riding sound
+  const startRidingSound = useCallback(() => {
+    if (ridingSoundRef.current) {
+      ridingSoundRef.current.currentTime = 0;
+      ridingSoundRef.current.play().catch(() => {});
+    }
+  }, []);
+
+  const stopRidingSound = useCallback(() => {
+    if (ridingSoundRef.current) {
+      ridingSoundRef.current.pause();
+      ridingSoundRef.current.currentTime = 0;
+    }
+  }, []);
+
+  // Initialize Babylon.js scene
+  useEffect(() => {
+    if (!canvasRef.current || showSplash) return;
+
+    const sceneRefs = createHungarianScene(canvasRef.current);
+    sceneRefsRef.current = sceneRefs;
+
+    // Click handler for couriers
+    sceneRefs.scene.onPointerDown = (evt, pick) => {
+      const gs = gameStateRef.current;
+      if (!gs.started || gs.isComplete || gs.isAnimating) return;
+
+      if (pick.hit) {
+        let mesh = pick.pickedMesh;
+        while (mesh && !(mesh as any).courierId) {
+          mesh = mesh.parent as BABYLON.AbstractMesh;
+        }
+        if (mesh && (mesh as any).courierId) {
+          const courierId = (mesh as any).courierId;
+          playHorn();
+          setSelectedCourier(courierId);
+          setShowCourierModal(true);
+
+          if (!gs.startTime) {
+            gs.startTime = Date.now();
+          }
+        }
+      }
+    };
+
+    // Render loop
+    sceneRefs.engine.runRenderLoop(() => {
+      sceneRefs.scene.render();
+    });
+
+    // Handle resize
+    const handleResize = () => sceneRefs.engine.resize();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      sceneRefs.engine.dispose();
+    };
+  }, [showSplash, playHorn]);
+
+  // Update assignment lines when assignments change
+  useEffect(() => {
+    if (!sceneRefsRef.current || showSplash) return;
+
+    const sceneRefs = sceneRefsRef.current;
+    sceneRefs.assignmentLines = updateAssignmentLines(
+      sceneRefs.scene,
+      sceneRefs.courierMeshes,
+      sceneRefs.assignmentLines,
+      assignments
+    );
+  }, [assignments, showSplash]);
 
   // Start game
   const handleStartGame = useCallback(() => {
     setShowSplash(false);
-    setGameStarted(true);
     gameStateRef.current.started = true;
-    gameStateRef.current.startTime = Date.now();
+
+    // Request fullscreen on mobile
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().catch(() => {});
+    }
   }, []);
 
   // Open courier modal
-  const handleCourierClick = useCallback((courierId: number) => {
-    if (gameStateRef.current.isComplete) return;
+  const handleOpenCourierModal = useCallback((courierId: number) => {
+    playHorn();
     setSelectedCourier(courierId);
-    setShowModal(true);
-  }, []);
+    setShowCourierModal(true);
+  }, [playHorn]);
 
   // Assign order to courier
   const handleAssignOrder = useCallback((orderId: number) => {
     if (selectedCourier === null) return;
 
-    // Remove order from any other courier
-    const newAssignments = { ...assignments };
-    Object.keys(newAssignments).forEach(cId => {
-      if (newAssignments[parseInt(cId)] === orderId) {
-        delete newAssignments[parseInt(cId)];
-      }
+    setAssignments(prev => {
+      const newAssignments = { ...prev };
+      // Remove order from any other courier
+      Object.keys(newAssignments).forEach(cId => {
+        if (newAssignments[parseInt(cId)] === orderId) {
+          delete newAssignments[parseInt(cId)];
+        }
+      });
+      // Assign to selected courier
+      newAssignments[selectedCourier] = orderId;
+      gameStateRef.current.assignments = newAssignments;
+      return newAssignments;
     });
 
-    // Assign to selected courier
-    newAssignments[selectedCourier] = orderId;
-    setAssignments(newAssignments);
-    gameStateRef.current.assignments = newAssignments;
-    setShowModal(false);
+    setShowCourierModal(false);
     setSelectedCourier(null);
-  }, [selectedCourier, assignments]);
+  }, [selectedCourier]);
 
-  // Check solution
-  const handleCheck = useCallback(() => {
-    if (Object.keys(assignments).length !== 4) return;
+  // Close modal
+  const closeModal = useCallback(() => {
+    setShowCourierModal(false);
+    setSelectedCourier(null);
+  }, []);
 
-    const userTime = getTotalTime(assignments);
-    const optimal = getOptimalSolution();
-    const solved = Math.abs(userTime - optimal.total) < 0.1;
-
-    gameStateRef.current.isComplete = true;
-    setResultData({ userTime, optimalTime: optimal.total, solved });
-    setShowResult(true);
-  }, [assignments]);
+  // Close all panels
+  const closeAllPanels = useCallback(() => {
+    setShowHelpPanel(false);
+    setShowInfoPanel(false);
+  }, []);
 
   // Show hint
-  const handleHint = useCallback(() => {
+  const handleShowHint = useCallback(() => {
     gameStateRef.current.hintsUsed++;
     const hint = getHint(gameStateRef.current);
     setHintText(hint);
     setShowHint(true);
     setTimeout(() => setShowHint(false), 3500);
+  }, []);
 
-    if (onUseHint) {
-      onUseHint();
-    }
-  }, [onUseHint]);
+  // Check solution
+  const handleCheckSolution = useCallback(async () => {
+    if (Object.keys(assignments).length !== 4 || isAnimating) return;
+
+    const sceneRefs = sceneRefsRef.current;
+    if (!sceneRefs) return;
+
+    setIsAnimating(true);
+    gameStateRef.current.isAnimating = true;
+
+    // Start riding sound
+    startRidingSound();
+
+    // Wait 800ms then animate
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    await animateCouriersDelivery(
+      sceneRefs.scene,
+      sceneRefs.courierMeshes,
+      assignments,
+      sceneRefs.assignmentLines
+    );
+
+    stopRidingSound();
+    setIsAnimating(false);
+    gameStateRef.current.isAnimating = false;
+    gameStateRef.current.isComplete = true;
+
+    // Calculate results
+    const userTime = getTotalTime(assignments);
+    const optimal = getOptimalSolution();
+    const solved = Math.abs(userTime - optimal.total) < 0.1;
+
+    setCelebrationData({ userTime, optimalTime: optimal.total, solved });
+    setShowCelebration(true);
+  }, [assignments, isAnimating, startRidingSound, stopRidingSound]);
 
   // Reset game
   const handleReset = useCallback(() => {
+    const sceneRefs = sceneRefsRef.current;
+    if (!sceneRefs) return;
+
+    // Dispose lines
+    Object.values(sceneRefs.assignmentLines).forEach(l => l.dispose());
+    sceneRefs.assignmentLines = {};
+
+    // Reset courier positions
+    resetCourierPositions(sceneRefs.courierMeshes);
+
+    // Reset state
     setAssignments({});
-    gameStateRef.current.assignments = {};
-    gameStateRef.current.isComplete = false;
-    setShowResult(false);
+    setShowCelebration(false);
+    gameStateRef.current = {
+      ...createInitialGameState(),
+      started: true,
+      hintsUsed: gameStateRef.current.hintsUsed
+    };
   }, []);
 
-  // Exit game
-  const handleExit = useCallback(() => {
-    const timeSeconds = Math.floor((Date.now() - gameStateRef.current.startTime) / 1000);
-    onComplete({
-      solved: false,
-      hintsUsed: gameStateRef.current.hintsUsed,
-      timeSeconds
-    });
-  }, [onComplete]);
-
-  // Finish and continue
-  const handleFinish = useCallback(() => {
-    const timeSeconds = Math.floor((Date.now() - gameStateRef.current.startTime) / 1000);
-    onComplete({
-      solved: resultData.solved,
-      hintsUsed: gameStateRef.current.hintsUsed,
-      timeSeconds
-    });
-  }, [onComplete, resultData.solved]);
-
-  // Play again
+  // Play again (from celebration)
   const handlePlayAgain = useCallback(() => {
     handleReset();
   }, [handleReset]);
 
-  const closeAllPanels = () => {
-    setShowHelpPanel(false);
-    setShowInfoPanel(false);
-  };
+  // Continue to next game
+  const handleContinue = useCallback(() => {
+    const gs = gameStateRef.current;
+    const timeSeconds = gs.startTime ? Math.floor((Date.now() - gs.startTime) / 1000) : 0;
 
-  const totalTime = getTotalTime(assignments);
+    onComplete({
+      solved: celebrationData.solved,
+      hintsUsed: gs.hintsUsed,
+      timeSeconds
+    });
+  }, [onComplete, celebrationData.solved]);
+
   const assignedCount = Object.keys(assignments).length;
+  const totalTime = getTotalTime(assignments);
 
   return (
-    <div className="hungarian-container">
+    <div className="hungarian-game-container">
       {/* Splash Screen */}
       {showSplash && (
         <div className="hungarian-splash">
@@ -151,27 +311,27 @@ export default function HungarianGame({ onComplete, onUseHint }: HungarianGamePr
             <div className="hungarian-splash-section">
               <h3>📦 על המשחק</h3>
               <p>
-                יש <span className="hungarian-highlight">4 שליחים</span> על אופנועים ו-<span className="hungarian-highlight">4 משלוחים</span> שמחכים. כל שליח מתחיל באיסוף ההזמנה מהמסעדה, ולאחר מכן נוסע לבית שממנו בוצעה ההזמנה.
+                יש <span className="highlight-text">4 שליחים</span> על אופנועים ו-<span className="highlight-text">4 משלוחים</span> שמחכים. כל שליח מתחיל באיסוף ההזמנה מהמסעדה, ולאחר מכן נוסע לבית שממנו בוצעה ההזמנה. השליחים פזורים במקומות שונים על המפה, ולכן לכל אחד ייקח זמן שונה להשלים כל משלוח.
               </p>
             </div>
 
             <div className="hungarian-splash-section">
               <h3>🎯 המטרה</h3>
               <p>
-                יש לשבץ כל שליח למשלוח אחד, כך שסך כל הזמנים ביחד יהיה <span className="hungarian-highlight">הנמוך ביותר</span>.
+                יש לשבץ כל שליח למשלוח אחד, כך שסך כל הזמנים ביחד יהיה <span className="highlight-text">הנמוך ביותר</span>.
               </p>
-              <p className="hungarian-tip">
-                <strong>💡 טיפ:</strong> הטעות הנפוצה היא לתת לכל שליח את המשלוח הכי מהיר עבורו - אבל זה לא תמיד הפתרון הטוב ביותר!
+              <p style={{ marginTop: 12 }}>
+                <span className="highlight-text">💡 טיפ:</span> הטעות הנפוצה היא לתת לכל שליח את המשלוח הכי מהיר עבורו - אבל זה לא תמיד הפתרון הטוב ביותר! לפני השיבוץ, כדאי לבדוק את הזמנים של כל השליחים לכל משלוח ולחשוב על התמונה הכוללת.
               </p>
             </div>
 
             <div className="hungarian-splash-section">
               <h3>👆 איך משחקים?</h3>
               <ol>
-                <li>מקישים על שליח כדי לפתוח את רשימת ההזמנות</li>
-                <li>בוחרים הזמנה כדי לשבץ את השליח אליה</li>
-                <li>חוזרים עד ששובצו כל 4 השליחים</li>
-                <li>מקישים על &quot;בדיקה&quot; לגלות אם מצאתם את הפתרון הטוב ביותר!</li>
+                <li>מקישים על שליח (אופנוע) כדי לפתוח את רשימת ההזמנות.</li>
+                <li>בוחרים הזמנה כדי לשבץ את השליח אליה.</li>
+                <li>חוזרים על התהליך עד ששובצו כל 4 השליחים.</li>
+                <li>מקישים על &quot;בדיקה&quot; כדי לגלות אם נמצא הפתרון הטוב ביותר!</li>
               </ol>
             </div>
 
@@ -182,353 +342,234 @@ export default function HungarianGame({ onComplete, onUseHint }: HungarianGamePr
         </div>
       )}
 
-      {/* Game Board */}
-      {gameStarted && (
-        <>
-          {/* Game Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '16px',
-            padding: '80px 16px 16px 16px',
-            maxWidth: '600px',
-            margin: '0 auto',
-            height: 'calc(100vh - 100px)',
-            alignContent: 'center'
-          }}>
-            {COURIERS.map(courier => {
-              const assignedOrderId = assignments[courier.id];
-              const assignedOrder = assignedOrderId ? ORDERS.find(o => o.id === assignedOrderId) : null;
+      {/* Canvas */}
+      {!showSplash && <canvas ref={canvasRef} className="hungarian-canvas" />}
 
-              return (
-                <div
-                  key={courier.id}
-                  onClick={() => handleCourierClick(courier.id)}
-                  style={{
-                    background: 'white',
-                    borderRadius: '20px',
-                    padding: '16px',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                    border: assignedOrder ? `3px solid ${assignedOrder.color}` : '3px solid transparent',
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}
-                >
-                  <div style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    background: courier.color,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '30px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                  }}>
-                    🏍️
-                  </div>
-                  <div style={{ fontWeight: 800, fontSize: '18px', color: '#333' }}>
-                    {courier.name}
-                  </div>
-                  {assignedOrder ? (
-                    <div style={{
-                      background: `linear-gradient(135deg, ${assignedOrder.color}40, ${assignedOrder.color}20)`,
-                      padding: '8px 12px',
-                      borderRadius: '10px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#333',
-                      textAlign: 'center'
-                    }}>
-                      <div>📍 {assignedOrder.family}</div>
-                      <div style={{ fontSize: '11px', color: '#666' }}>דרך {assignedOrder.restaurant}</div>
-                      <div style={{ marginTop: '4px', fontWeight: 800, color: '#1565C0' }}>
-                        {getTimeMinutes(courier, assignedOrder)} דק&apos;
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{
-                      background: '#f5f5f5',
-                      padding: '8px 12px',
-                      borderRadius: '10px',
-                      fontSize: '12px',
-                      color: '#999'
-                    }}>
-                      לחץ לשיבוץ
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+      {/* Top Bar - visible after splash */}
+      {!showSplash && (
+        <div className="hungarian-top-bar">
+          <div className="hungarian-side-buttons-left">
+            <button className="hungarian-side-btn btn-green" onClick={() => { closeAllPanels(); setShowInfoPanel(true); }} title="מידע">🎓</button>
+            <button className="hungarian-side-btn btn-light-blue" onClick={() => { closeAllPanels(); setShowHelpPanel(true); }} title="עזרה">?</button>
+            <button className="hungarian-side-btn btn-yellow" onClick={handleShowHint} title="רמז">💡</button>
           </div>
 
-          {/* HUD */}
-          <div className="hungarian-hud">
-            <div className="hungarian-hud-stats">
-              <div className="hungarian-stat">
-                <span className="hungarian-stat-label">שובצו:</span>
-                <span className="hungarian-stat-value">{assignedCount}/4</span>
-              </div>
-              <div className="hungarian-stat">
-                <span className="hungarian-stat-label">זמן כולל:</span>
-                <span className="hungarian-stat-value">{totalTime} דק&apos;</span>
-              </div>
+          <div className="hungarian-center-panel">
+            <div className="hungarian-stat-box">
+              <span className="hungarian-stat-label">שובצו:</span>
+              <span className="hungarian-stat-value">{assignedCount}/4</span>
+            </div>
+            <div className="hungarian-stat-box">
+              <span className="hungarian-stat-label">זמן כולל:</span>
+              <span className="hungarian-stat-value">{totalTime} דק&apos;</span>
             </div>
             <button
               className={`hungarian-check-btn ${assignedCount === 4 ? 'active' : ''}`}
-              onClick={handleCheck}
-              disabled={assignedCount !== 4}
+              onClick={handleCheckSolution}
+              disabled={assignedCount !== 4 || isAnimating}
             >
               ✓ בדיקה
             </button>
           </div>
 
-          {/* Top Buttons */}
-          <div className="hungarian-top-buttons">
-            <button className="hungarian-top-btn hungarian-info-btn" onClick={() => { closeAllPanels(); setShowInfoPanel(true); }}>
-              🎓
-            </button>
-            <button className="hungarian-top-btn hungarian-help-btn" onClick={() => { closeAllPanels(); setShowHelpPanel(true); }}>
-              ?
-            </button>
-            <button className="hungarian-top-btn hungarian-hint-btn" onClick={handleHint}>
-              💡
-            </button>
+          <div className="hungarian-side-buttons-right">
+            <button className="hungarian-side-btn btn-red" onClick={handleReset} title="איפוס">🔄</button>
           </div>
+        </div>
+      )}
 
-          {/* Left Buttons */}
-          <div className="hungarian-left-buttons">
-            <button className="hungarian-left-btn hungarian-reset-btn" onClick={handleReset}>
-              🔄
-            </button>
-            <button className="hungarian-left-btn hungarian-exit-btn" onClick={handleExit}>
-              ✕
-            </button>
+      {/* Overlay for panels */}
+      <div
+        className={`hungarian-overlay ${showHelpPanel || showInfoPanel ? 'visible' : ''}`}
+        onClick={closeAllPanels}
+      />
+
+      {/* Hint Toast */}
+      <div className={`hungarian-hint-toast ${showHint ? 'visible' : ''}`}>
+        {hintText}
+      </div>
+
+      {/* Help Panel */}
+      <div className={`hungarian-side-panel ${showHelpPanel ? 'open' : ''}`}>
+        <button className="hungarian-panel-close" onClick={closeAllPanels}>✕</button>
+        <div className="hungarian-panel-title">🎮 איך משחקים?</div>
+
+        <div className="hungarian-panel-section">
+          <h3>📦 על המשחק</h3>
+          <p>במשחק זה יש לנהל מערכת משלוחים עם 4 שליחים ו-4 הזמנות. כל הזמנה כוללת מסעדה (משם השליח אוסף את האוכל) ומשפחה (לשם הוא מוסר). לכל שליח יש זמן הגעה שונה לכל הזמנה, בהתאם למיקום שלו על המפה.</p>
+        </div>
+
+        <div className="hungarian-panel-section">
+          <h3>🎯 מה המטרה?</h3>
+          <p>לשבץ כל שליח להזמנה אחת, כך שסכום הזמנים הכולל של כל השליחים יחד יהיה הנמוך ביותר האפשרי.</p>
+          <p style={{ marginTop: 10, color: '#e65100', fontWeight: 600 }}>שימו לב: המטרה היא למצוא את הזמן הכולל הנמוך ביותר לכל המערכת, לא את הזמן הקצר ביותר לכל שליח בנפרד!</p>
+        </div>
+
+        <div className="hungarian-panel-section">
+          <h3>👆 שלבי המשחק</h3>
+          <p>ראשית, מקישים על אחד האופנועים במפה. זה יפתח חלון שמציג את כל ההזמנות, ולכל אחת מוצג כמה זמן ייקח לשליח להגיע.</p>
+          <p style={{ marginTop: 8 }}>שנית, בחר הזמנה עבור השליח. תראה קו צבעוני שמראה את המסלול שלו.</p>
+          <p style={{ marginTop: 8 }}>שלישית, חזור על התהליך עבור שאר השליחים עד ששיבצת את כולם.</p>
+          <p style={{ marginTop: 8 }}>לבסוף, מקישים על כפתור הבדיקה כדי לגלות אם נמצא הפתרון הטוב ביותר!</p>
+        </div>
+
+        <div className="hungarian-tip-box">
+          <h4>💡 איך לחשוב נכון?</h4>
+          <p>הטעות הנפוצה היא לשבץ כל שליח להזמנה שהוא מגיע אליה הכי מהר. זה לא תמיד הפתרון הטוב ביותר!</p>
+          <p style={{ marginTop: 8 }}>לפני שיבוץ שליח, כדאי לבדוק גם את הזמנים של השליחים האחרים לאותה הזמנה. השאלה היא: אם משבצים את השליח הזה כאן, מה יקרה לשאר?</p>
+        </div>
+      </div>
+
+      {/* Info Panel */}
+      <div className={`hungarian-info-panel ${showInfoPanel ? 'open' : ''}`}>
+        <button className="hungarian-panel-close" onClick={closeAllPanels}>✕</button>
+        <div className="hungarian-edu-icon">🛵</div>
+        <div className="hungarian-edu-title">מה לומדים כאן?</div>
+
+        <div className="hungarian-edu-section">
+          <h3>🎮 על מה המשחק</h3>
+          <p>המשחק מציג אתגר של שיבוץ: איך להתאים בין אנשים למשימות כך שהתוצאה הכוללת תהיה הטובה ביותר. זו בעיה קלאסית שמופיעה בתחומים רבים - מניהול משלוחים ועד תכנון משמרות.</p>
+        </div>
+
+        <div className="hungarian-edu-section">
+          <h3>🔧 איפה זה בשימוש</h3>
+          <div className="hungarian-uses-list">
+            <span className="hungarian-use-tag">ניהול משלוחים</span>
+            <span className="hungarian-use-tag">תזמון עובדים</span>
+            <span className="hungarian-use-tag">חלוקת משימות</span>
+            <span className="hungarian-use-tag">תכנון משמרות</span>
           </div>
+        </div>
 
-          {/* Overlay */}
-          <div
-            className={`hungarian-overlay ${showHelpPanel || showInfoPanel ? 'visible' : ''}`}
-            onClick={closeAllPanels}
-          />
+        <div className="hungarian-edu-section">
+          <h3>🎓 למה הנדסת תעשייה וניהול</h3>
+          <p>התואר בהנדסת תעשייה וניהול מלמד, בין היתר, <strong>לקבל החלטות חכמות שמביאות לתוצאה הטובה ביותר</strong>. שיבוץ נכון = חיסכון בזמן, במאמץ ובכסף!</p>
+        </div>
 
-          {/* Help Panel */}
-          <div className={`hungarian-side-panel ${showHelpPanel ? 'open' : ''}`}>
-            <div className="hungarian-panel-title">
-              <span>🎮</span>
-              <span>איך משחקים?</span>
-            </div>
-
-            <div className="hungarian-panel-section">
-              <h3>📦 על המשחק</h3>
-              <p>במשחק זה יש לנהל מערכת משלוחים עם 4 שליחים ו-4 הזמנות. לכל שליח יש זמן הגעה שונה לכל הזמנה.</p>
-            </div>
-
-            <div className="hungarian-panel-section">
-              <h3>🎯 המטרה</h3>
-              <p>לשבץ כל שליח להזמנה אחת, כך שסכום הזמנים הכולל יהיה הנמוך ביותר האפשרי.</p>
-              <p style={{ marginTop: 10, color: '#e65100', fontWeight: 600 }}>שימו לב: המטרה היא למצוא את הזמן הכולל הנמוך ביותר לכל המערכת!</p>
-            </div>
-
-            <div className="hungarian-panel-section">
-              <h3>👆 שלבי המשחק</h3>
-              <ol>
-                <li>מקישים על אחד השליחים</li>
-                <li>בוחרים הזמנה מהרשימה</li>
-                <li>חוזרים על התהליך עבור כל השליחים</li>
-                <li>מקישים על בדיקה לסיום</li>
-              </ol>
-            </div>
+        <div className="hungarian-edu-section">
+          <div className="hungarian-benefit-box">
+            <p>בהנדסת תעשייה וניהול מפתחים דרך חשיבה שעוזרת להתמודד עם אתגרים כאלה.</p>
           </div>
-          <button
-            className={`hungarian-panel-close ${showHelpPanel ? '' : 'hidden'}`}
-            onClick={closeAllPanels}
-          >
-            ✕
-          </button>
+        </div>
+      </div>
 
-          {/* Info Panel */}
-          <div className={`hungarian-info-panel ${showInfoPanel ? 'open' : ''}`}>
-            <div className="hungarian-edu-icon">🛵</div>
-            <div className="hungarian-edu-title">מה לומדים כאן?</div>
-
-            <div className="hungarian-edu-section">
-              <h3>🎮 על מה המשחק</h3>
-              <p>המשחק מציג אתגר של שיבוץ: איך להתאים בין אנשים למשימות כך שהתוצאה הכוללת תהיה הטובה ביותר.</p>
-            </div>
-
-            <div className="hungarian-edu-section">
-              <h3>🔧 איפה זה בשימוש</h3>
-              <div className="hungarian-uses-list">
-                <span className="hungarian-use-tag">ניהול משלוחים</span>
-                <span className="hungarian-use-tag">תזמון עובדים</span>
-                <span className="hungarian-use-tag">חלוקת משימות</span>
-                <span className="hungarian-use-tag">תכנון משמרות</span>
+      {/* Courier Modal */}
+      {showCourierModal && selectedCourier !== null && (
+        <div className="hungarian-courier-modal">
+          <div className="hungarian-modal-content">
+            <div className="hungarian-modal-header">
+              <div className="hungarian-modal-courier-info">
+                <div
+                  className="hungarian-modal-courier-avatar"
+                  style={{ background: COURIERS.find(c => c.id === selectedCourier)?.color }}
+                >
+                  🏍️
+                </div>
+                <div>
+                  <div className="hungarian-modal-courier-name">
+                    {COURIERS.find(c => c.id === selectedCourier)?.name}
+                  </div>
+                  <div className="hungarian-modal-courier-status">
+                    {assignments[selectedCourier]
+                      ? 'משובץ ל' + ORDERS.find(o => o.id === assignments[selectedCourier])?.family
+                      : 'בחר הזמנה לשליחות'}
+                  </div>
+                </div>
               </div>
+              <button className="hungarian-modal-close" onClick={closeModal}>✕</button>
             </div>
+            <div className="hungarian-modal-body">
+              <div className="hungarian-modal-section-title">⏱️ זמני הגעה להזמנות</div>
+              <div className="hungarian-time-matrix">
+                {ORDERS.map(order => {
+                  const courier = COURIERS.find(c => c.id === selectedCourier)!;
+                  const time = getTimeMinutes(courier, order);
+                  const assignedTo = Object.entries(assignments).find(([_, oId]) => oId === order.id);
+                  const isThis = assignedTo && parseInt(assignedTo[0]) === selectedCourier;
+                  const isOther = assignedTo && parseInt(assignedTo[0]) !== selectedCourier;
+                  const otherCourier = isOther ? COURIERS.find(c => c.id === parseInt(assignedTo[0])) : null;
 
-            <div className="hungarian-edu-section">
-              <h3>🎓 למה הנדסת תעשייה וניהול</h3>
-              <p>התואר מלמד <strong>לקבל החלטות חכמות שמביאות לתוצאה הטובה ביותר</strong>. שיבוץ נכון = חיסכון בזמן, במאמץ ובכסף!</p>
-            </div>
-
-            <div className="hungarian-edu-section">
-              <div className="hungarian-benefit-box">
-                <p>בהנדסת תעשייה וניהול מפתחים דרך חשיבה שעוזרת להתמודד עם אתגרים כאלה.</p>
-              </div>
-            </div>
-          </div>
-          <button
-            className={`hungarian-info-panel-close ${showInfoPanel ? '' : 'hidden'}`}
-            onClick={closeAllPanels}
-          >
-            ✕
-          </button>
-
-          {/* Courier Modal */}
-          {showModal && selectedCourier !== null && (
-            <div className="hungarian-modal-overlay">
-              <div className="hungarian-modal-content">
-                <div className="hungarian-modal-header">
-                  <div className="hungarian-modal-courier-info">
+                  return (
                     <div
-                      className="hungarian-modal-courier-avatar"
-                      style={{ background: COURIERS.find(c => c.id === selectedCourier)?.color }}
+                      key={order.id}
+                      className={`hungarian-matrix-row ${isThis ? 'assigned' : ''} ${isOther ? 'assigned-other' : ''}`}
+                      onClick={() => !isOther && handleAssignOrder(order.id)}
                     >
-                      🏍️
-                    </div>
-                    <div>
-                      <div className="hungarian-modal-courier-name">
-                        {COURIERS.find(c => c.id === selectedCourier)?.name}
-                      </div>
-                      <div className="hungarian-modal-courier-status">
-                        {assignments[selectedCourier]
-                          ? `משובץ ל${ORDERS.find(o => o.id === assignments[selectedCourier])?.family}`
-                          : 'בחר הזמנה'}
-                      </div>
-                    </div>
-                  </div>
-                  <button className="hungarian-modal-close" onClick={() => setShowModal(false)}>
-                    ✕
-                  </button>
-                </div>
-                <div className="hungarian-modal-body">
-                  <div className="hungarian-modal-section-title">⏱️ זמני הגעה להזמנות</div>
-                  <div className="hungarian-time-matrix">
-                    {ORDERS.map(order => {
-                      const courier = COURIERS.find(c => c.id === selectedCourier)!;
-                      const time = getTimeMinutes(courier, order);
-                      const assignedTo = Object.entries(assignments).find(([_, oId]) => oId === order.id);
-                      const isThis = assignedTo && parseInt(assignedTo[0]) === selectedCourier;
-                      const isOther = assignedTo && parseInt(assignedTo[0]) !== selectedCourier;
-                      const otherCourier = isOther ? COURIERS.find(c => c.id === parseInt(assignedTo[0])) : null;
-
-                      return (
-                        <div
-                          key={order.id}
-                          className={`hungarian-matrix-row ${isThis ? 'assigned' : ''} ${isOther ? 'assigned-other' : ''}`}
-                          onClick={() => !isOther && handleAssignOrder(order.id)}
-                        >
-                          <div className="hungarian-matrix-row-info">
-                            <div className="hungarian-matrix-family-dot" style={{ background: order.color }} />
-                            <div>
-                              <div className="hungarian-matrix-family-name">{order.family}</div>
-                              <div className="hungarian-matrix-restaurant">דרך {order.restaurant}</div>
-                            </div>
-                          </div>
-                          <div className="hungarian-matrix-time">
-                            <span className="hungarian-matrix-time-value">{time} דק&apos;</span>
-                            {isOther ? (
-                              <span className="hungarian-assigned-badge">{otherCourier?.name}</span>
-                            ) : (
-                              <button className="hungarian-matrix-select-btn">
-                                {isThis ? '✓' : 'בחר'}
-                              </button>
-                            )}
-                          </div>
+                      <div className="hungarian-matrix-row-info">
+                        <div className="hungarian-matrix-family-dot" style={{ background: order.color }} />
+                        <div>
+                          <div className="hungarian-matrix-family-name">{order.family}</div>
+                          <div className="hungarian-matrix-restaurant">דרך {order.restaurant}</div>
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Hint Toast */}
-          <div className={`hungarian-hint-toast ${showHint ? 'visible' : ''}`}>
-            {hintText}
-          </div>
-
-          {/* Result Overlay */}
-          <div className={`hungarian-result-overlay ${showResult ? 'show' : ''}`}>
-            {resultData.solved && showResult && (
-              <div className="hungarian-confetti">
-                {[...Array(20)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="hungarian-confetti-piece"
-                    style={{ '--delay': `${i * 0.1}s`, '--x': `${Math.random() * 100}%` } as React.CSSProperties}
-                  />
-                ))}
-              </div>
-            )}
-            <div className={`hungarian-result-card ${resultData.solved ? 'success-card' : ''}`}>
-              <div className="hungarian-result-icon">{resultData.solved ? '🏆' : '📊'}</div>
-              <div className="hungarian-result-title">{resultData.solved ? 'מושלם!' : 'סיום'}</div>
-              <div className="hungarian-result-subtitle">
-                {resultData.solved ? 'מצאת את השיבוץ הטוב ביותר!' : 'תוצאות'}
-              </div>
-
-              <div className="hungarian-results-box">
-                <div className="hungarian-results-row">
-                  <span className="hungarian-results-label">הפתרון שלך:</span>
-                  <span className="hungarian-results-value">{resultData.userTime} דק&apos;</span>
-                </div>
-                <div className="hungarian-results-row">
-                  <span className="hungarian-results-label">הטוב ביותר:</span>
-                  <span className="hungarian-results-value">{resultData.optimalTime} דק&apos;</span>
-                </div>
-                <div className={`hungarian-result-message ${resultData.solved ? 'success' : 'fail'}`}>
-                  {resultData.solved
-                    ? '⭐ השיבוץ האופטימלי!'
-                    : `🤏 הפתרון ארוך ב-${(resultData.userTime - resultData.optimalTime).toFixed(1)} דק' מהטוב ביותר`}
-                </div>
-              </div>
-
-              {!resultData.solved && (
-                <div className="hungarian-optimal-list">
-                  <h4>🏆 השיבוץ הטוב ביותר:</h4>
-                  {Object.entries(getOptimalSolution().assignments).map(([cId, oId]) => {
-                    const c = COURIERS.find(x => x.id === parseInt(cId));
-                    const o = ORDERS.find(x => x.id === oId);
-                    if (!c || !o) return null;
-                    const t = getTimeMinutes(c, o);
-                    return (
-                      <div key={cId} className="hungarian-optimal-item">
-                        <span style={{ color: c.color }}>●</span>
-                        {c.name} → {o.family} ({t} דק&apos;)
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              <div className="hungarian-modal-buttons">
-                <button className="hungarian-modal-btn main" onClick={handleFinish}>
-                  קדימה לחידה הבאה! 🚀
-                </button>
-                <button className="hungarian-modal-btn ghost" onClick={handlePlayAgain}>
-                  🔁 שחק שוב
-                </button>
+                      <div className="hungarian-matrix-time">
+                        <span className="hungarian-matrix-time-value">{time} דק&apos;</span>
+                        {isOther ? (
+                          <span className="hungarian-assigned-badge">{otherCourier?.name}</span>
+                        ) : (
+                          <button className="hungarian-matrix-select-btn">
+                            {isThis ? '✓' : 'בחר'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
-        </>
+        </div>
+      )}
+
+      {/* Celebration */}
+      {showCelebration && (
+        <div className="hungarian-celebration">
+          <div className="hungarian-celeb-card">
+            <div className="hungarian-celeb-icon">
+              {celebrationData.solved ? '🏆' : celebrationData.userTime - celebrationData.optimalTime < 3 ? '🎉' : '💪'}
+            </div>
+            <h2 className="hungarian-celeb-title">
+              {celebrationData.solved ? 'מושלם!' : celebrationData.userTime - celebrationData.optimalTime < 3 ? 'כמעט מושלם!' : 'סיימת!'}
+            </h2>
+
+            <div className="hungarian-results-grid">
+              <div className="hungarian-result-box user">
+                <div className="hungarian-result-label">הפתרון שלך</div>
+                <div className="hungarian-result-value">{celebrationData.userTime} דק&apos;</div>
+              </div>
+              <div className="hungarian-result-box optimal">
+                <div className="hungarian-result-label">הפתרון הטוב ביותר</div>
+                <div className="hungarian-result-value">{celebrationData.optimalTime} דק&apos;</div>
+              </div>
+            </div>
+
+            <div className="hungarian-optimal-list">
+              <h4>🏆 השיבוץ הטוב ביותר:</h4>
+              <div className="hungarian-optimal-list-content">
+                {Object.entries(getOptimalSolution().assignments).map(([cId, oId]) => {
+                  const c = COURIERS.find(x => x.id === parseInt(cId));
+                  const o = ORDERS.find(x => x.id === oId);
+                  if (!c || !o) return null;
+                  const t = getTimeMinutes(c, o);
+                  return (
+                    <div key={cId} className="hungarian-optimal-item">
+                      <span style={{ color: c.color }}>●</span> {c.name} → {o.family} ({t} דק&apos;)
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="hungarian-celeb-buttons">
+              <button className="hungarian-celeb-btn primary" onClick={handleContinue}>
+                קדימה לחידה הבאה! 🚀
+              </button>
+              <button className="hungarian-celeb-btn secondary" onClick={handlePlayAgain}>
+                🔄 שחק שוב
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

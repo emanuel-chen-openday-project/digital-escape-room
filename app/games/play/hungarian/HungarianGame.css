@@ -1,20 +1,29 @@
-/* Hungarian Game Styles */
+/* Hungarian Game Styles - Converted 1:1 from original HTML */
 
-.hungarian-container {
+* {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hungarian-game-container {
   position: fixed;
   inset: 0;
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%);
   font-family: "Heebo", Arial, sans-serif;
-  direction: rtl;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%);
   overflow: hidden;
   z-index: 1000;
 }
 
 .hungarian-canvas {
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   display: block;
   outline: none;
+  position: fixed;
+  top: 0;
+  left: 0;
   touch-action: none;
 }
 
@@ -31,6 +40,8 @@
   padding: 20px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .hungarian-splash-content {
@@ -103,15 +114,9 @@
   margin-bottom: 6px;
 }
 
-.hungarian-highlight {
+.highlight-text {
   color: #1565C0;
   font-weight: 700;
-}
-
-.hungarian-tip {
-  margin-top: 12px;
-  color: #e65100;
-  font-size: 13px;
 }
 
 .hungarian-start-btn {
@@ -133,156 +138,145 @@
   transform: scale(0.95);
 }
 
-/* ========== HUD ========== */
-.hungarian-hud {
+/* ========== TOP BAR ========== */
+.hungarian-top-bar {
   position: fixed;
-  top: max(12px, env(safe-area-inset-top, 12px));
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, rgba(21, 101, 192, 0.9), rgba(13, 71, 161, 0.95));
-  backdrop-filter: blur(20px);
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(21, 101, 192, 0.4);
-  padding: 8px 16px;
+  top: max(8px, env(safe-area-inset-top, 8px));
+  left: 0;
+  right: 0;
+  padding: 0 10px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   z-index: 100;
 }
 
-.hungarian-hud-stats {
+.hungarian-side-buttons-left,
+.hungarian-side-buttons-right {
   display: flex;
-  gap: 12px;
+  gap: 6px;
 }
 
-.hungarian-stat {
+.hungarian-side-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  transition: transform 0.15s;
+}
+
+.hungarian-side-btn:active {
+  transform: scale(0.92);
+}
+
+.btn-red {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+  color: white;
+}
+
+.btn-yellow {
+  background: linear-gradient(135deg, #ffd54f, #ffb300);
+  color: #263238;
+}
+
+.btn-green {
+  background: linear-gradient(135deg, #69f0ae, #00c853);
+  color: #1b5e20;
+}
+
+.btn-light-blue {
+  background: linear-gradient(135deg, #ffffff, #e3f2fd);
+  color: #1565C0;
+}
+
+.hungarian-center-panel {
+  background: linear-gradient(135deg, rgba(21, 101, 192, 0.85), rgba(13, 71, 161, 0.9));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(21, 101, 192, 0.4), 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: white;
+  max-width: 320px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.hungarian-stat-box {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
   background: rgba(255, 255, 255, 0.2);
-  padding: 6px 12px;
-  border-radius: 10px;
-  min-width: 80px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 90px;
 }
 
 .hungarian-stat-label {
-  font-size: 11px;
-  color: rgba(255,255,255,0.9);
+  font-size: 12px;
+  opacity: 0.95;
   font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  color: white;
 }
 
 .hungarian-stat-value {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
   color: white;
 }
 
 .hungarian-check-btn {
   background: linear-gradient(135deg, #bdbdbd, #9e9e9e);
   border: none;
-  border-radius: 12px;
-  padding: 10px 20px;
+  border-radius: 10px;
+  padding: 6px 12px;
   color: #616161;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
-  cursor: not-allowed;
-  opacity: 0.7;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.8;
+  pointer-events: none;
   transition: all 0.2s;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.5);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .hungarian-check-btn.active {
   background: linear-gradient(135deg, #69f0ae, #00c853);
   color: #1b5e20;
-  cursor: pointer;
   opacity: 1;
+  pointer-events: auto;
 }
 
-.hungarian-check-btn:active:not(:disabled) {
+.hungarian-check-btn:active {
   transform: scale(0.95);
-}
-
-/* ========== TOP BUTTONS ========== */
-.hungarian-top-buttons {
-  position: fixed;
-  top: max(12px, env(safe-area-inset-top, 12px));
-  right: 12px;
-  display: flex;
-  gap: 8px;
-  z-index: 100;
-}
-
-.hungarian-top-btn {
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 800;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
-  transition: transform 0.15s;
-}
-
-.hungarian-top-btn:active {
-  transform: scale(0.92);
-}
-
-.hungarian-info-btn {
-  background: linear-gradient(135deg, #69f0ae, #00c853);
-  color: #1b5e20;
-}
-
-.hungarian-help-btn {
-  background: linear-gradient(135deg, #ffffff, #e3f2fd);
-  color: #1565C0;
-}
-
-.hungarian-hint-btn {
-  background: linear-gradient(135deg, #ffd54f, #ffb300);
-  color: #263238;
-}
-
-/* ========== LEFT BUTTONS ========== */
-.hungarian-left-buttons {
-  position: fixed;
-  top: max(12px, env(safe-area-inset-top, 12px));
-  left: 12px;
-  display: flex;
-  gap: 8px;
-  z-index: 100;
-}
-
-.hungarian-left-btn {
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
-  transition: transform 0.15s;
-}
-
-.hungarian-left-btn:active {
-  transform: scale(0.92);
-}
-
-.hungarian-reset-btn {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
-  color: white;
-}
-
-.hungarian-exit-btn {
-  background: linear-gradient(135deg, #ffffff, #f0f0f0);
-  color: #666;
 }
 
 /* ========== OVERLAY ========== */
@@ -301,7 +295,7 @@
   pointer-events: auto;
 }
 
-/* ========== SIDE PANEL ========== */
+/* ========== SIDE PANEL (HELP) ========== */
 .hungarian-side-panel {
   position: fixed;
   top: 0;
@@ -309,17 +303,38 @@
   width: 320px;
   max-width: 90vw;
   height: 100%;
+  height: 100dvh;
   background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(227,242,253,0.98));
   backdrop-filter: blur(20px);
   box-shadow: -4px 0 30px rgba(0,0,0,0.3);
   z-index: 200;
   transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   padding: max(20px, env(safe-area-inset-top, 20px)) 16px 100px 16px;
 }
 
 .hungarian-side-panel.open {
   right: 0;
+}
+
+.hungarian-panel-close {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top, 16px));
+  left: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #e0e0e0;
+  color: #424242;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hungarian-panel-title {
@@ -357,39 +372,28 @@
   margin: 0;
 }
 
-.hungarian-panel-section ol {
-  padding-right: 20px;
-  margin: 8px 0 0 0;
+.hungarian-tip-box {
+  background: linear-gradient(135deg, #fff8e1, #ffecb3);
+  border: 2px solid #FFC107;
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 14px;
 }
 
-.hungarian-panel-section li {
-  font-size: 13px;
-  color: #37474f;
-  line-height: 1.8;
-}
-
-.hungarian-panel-close {
-  position: fixed;
-  top: max(16px, env(safe-area-inset-top, 16px));
-  right: 270px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: #e0e0e0;
-  color: #424242;
-  font-size: 20px;
-  cursor: pointer;
+.hungarian-tip-box h4 {
+  color: #e65100;
+  font-size: 14px;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 201;
-  transition: opacity 0.3s, right 0.35s;
+  gap: 6px;
 }
 
-.hungarian-panel-close.hidden {
-  opacity: 0;
-  pointer-events: none;
+.hungarian-tip-box p {
+  font-size: 12px;
+  color: #5D4037;
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* ========== INFO PANEL ========== */
@@ -400,12 +404,16 @@
   width: 340px;
   max-width: 90vw;
   height: 100%;
+  height: 100dvh;
   background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(232,245,233,0.98));
   backdrop-filter: blur(20px);
   box-shadow: -4px 0 30px rgba(0,0,0,0.3);
   z-index: 200;
   transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   padding: max(20px, env(safe-area-inset-top, 20px)) 16px 100px 16px;
 }
 
@@ -482,32 +490,8 @@
   font-weight: 600;
 }
 
-.hungarian-info-panel-close {
-  position: fixed;
-  top: max(16px, env(safe-area-inset-top, 16px));
-  right: 290px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: #e0e0e0;
-  color: #424242;
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 201;
-  transition: opacity 0.3s, right 0.35s;
-}
-
-.hungarian-info-panel-close.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* ========== COURIER MODAL ========== */
-.hungarian-modal-overlay {
+.hungarian-courier-modal {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.6);
@@ -682,6 +666,10 @@
   background: #4CAF50;
 }
 
+.hungarian-matrix-row.assigned-other .hungarian-matrix-select-btn {
+  display: none;
+}
+
 .hungarian-assigned-badge {
   padding: 6px 12px;
   background: #999;
@@ -717,8 +705,8 @@
   transform: translateX(-50%) translateY(0);
 }
 
-/* ========== RESULT OVERLAY ========== */
-.hungarian-result-overlay {
+/* ========== CELEBRATION ========== */
+.hungarian-celebration {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.7);
@@ -730,17 +718,9 @@
   padding: 20px;
   padding-top: 40px;
   overflow-y: auto;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
 }
 
-.hungarian-result-overlay.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.hungarian-result-card {
+.hungarian-celeb-card {
   background: white;
   border-radius: 24px;
   max-width: 450px;
@@ -748,86 +728,71 @@
   padding: 28px;
   text-align: center;
   box-shadow: 0 25px 70px rgba(0,0,0,0.4);
-  animation: hungarian-result-pop 0.5s ease;
+  animation: hungarian-celeb-pop 0.5s ease;
   margin-bottom: 40px;
 }
 
-@keyframes hungarian-result-pop {
+@keyframes hungarian-celeb-pop {
   0% { transform: scale(0.8) translateY(40px); opacity: 0; }
   100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-.hungarian-result-card.success-card {
-  background: linear-gradient(180deg, #ffffff 0%, #e8f5e9 100%);
-}
-
-.hungarian-result-icon {
+.hungarian-celeb-icon {
   font-size: 60px;
   margin-bottom: 12px;
 }
 
-.hungarian-result-title {
+.hungarian-celeb-title {
   font-size: 28px;
   font-weight: 900;
   background: linear-gradient(135deg, #1565C0, #0D47A1);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 8px;
-}
-
-.hungarian-result-subtitle {
-  font-size: 14px;
-  color: #666;
   margin-bottom: 20px;
 }
 
-.hungarian-results-box {
-  background: #f5f5f5;
-  border-radius: 16px;
+.hungarian-results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.hungarian-result-box {
   padding: 16px;
-  margin-bottom: 20px;
+  border-radius: 16px;
+  text-align: center;
 }
 
-.hungarian-results-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #e0e0e0;
+.hungarian-result-box.user {
+  background: linear-gradient(135deg, #fff8e1, #ffecb3);
+  border: 2px solid #FFC107;
 }
 
-.hungarian-results-row:last-child {
-  border-bottom: none;
-}
-
-.hungarian-results-label {
-  font-size: 14px;
-  color: #666;
-}
-
-.hungarian-results-value {
-  font-size: 18px;
-  font-weight: 800;
-  color: #1565C0;
-}
-
-.hungarian-result-message {
-  padding: 12px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  margin-top: 12px;
-}
-
-.hungarian-result-message.success {
+.hungarian-result-box.optimal {
   background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-  color: #2e7d32;
+  border: 2px solid #4CAF50;
 }
 
-.hungarian-result-message.fail {
-  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-  color: #e65100;
+.hungarian-result-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.hungarian-result-value {
+  font-size: 26px;
+  font-weight: 900;
+}
+
+.hungarian-result-box.user .hungarian-result-value {
+  color: #FF9800;
+}
+
+.hungarian-result-box.optimal .hungarian-result-value {
+  color: #4CAF50;
 }
 
 .hungarian-optimal-list {
@@ -853,105 +818,72 @@
   gap: 8px;
 }
 
-.hungarian-modal-buttons {
+.hungarian-celeb-buttons {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.hungarian-modal-btn {
-  padding: 14px 24px;
+.hungarian-celeb-btn {
+  padding: 14px 40px;
   border: none;
-  border-radius: 14px;
+  border-radius: 50px;
   font-family: inherit;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 800;
   cursor: pointer;
   transition: transform 0.2s;
 }
 
-.hungarian-modal-btn:active {
+.hungarian-celeb-btn:active {
   transform: scale(0.97);
 }
 
-.hungarian-modal-btn.main {
+.hungarian-celeb-btn.primary {
   background: linear-gradient(135deg, #1565C0, #0D47A1);
   color: white;
-  box-shadow: 0 4px 15px rgba(21, 101, 192, 0.4);
+  box-shadow: 0 8px 25px rgba(21, 101, 192, 0.4);
 }
 
-.hungarian-modal-btn.ghost {
+.hungarian-celeb-btn.secondary {
   background: transparent;
   color: #666;
   border: 2px solid #e0e0e0;
 }
 
-/* ========== CONFETTI ========== */
-.hungarian-confetti {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.hungarian-confetti-piece {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: #ffd700;
-  top: -20px;
-  left: var(--x);
-  animation: hungarian-confetti-fall 3s ease-out var(--delay) forwards;
-}
-
-.hungarian-confetti-piece:nth-child(odd) {
-  background: #ff6b6b;
-}
-
-.hungarian-confetti-piece:nth-child(3n) {
-  background: #4ECDC4;
-}
-
-.hungarian-confetti-piece:nth-child(4n) {
-  background: #9B59B6;
-}
-
-@keyframes hungarian-confetti-fall {
-  to {
-    transform: translateY(100vh) rotate(720deg);
-    opacity: 0;
-  }
-}
-
 /* ========== RESPONSIVE ========== */
 @media (max-width: 900px) {
-  .hungarian-hud {
-    padding: 6px 10px;
-    gap: 8px;
+  .hungarian-center-panel {
+    padding: 4px 8px;
+    gap: 6px;
+    max-width: 260px;
+    font-size: 11px;
   }
 
-  .hungarian-stat {
-    padding: 4px 8px;
-    min-width: 60px;
+  .hungarian-stat-box {
+    padding: 3px 6px;
+    gap: 3px;
+    min-width: 70px;
+  }
+
+  .hungarian-stat-value {
+    font-size: 13px;
   }
 
   .hungarian-stat-label {
     font-size: 9px;
   }
 
-  .hungarian-stat-value {
-    font-size: 14px;
-  }
-
   .hungarian-check-btn {
-    padding: 8px 14px;
-    font-size: 12px;
+    padding: 6px 10px;
+    font-size: 11px;
+    min-width: 60px;
   }
 
-  .hungarian-top-btn,
-  .hungarian-left-btn {
-    width: 38px;
-    height: 38px;
+  .hungarian-side-btn {
+    width: 36px;
+    height: 36px;
     font-size: 16px;
+    border-radius: 10px;
   }
 }
