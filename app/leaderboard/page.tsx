@@ -62,7 +62,7 @@ const DonutChart = ({ data, total }: { data: { label: string; value: number; col
   let cumulativePercent = 0;
 
   return (
-    <div className="relative w-36 h-36 flex items-center justify-center">
+    <div className="relative w-48 h-48 flex items-center justify-center">
       <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90 transform">
         {data.map((item, index) => {
           const percent = total > 0 ? item.value / total : 0;
@@ -78,7 +78,7 @@ const DonutChart = ({ data, total }: { data: { label: string; value: number; col
               r={radius}
               fill="transparent"
               stroke={item.color}
-              strokeWidth="12"
+              strokeWidth="10"
               strokeDasharray={strokeDasharray}
               strokeDashoffset={strokeDashoffset}
               className="transition-all duration-1000 ease-out hover:opacity-80 drop-shadow-sm"
@@ -88,8 +88,8 @@ const DonutChart = ({ data, total }: { data: { label: string; value: number; col
       </svg>
       {/* Center Text */}
       <div className="absolute inset-0 flex items-center justify-center flex-col">
-        <span className="text-3xl font-bold text-slate-700">{total}</span>
-        <span className="text-[10px] text-slate-400 font-medium tracking-wide">סה״כ שחקנים</span>
+        <span className="text-4xl font-bold text-slate-700">{total}</span>
+        <span className="text-xs text-slate-400 font-medium tracking-wide">סה״כ שחקנים</span>
       </div>
     </div>
   );
@@ -365,32 +365,29 @@ export default function LeaderboardPage() {
         </div>
 
         {/* 3. Donut Chart: Player Status */}
-        <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 flex flex-col justify-between">
+        <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 flex flex-col">
           <div>
-            <h2 className="text-lg font-bold flex items-center gap-2 mb-2 text-slate-700">
+            <h2 className="text-lg font-bold flex items-center gap-2 mb-4 text-slate-700">
               <PieChart className="text-indigo-500" size={20} />
               סטטוס משתתפים
             </h2>
           </div>
 
-          <div className="flex-1 flex items-center justify-between gap-2">
+          <div className="flex-1 flex flex-col items-center gap-4">
              <DonutChart data={systemStats} total={players.length} />
 
-             {/* Legend */}
-             <div className="flex flex-col gap-4 flex-1 pr-2">
+             {/* Legend - Below Chart */}
+             <div className="flex justify-center gap-6 w-full pt-2">
                 {systemStats.map((stat, i) => (
-                  <div key={i} className="flex flex-col">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: stat.color }}></div>
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: stat.color }}></div>
+                    <div className="flex flex-col">
                       <span className="text-slate-500 text-xs font-medium">{stat.label}</span>
+                      <span className="text-lg font-black text-slate-700 leading-none">{stat.value}</span>
                     </div>
-                    <span className="text-xl font-black text-slate-700 mr-4 leading-none">{stat.value}</span>
                   </div>
                 ))}
              </div>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-slate-50 text-center">
           </div>
         </div>
       </div>
