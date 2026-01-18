@@ -23,6 +23,7 @@ import {
 } from './factory/gameLogic';
 import { TSPGame, GameResult } from './tsp';
 import { HungarianGame } from './hungarian';
+import { KnapsackGame } from './knapsack';
 import { savePuzzleResult } from '@/lib/gameService';
 import { PuzzleType } from '@/lib/types';
 
@@ -331,6 +332,10 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
         ) : currentGame === 'Hungarian' ? (
           <div className={`game-wrapper ${gameTransition === 'exiting' ? 'fade-out' : 'fade-in'}`}>
             <HungarianGame onComplete={handleContinueAfterGame} />
+          </div>
+        ) : currentGame === 'Knapsack' ? (
+          <div className={`game-wrapper ${gameTransition === 'exiting' ? 'fade-out' : 'fade-in'}`}>
+            <KnapsackGame onComplete={handleContinueAfterGame} />
           </div>
         ) : (
           <div className="game-modal-overlay">
