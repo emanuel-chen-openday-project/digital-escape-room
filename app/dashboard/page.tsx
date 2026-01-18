@@ -109,10 +109,10 @@ export default function DashboardPage() {
       {/* Main Content */}
       <div className="relative z-10 w-full min-h-full flex flex-col items-center justify-center p-4 py-8">
 
-        {/* Header Section - smaller in landscape */}
-        <div className="text-center mb-6 landscape:mb-4 space-y-2 landscape:space-y-1">
+        {/* Header Section */}
+        <div className="text-center mb-10 space-y-2">
           <h1
-            className={`text-5xl landscape:text-3xl md:text-7xl font-black text-slate-800 tracking-tight drop-shadow-sm transition-all duration-1000 ease-out ${
+            className={`text-6xl md:text-8xl font-black text-slate-800 tracking-tight drop-shadow-sm transition-all duration-1000 ease-out ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'
             }`}
           >
@@ -124,21 +124,21 @@ export default function DashboardPage() {
             }`}
             style={{ transitionDelay: '200ms' }}
           >
-            <p className="text-lg landscape:text-sm md:text-xl font-medium text-slate-600 tracking-wide">
+            <p className="text-xl md:text-2xl font-medium text-slate-600 tracking-wide">
               יום פתוח | <span className="font-bold">הנדסת תעשייה וניהול</span>
             </p>
           </div>
         </div>
 
-        {/* Menu - grid in landscape */}
-        <div className="w-full max-w-md landscape:max-w-3xl flex flex-col landscape:flex-row landscape:flex-wrap landscape:justify-center gap-3 landscape:gap-2 px-4">
+        {/* Vertical Menu */}
+        <div className="w-full max-w-md flex flex-col gap-3 md:gap-4 px-4">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.id}
                 onClick={() => handleMenuClick(item.href, (item as any).external)}
-                className={`group relative flex items-center justify-between landscape:justify-start w-full landscape:w-auto p-3 landscape:p-2 landscape:px-4 bg-white/90 backdrop-blur-md border border-slate-200/60 rounded-xl shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500 ease-out overflow-hidden ${
+                className={`group relative flex items-center justify-between w-full p-4 md:p-5 bg-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500 ease-out overflow-hidden ${
                   isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
                 }`}
                 style={{ transitionDelay: `${400 + index * 100}ms` }}
@@ -147,22 +147,22 @@ export default function DashboardPage() {
                 <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 bg-gradient-to-r ${item.color} transition-opacity duration-300`}></div>
 
                 {/* Right Colored Accent Bar */}
-                <div className={`absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b ${item.color} opacity-100`}></div>
+                <div className={`absolute right-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${item.color} opacity-100`}></div>
 
-                <div className="flex items-center gap-3 landscape:gap-2 z-10">
+                <div className="flex items-center gap-5 z-10">
                   {/* Icon Box */}
-                  <div className={`w-10 h-10 landscape:w-8 landscape:h-8 rounded-lg flex items-center justify-center bg-gradient-to-br ${item.color} text-white shadow-md ${item.shadow} group-hover:rotate-6 transition-transform duration-300`}>
-                    <Icon size={20} className="landscape:w-4 landscape:h-4" strokeWidth={2.5} />
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${item.color} text-white shadow-md ${item.shadow} group-hover:rotate-6 transition-transform duration-300`}>
+                    <Icon size={24} strokeWidth={2.5} />
                   </div>
 
                   {/* Text */}
-                  <span className="text-lg landscape:text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
+                  <span className="text-xl font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
                     {item.label}
                   </span>
                 </div>
 
-                {/* Arrow - hidden in landscape */}
-                <ChevronLeft className="text-slate-300 group-hover:text-slate-500 group-hover:-translate-x-1 transition-all landscape:hidden" size={20} />
+                {/* Arrow */}
+                <ChevronLeft className="text-slate-300 group-hover:text-slate-500 group-hover:-translate-x-1 transition-all" size={24} />
               </button>
             );
           })}
@@ -170,21 +170,21 @@ export default function DashboardPage() {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className={`mt-3 landscape:mt-2 flex items-center justify-center gap-2 text-slate-400 hover:text-rose-500 transition-all duration-500 ease-out text-sm landscape:text-xs font-medium ${
+            className={`mt-4 flex items-center justify-center gap-2 text-slate-400 hover:text-rose-500 transition-all duration-500 ease-out text-sm font-medium ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
             style={{ transitionDelay: `${400 + menuItems.length * 100}ms` }}
           >
-            <LogOut size={14} />
+            <LogOut size={16} />
             יציאה מהמערכת
           </button>
         </div>
 
       </div>
 
-      {/* Mobile App Footer - hidden in landscape to save space */}
+      {/* Mobile App Footer */}
       <div
-        className={`absolute bottom-4 landscape:bottom-2 left-0 right-0 text-center transition-all duration-1000 ease-out landscape:hidden ${
+        className={`py-6 text-center transition-all duration-1000 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}
         style={{ transitionDelay: '1200ms' }}
