@@ -64,6 +64,11 @@ export default function DashboardPage() {
   const auth = getAuth(app);
 
   useEffect(() => {
+    // Exit fullscreen when returning to dashboard
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 100);

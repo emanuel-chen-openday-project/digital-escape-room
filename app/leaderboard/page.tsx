@@ -162,17 +162,44 @@ export default function LeaderboardPage() {
 
   // עיבוד נתונים לטבלה ולגרפים
   const { sortedPlayers, topThree, avgTimes, systemStats } = useMemo(() => {
+    // Helper: count solved puzzles
+    const countSolved = (player: LeaderboardPlayer) =>
+      player.stageSolved.filter(s => s === true).length;
+
     // סינון ומיון
     let filtered = players.filter(p =>
       p.nickname.toLowerCase().includes(filterText.toLowerCase())
     );
+
+    // מיון משופר: סיימו > יותר חידות פתורות > פחות רמזים > זמן מהיר יותר
     const sorted = [...filtered].sort((a, b) => {
+      // 1. מי שסיים קודם
       if (a.status === 'finished' && b.status !== 'finished') return -1;
       if (a.status !== 'finished' && b.status === 'finished') return 1;
+
+      // 2. מי שפתר יותר חידות נכון
+      const aSolved = countSolved(a);
+      const bSolved = countSolved(b);
+      if (aSolved !== bSolved) return bSolved - aSolved;
+
+      // 3. מי שהשתמש בפחות רמזים
+      if (a.hints !== b.hints) return a.hints - b.hints;
+
+      // 4. מי שסיים מהר יותר
       return getTotalTime(a) - getTotalTime(b);
     });
 
-    const winners = players.filter(p => p.status === 'finished').sort((a, b) => getTotalTime(a) - getTotalTime(b)).slice(0, 3);
+    // מובילים - אותו מיון
+    const winners = players
+      .filter(p => p.status === 'finished')
+      .sort((a, b) => {
+        const aSolved = countSolved(a);
+        const bSolved = countSolved(b);
+        if (aSolved !== bSolved) return bSolved - aSolved;
+        if (a.hints !== b.hints) return a.hints - b.hints;
+        return getTotalTime(a) - getTotalTime(b);
+      })
+      .slice(0, 3);
 
     // חישוב זמנים ממוצעים
     const times = GAME_STAGES.map((stage, idx) => {
