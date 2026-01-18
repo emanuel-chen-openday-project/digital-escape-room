@@ -107,7 +107,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4">
+      <div className="relative z-10 w-full min-h-full flex flex-col items-center justify-center p-4 py-8">
 
         {/* Header Section */}
         <div className="text-center mb-10 space-y-2">
@@ -184,7 +184,7 @@ export default function DashboardPage() {
 
       {/* Mobile App Footer */}
       <div
-        className={`absolute bottom-6 left-0 right-0 text-center transition-all duration-1000 ease-out ${
+        className={`py-6 text-center transition-all duration-1000 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}
         style={{ transitionDelay: '1200ms' }}
