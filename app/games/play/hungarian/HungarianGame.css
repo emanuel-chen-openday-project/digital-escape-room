@@ -196,6 +196,11 @@
   color: #1565C0;
 }
 
+.btn-exit {
+  background: linear-gradient(135deg, #ef5350, #c62828);
+  color: white;
+}
+
 .hungarian-center-panel {
   background: linear-gradient(135deg, rgba(21, 101, 192, 0.85), rgba(13, 71, 161, 0.9));
   backdrop-filter: blur(20px);

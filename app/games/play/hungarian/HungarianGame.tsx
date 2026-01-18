@@ -283,6 +283,18 @@ export default function HungarianGame({ onComplete }: HungarianGameProps) {
     handleReset();
   }, [handleReset]);
 
+  // Exit game
+  const handleExit = useCallback(() => {
+    const gs = gameStateRef.current;
+    const timeSeconds = gs.startTime ? Math.floor((Date.now() - gs.startTime) / 1000) : 0;
+
+    onComplete({
+      solved: false,
+      hintsUsed: gs.hintsUsed,
+      timeSeconds
+    });
+  }, [onComplete]);
+
   // Continue to next game
   const handleContinue = useCallback(() => {
     const gs = gameStateRef.current;
@@ -381,6 +393,7 @@ export default function HungarianGame({ onComplete }: HungarianGameProps) {
 
           <div className="hungarian-side-buttons-right">
             <button className="hungarian-side-btn btn-red" onClick={handleReset} title="איפוס">🔄</button>
+            <button className="hungarian-side-btn btn-exit" onClick={handleExit} title="יציאה">✕</button>
           </div>
         </div>
       )}
