@@ -1,4 +1,9 @@
-# Audio files for Hungarian game
+# Audio files for games
 # Add these files here:
+
+# Hungarian game (station 4):
 # - Motorcycle_horn.mp3
 # - Motorcycle_riding_noise.mp3
+
+# Knapsack game (station 8):
+# - transition-sfx-whoosh-sound-effect-407576.mp3
