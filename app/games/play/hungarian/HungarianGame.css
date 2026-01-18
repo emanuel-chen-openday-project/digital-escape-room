@@ -852,7 +852,7 @@
 }
 
 /* ========== ROTATE DEVICE ========== */
-.hungarian-rotate-device {
+#rotateDevice {
   display: none;
   position: fixed;
   inset: 0;
@@ -866,29 +866,29 @@
   padding: 20px;
 }
 
-.hungarian-rotate-device .icon {
+#rotateDevice .icon {
   font-size: 80px;
   margin-bottom: 20px;
-  animation: hungarian-rotate-anim 2s ease-in-out infinite;
+  animation: rotateAnim 2s ease-in-out infinite;
 }
 
-@keyframes hungarian-rotate-anim {
+@keyframes rotateAnim {
   0%, 100% { transform: rotate(0deg); }
   50% { transform: rotate(90deg); }
 }
 
-.hungarian-rotate-device h2 {
+#rotateDevice h2 {
   font-size: 24px;
   margin-bottom: 10px;
 }
 
-.hungarian-rotate-device p {
+#rotateDevice p {
   font-size: 16px;
   opacity: 0.9;
 }
 
 @media (max-width: 900px) and (orientation: portrait) {
-  .hungarian-rotate-device { display: flex; }
+  #rotateDevice { display: flex; }
   .hungarian-canvas, .hungarian-top-bar, .hungarian-side-panel, .hungarian-info-panel { opacity: 0; pointer-events: none; }
 }
 

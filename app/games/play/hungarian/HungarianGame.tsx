@@ -300,11 +300,11 @@ export default function HungarianGame({ onComplete }: HungarianGameProps) {
 
   return (
     <div className="hungarian-game-container">
-      {/* Rotate Device Screen */}
-      <div id="rotateDevice" className="hungarian-rotate-device">
+      {/* Rotate Device */}
+      <div id="rotateDevice">
         <div className="icon">📱</div>
         <h2>סובב את המכשיר</h2>
-        <p>המשחק מיועד למצב אופקי</p>
+        <p>המשחק עובד במצב שוכב (Landscape)</p>
       </div>
 
       {/* Splash Screen */}

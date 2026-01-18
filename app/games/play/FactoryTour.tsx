@@ -301,11 +301,11 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
 
   return (
     <div className="factory-container" dir="rtl">
-      {/* Rotate Device Screen */}
-      <div className="factory-rotate-device">
+      {/* Rotate Device */}
+      <div id="rotateDevice">
         <div className="icon">📱</div>
         <h2>סובב את המכשיר</h2>
-        <p>הסיור מיועד למצב אופקי</p>
+        <p>המשחק עובד במצב שוכב (Landscape)</p>
       </div>
 
       <canvas ref={canvasRef} className="factory-canvas" />

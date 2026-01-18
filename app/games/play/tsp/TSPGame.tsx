@@ -251,11 +251,11 @@ export default function TSPGame({ onComplete, onUseHint }: TSPGameProps) {
 
   return (
     <div className="tsp-container">
-      {/* Rotate Device Screen */}
-      <div className="tsp-rotate-device">
+      {/* Rotate Device */}
+      <div id="rotateDevice">
         <div className="icon">📱</div>
         <h2>סובב את המכשיר</h2>
-        <p>המשחק מיועד למצב אופקי</p>
+        <p>המשחק עובד במצב שוכב (Landscape)</p>
       </div>
 
       {/* Splash Screen */}

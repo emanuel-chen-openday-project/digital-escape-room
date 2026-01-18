@@ -783,7 +783,7 @@
 }
 
 /* Rotate Device */
-.tsp-rotate-device {
+#rotateDevice {
   display: none;
   position: fixed;
   inset: 0;
@@ -797,29 +797,29 @@
   padding: 20px;
 }
 
-.tsp-rotate-device .icon {
+#rotateDevice .icon {
   font-size: 80px;
   margin-bottom: 20px;
-  animation: tsp-rotate-anim 2s ease-in-out infinite;
+  animation: rotateAnim 2s ease-in-out infinite;
 }
 
-@keyframes tsp-rotate-anim {
+@keyframes rotateAnim {
   0%, 100% { transform: rotate(0deg); }
   50% { transform: rotate(90deg); }
 }
 
-.tsp-rotate-device h2 {
+#rotateDevice h2 {
   font-size: 24px;
   margin-bottom: 10px;
 }
 
-.tsp-rotate-device p {
+#rotateDevice p {
   font-size: 16px;
   opacity: 0.9;
 }
 
 @media (max-width: 900px) and (orientation: portrait) {
-  .tsp-rotate-device { display: flex; }
+  #rotateDevice { display: flex; }
   .tsp-canvas, .tsp-hud, .tsp-message, .tsp-top-buttons, .tsp-left-buttons, .tsp-side-panel, .tsp-info-panel { opacity: 0; pointer-events: none; }
 }
 

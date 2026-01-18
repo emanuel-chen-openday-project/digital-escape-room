@@ -282,8 +282,8 @@
   color: #667eea;
 }
 
-/* Rotate Device Screen */
-.factory-rotate-device {
+/* Rotate Device */
+#rotateDevice {
   display: none;
   position: fixed;
   inset: 0;
@@ -297,29 +297,29 @@
   padding: 20px;
 }
 
-.factory-rotate-device .icon {
+#rotateDevice .icon {
   font-size: 80px;
   margin-bottom: 20px;
-  animation: factory-rotate-anim 2s ease-in-out infinite;
+  animation: rotateAnim 2s ease-in-out infinite;
 }
 
-@keyframes factory-rotate-anim {
+@keyframes rotateAnim {
   0%, 100% { transform: rotate(0deg); }
   50% { transform: rotate(90deg); }
 }
 
-.factory-rotate-device h2 {
+#rotateDevice h2 {
   font-size: 24px;
   margin-bottom: 10px;
 }
 
-.factory-rotate-device p {
+#rotateDevice p {
   font-size: 16px;
   opacity: 0.9;
 }
 
 @media (max-width: 900px) and (orientation: portrait) {
-  .factory-rotate-device { display: flex; }
+  #rotateDevice { display: flex; }
   .factory-canvas, .station-info, .nickname-display, .next-btn, .instructions { opacity: 0; pointer-events: none; }
 }
 
