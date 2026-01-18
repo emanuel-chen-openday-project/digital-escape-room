@@ -67,6 +67,9 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
     });
     engineRef.current = engine;
 
+    // Fix resolution on high-DPI screens (mobile)
+    engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 2));
+
     // Create scene
     const { scene, camera, advancedTexture } = createScene(engine);
     sceneRef.current = scene;
@@ -298,6 +301,13 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
 
   return (
     <div className="factory-container" dir="rtl">
+      {/* Rotate Device Screen */}
+      <div className="factory-rotate-device">
+        <div className="icon">📱</div>
+        <h2>סובב את המכשיר</h2>
+        <p>הסיור מיועד למצב אופקי</p>
+      </div>
+
       <canvas ref={canvasRef} className="factory-canvas" />
 
       {/* Loading Overlay */}
