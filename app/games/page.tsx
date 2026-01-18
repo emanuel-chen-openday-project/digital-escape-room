@@ -134,47 +134,44 @@ export default function GamesIntro() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* Main Content - responsive for landscape */}
-      <div className="relative z-10 w-full h-full flex flex-col landscape:flex-row items-center justify-center p-4 landscape:p-2 landscape:gap-6 overflow-y-auto">
+      {/* Main Content */}
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-6 pb-20 overflow-y-auto">
 
-        {/* Left side in landscape - Icon and Title */}
-        <div className="flex flex-col items-center landscape:items-end landscape:flex-shrink-0">
-          {/* Factory Icon */}
-          <div
-            className={`mb-4 landscape:mb-2 transition-all duration-1000 ease-out ${
-              isVisible ? "opacity-100 scale-100" : "opacity-0 scale-0"
-            }`}
-          >
-            <div className="relative w-16 h-16 landscape:w-12 landscape:h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-xl flex items-center justify-center text-white">
-              <div className="absolute inset-1.5 bg-white/20 backdrop-blur-sm rounded-xl"></div>
-              <svg className="relative z-10 w-8 h-8 landscape:w-6 landscape:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Title Section */}
-          <div className="text-center landscape:text-right mb-4 landscape:mb-0">
-            <h1
-              className={`text-2xl landscape:text-xl md:text-4xl font-black text-slate-800 tracking-tight transition-all duration-1000 ease-out ${
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-              }`}
-            >
-              חדר הבריחה הדיגיטלי
-            </h1>
+        {/* Factory Icon */}
+        <div
+          className={`mb-6 transition-all duration-1000 ease-out ${
+            isVisible ? "opacity-100 scale-100" : "opacity-0 scale-0"
+          }`}
+        >
+          <div className="relative w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl shadow-2xl flex items-center justify-center text-white">
+            <div className="absolute inset-2 bg-white/20 backdrop-blur-sm rounded-2xl"></div>
+            <svg className="relative z-10 w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
           </div>
         </div>
 
-        {/* Explanation Card - compact in landscape */}
+        {/* Title Section */}
+        <div className="text-center mb-8 space-y-2">
+          <h1
+            className={`text-4xl md:text-5xl font-black text-slate-800 tracking-tight transition-all duration-1000 ease-out ${
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+          >
+            חדר הבריחה הדיגיטלי
+          </h1>
+        </div>
+
+        {/* Explanation Card */}
         <div
-          className={`bg-white/90 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 landscape:p-3 shadow-xl max-w-md landscape:max-w-sm w-full transition-all duration-1000 ease-out ${
+          className={`bg-white/90 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-6 md:p-8 shadow-xl max-w-md w-full mx-auto mb-8 transition-all duration-1000 ease-out ${
             isVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-10 scale-95"
           }`}
           style={{ transitionDelay: "200ms" }}
         >
-          <div className="text-center space-y-2 landscape:space-y-1">
+          <div className="text-center space-y-4">
             <p
-              className={`text-lg landscape:text-base font-bold text-slate-800 transition-all duration-500 ${
+              className={`text-xl md:text-2xl font-bold text-slate-800 transition-all duration-500 ${
                 isVisible ? "opacity-100" : "opacity-0"
               }`}
               style={{ transitionDelay: "400ms" }}
@@ -182,58 +179,74 @@ export default function GamesIntro() {
               ברוכים הבאים למפעל!
             </p>
             <p
-              className={`text-sm landscape:text-xs text-slate-600 leading-relaxed transition-all duration-500 ${
+              className={`text-base md:text-lg text-slate-600 leading-relaxed transition-all duration-500 ${
                 isVisible ? "opacity-100" : "opacity-0"
               }`}
               style={{ transitionDelay: "500ms" }}
             >
               נתקעתם בפנים ויש רק דרך אחת לצאת -
               <span className="text-blue-600 font-bold"> לפתור שלוש חידות</span>.
+            </p>
+            <p
+              className={`text-base md:text-lg text-slate-600 transition-all duration-500 ${
+                isVisible ? "opacity-100" : "opacity-0"
+              }`}
+              style={{ transitionDelay: "600ms" }}
+            >
               בכל חידה תקבלו הוראות. קראו, חשבו, פתרו.
             </p>
             <p
-              className={`text-base landscape:text-sm font-bold text-slate-800 transition-all duration-500 ${
+              className={`text-lg md:text-xl font-bold text-slate-800 transition-all duration-500 ${
                 isVisible ? "opacity-100" : "opacity-0"
               }`}
               style={{ transitionDelay: "700ms" }}
             >
               רק מי שיפצח את כולן יצליח לברוח.
-              <span className="text-blue-600 font-black mr-2">מוכנים?</span>
             </p>
+            <div
+              className={`pt-2 transition-all duration-500 ${
+                isVisible ? "opacity-100" : "opacity-0"
+              }`}
+              style={{ transitionDelay: "800ms" }}
+            >
+              <span className="text-xl md:text-2xl font-black text-blue-600">
+                מוכנים?
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Buttons Area */}
-        <div className="flex flex-col items-center gap-2 landscape:gap-1 w-full max-w-xs landscape:max-w-none landscape:w-auto mt-4 landscape:mt-0">
+        <div className="flex flex-col items-center gap-4 w-full max-w-xs">
           {/* Start Button */}
           <button
             onClick={openNicknameModal}
-            className={`group relative w-full landscape:w-auto landscape:px-6 py-3 landscape:py-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl text-white text-lg landscape:text-base font-bold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 ${
+            className={`group relative w-full py-4 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl text-white text-xl font-bold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 ${
               isVisible ? "opacity-100 scale-100" : "opacity-0 scale-50"
             }`}
             style={{ transitionDelay: "900ms" }}
           >
             <span className="flex items-center justify-center gap-2">
               יאללה, בואו נתחיל!
-              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+              <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
             </span>
           </button>
 
           {/* Back Button */}
           <button
             onClick={goBack}
-            className={`text-slate-400 hover:text-slate-600 font-medium text-xs flex items-center gap-1 transition-all duration-500 ${
+            className={`text-slate-400 hover:text-slate-600 font-medium text-sm flex items-center gap-2 transition-all duration-500 ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
             style={{ transitionDelay: "1000ms" }}
           >
-            <ChevronRight className="w-3 h-3" />
-            חזרה
+            <ChevronRight className="w-4 h-4" />
+            חזרה לדף הבית
           </button>
         </div>
 
-        {/* Status Dots - hidden in landscape */}
-        <div className="flex gap-3 mt-6 landscape:hidden">
+        {/* Status Dots */}
+        <div className="flex gap-3 mt-8">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
