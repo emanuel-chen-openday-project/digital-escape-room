@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useGame } from '@/lib/contexts/GameContext';
@@ -23,10 +23,11 @@ export default function GamePlay() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { nickname, sessionId, isGameActive, finishGame, startStage, completeStage, useHint } = useGame();
+  const isFinishingRef = useRef(false);
 
   // Redirect if not authenticated or no active game
   useEffect(() => {
-    if (!authLoading) {
+    if (!authLoading && !isFinishingRef.current) {
       if (!user) {
         router.push('/');
       } else if (!isGameActive) {
@@ -37,7 +38,7 @@ export default function GamePlay() {
 
   const handleTourComplete = async () => {
     try {
-      // Navigate first, then finish game to avoid the useEffect redirect
+      isFinishingRef.current = true;
       router.push('/dashboard');
       await finishGame();
     } catch (error) {

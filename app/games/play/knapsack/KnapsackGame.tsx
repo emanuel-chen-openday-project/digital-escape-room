@@ -28,7 +28,7 @@ export default function KnapsackGame({ onComplete }: KnapsackGameProps) {
   const [showHelpPanel, setShowHelpPanel] = useState(false);
   const [showInfoPanel, setShowInfoPanel] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
-  const [showExitBtn, setShowExitBtn] = useState(false);
+  const [showExitBtn, setShowExitBtn] = useState(true);
   const [currentWeight, setCurrentWeight] = useState(0);
   const [currentValue, setCurrentValue] = useState(0);
   const [message, setMessage] = useState('ניתן להקיש על מוצרים להוספה לחבילה 📦');
@@ -88,9 +88,6 @@ export default function KnapsackGame({ onComplete }: KnapsackGameProps) {
     // Click handler for items
     sceneRefs.scene.onPointerDown = (evt, pickResult) => {
       if (!pickResult || !pickResult.hit || !pickResult.pickedMesh) return;
-
-      // Show exit button on first interaction
-      setShowExitBtn(true);
 
       let node = pickResult.pickedMesh as BABYLON.Node;
       while (node && (!node.metadata || node.metadata.type !== "itemRoot")) {
@@ -302,10 +299,13 @@ export default function KnapsackGame({ onComplete }: KnapsackGameProps) {
 
   // Exit
   const handleExit = useCallback(() => {
-    if (confirm("לצאת מהמשחק?")) {
-      window.history.back();
-    }
-  }, []);
+    const timeSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+    onComplete({
+      solved: false,
+      hintsUsed,
+      timeSeconds
+    });
+  }, [startTime, hintsUsed, onComplete]);
 
   const displayWeight = Math.round(currentWeight * 100) / 100;
   const isOverweight = currentWeight > CAPACITY;
