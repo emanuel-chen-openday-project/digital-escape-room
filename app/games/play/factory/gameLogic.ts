@@ -243,7 +243,7 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   // Create dynamic texture for the main button (1024 for high-DPI screens)
   const textureSize = 1024;
   const dynamicTexture = new BABYLON.DynamicTexture("puzzleButtonTexture", textureSize, scene, true);
-  const ctx = dynamicTexture.getContext();
+  const ctx = dynamicTexture.getContext() as CanvasRenderingContext2D;
 
   const centerX = textureSize / 2;
   const centerY = textureSize / 2;

@@ -37,8 +37,9 @@ export default function GamePlay() {
 
   const handleTourComplete = async () => {
     try {
-      await finishGame();
+      // Navigate first, then finish game to avoid the useEffect redirect
       router.push('/dashboard');
+      await finishGame();
     } catch (error) {
       console.error('Error completing game:', error);
       router.push('/dashboard');

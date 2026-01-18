@@ -97,7 +97,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="bg-slate-50 overflow-hidden h-screen w-full relative" dir="rtl">
+    <div className="bg-slate-50 overflow-y-auto h-screen w-full relative" dir="rtl">
 
       {/* Animated Background Blobs */}
       <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
