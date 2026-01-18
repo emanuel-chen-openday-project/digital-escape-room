@@ -211,56 +211,56 @@ export default function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans p-4 md:p-8 flex flex-col gap-6" dir="rtl">
 
-      {/* Back Button - Fixed position */}
-      <button
-        onClick={goBack}
-        className="fixed top-4 right-4 z-50 flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm border border-slate-200"
-      >
-        <ChevronRight className="w-5 h-5" />
-        <span className="font-medium">חזרה</span>
-      </button>
-
-      {/* Reset Button - Fixed position */}
-      <div className="fixed top-4 left-4 z-50 flex items-center gap-2">
-        {showResetConfirm && (
-          <button
-            onClick={() => setShowResetConfirm(false)}
-            className="text-slate-500 hover:text-slate-700 transition-colors bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm border border-slate-200"
-          >
-            ביטול
-          </button>
-        )}
-        <button
-          onClick={handleReset}
-          disabled={isResetting}
-          className={`flex items-center gap-2 transition-colors backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm border ${
-            showResetConfirm
-              ? 'bg-red-500 text-white border-red-500 hover:bg-red-600'
-              : 'text-slate-500 hover:text-red-500 bg-white/80 border-slate-200'
-          } ${isResetting ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          <RotateCcw className={`w-5 h-5 ${isResetting ? 'animate-spin' : ''}`} />
-          <span className="font-medium">{showResetConfirm ? 'אישור איפוס' : 'איפוס'}</span>
-        </button>
-      </div>
-
-      {/* Centered Header Section */}
-      <header className="flex flex-col items-center justify-center bg-white px-6 py-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+      {/* Header Section with integrated buttons */}
+      <header className="flex items-center justify-between bg-white px-4 md:px-6 py-4 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
         {/* Updated Header Gradient */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500 via-indigo-500 to-rose-500"></div>
 
-        <div className="flex items-center gap-3 z-10 text-center">
-             {/* Title First (Right side) */}
-              <h1 className="text-3xl font-bold text-slate-800">
-                לוח ביצועים
-              </h1>
+        {/* Right side - Back button */}
+        <button
+          onClick={goBack}
+          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors px-3 py-2 rounded-xl hover:bg-slate-50"
+        >
+          <ChevronRight className="w-5 h-5" />
+          <span className="font-medium hidden sm:inline">חזרה</span>
+        </button>
 
-              {/* Icon Second (Left side) */}
-              <div className="p-2 bg-slate-50 rounded-xl text-slate-700 shadow-sm border border-slate-100">
-                <Activity size={24} />
-              </div>
+        {/* Center - Title */}
+        <div className="flex flex-col items-center">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl md:text-3xl font-bold text-slate-800">
+              לוח ביצועים
+            </h1>
+            <div className="p-2 bg-slate-50 rounded-xl text-slate-700 shadow-sm border border-slate-100">
+              <Activity size={20} />
+            </div>
+          </div>
+          <p className="text-slate-500 text-xs md:text-sm font-medium mt-1">הנדסת תעשייה וניהול | חדר בריחה</p>
         </div>
-        <p className="text-slate-500 text-sm font-medium mt-1">הנדסת תעשייה וניהול | חדר בריחה</p>
+
+        {/* Left side - Reset button */}
+        <div className="flex items-center gap-2">
+          {showResetConfirm && (
+            <button
+              onClick={() => setShowResetConfirm(false)}
+              className="text-slate-500 hover:text-slate-700 transition-colors px-2 py-2 rounded-xl hover:bg-slate-50 text-sm"
+            >
+              ביטול
+            </button>
+          )}
+          <button
+            onClick={handleReset}
+            disabled={isResetting}
+            className={`flex items-center gap-1 md:gap-2 transition-colors px-2 md:px-3 py-2 rounded-xl ${
+              showResetConfirm
+                ? 'bg-red-500 text-white hover:bg-red-600'
+                : 'text-slate-500 hover:text-red-500 hover:bg-red-50'
+            } ${isResetting ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <RotateCcw className={`w-4 h-4 md:w-5 md:h-5 ${isResetting ? 'animate-spin' : ''}`} />
+            <span className="font-medium text-sm hidden sm:inline">{showResetConfirm ? 'אישור' : 'איפוס'}</span>
+          </button>
+        </div>
       </header>
 
       {/* Top Section: Grid */}

@@ -221,15 +221,33 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
       setIsLoading(false);
     }, 800);
 
-    // Open door after delay
-    setTimeout(() => {
-      openDoor(doorRefsRef.current?.entranceDoor || null);
-    }, 600);
+    // Check if in landscape mode
+    const isLandscape = () => window.innerWidth > window.innerHeight;
 
-    // Start moving after door opens
-    setTimeout(() => {
-      gameState.isMoving = true;
-    }, 2000);
+    // Function to start movement
+    const beginMovement = () => {
+      // Open door
+      openDoor(doorRefsRef.current?.entranceDoor || null);
+      // Start moving after door opens
+      setTimeout(() => {
+        gameState.isMoving = true;
+      }, 1400);
+    };
+
+    // Wait for landscape orientation before starting
+    if (isLandscape()) {
+      // Already in landscape, start after delay
+      setTimeout(beginMovement, 600);
+    } else {
+      // Wait for orientation change to landscape
+      const checkOrientation = () => {
+        if (isLandscape()) {
+          window.removeEventListener('resize', checkOrientation);
+          beginMovement();
+        }
+      };
+      window.addEventListener('resize', checkOrientation);
+    }
   }, []);
 
   const handleContinueAfterGame = useCallback(async (result?: GameResult) => {
