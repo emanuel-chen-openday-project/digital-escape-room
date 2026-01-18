@@ -240,25 +240,25 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   const isCNC = station.name.includes('CNC');
   indicatorRoot.position.y += isCNC ? 5.5 * SCALE : 4.5 * SCALE;
 
-  // Create dynamic texture for the main button
-  const textureSize = 512;
+  // Create dynamic texture for the main button (1024 for high-DPI screens)
+  const textureSize = 1024;
   const dynamicTexture = new BABYLON.DynamicTexture("puzzleButtonTexture", textureSize, scene, true);
   const ctx = dynamicTexture.getContext();
 
   const centerX = textureSize / 2;
   const centerY = textureSize / 2;
-  const radius = 200;
+  const radius = 400;
 
   // Clear with transparent background
   ctx.clearRect(0, 0, textureSize, textureSize);
 
   // Draw outer glow
-  const outerGlow = ctx.createRadialGradient(centerX, centerY, radius - 30, centerX, centerY, radius + 50);
+  const outerGlow = ctx.createRadialGradient(centerX, centerY, radius - 60, centerX, centerY, radius + 100);
   outerGlow.addColorStop(0, 'rgba(0, 180, 255, 0.5)');
   outerGlow.addColorStop(0.5, 'rgba(0, 180, 255, 0.2)');
   outerGlow.addColorStop(1, 'rgba(0, 180, 255, 0)');
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius + 50, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, radius + 100, 0, 2 * Math.PI);
   ctx.fillStyle = outerGlow;
   ctx.fill();
 
@@ -273,7 +273,7 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.fill();
 
   // Draw inner highlight (top-left cyan glow)
-  const innerHighlight = ctx.createRadialGradient(centerX - 50, centerY - 60, 0, centerX - 50, centerY - 60, 140);
+  const innerHighlight = ctx.createRadialGradient(centerX - 100, centerY - 120, 0, centerX - 100, centerY - 120, 280);
   innerHighlight.addColorStop(0, 'rgba(0, 180, 255, 0.3)');
   innerHighlight.addColorStop(1, 'transparent');
   ctx.beginPath();
@@ -287,34 +287,34 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
   ctx.clip();
 
-  const shineGradient = ctx.createLinearGradient(centerX, centerY - radius, centerX, centerY - radius + 120);
+  const shineGradient = ctx.createLinearGradient(centerX, centerY - radius, centerX, centerY - radius + 240);
   shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
   shineGradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.05)');
   shineGradient.addColorStop(1, 'transparent');
   ctx.beginPath();
-  ctx.ellipse(centerX, centerY - radius + 60, radius * 0.64, 60, 0, 0, 2 * Math.PI);
+  ctx.ellipse(centerX, centerY - radius + 120, radius * 0.64, 120, 0, 0, 2 * Math.PI);
   ctx.fillStyle = shineGradient;
   ctx.fill();
   ctx.restore();
 
   // Draw cyan border
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius - 2, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, radius - 4, 0, 2 * Math.PI);
   ctx.strokeStyle = 'rgba(0, 180, 255, 0.9)';
-  ctx.lineWidth = 6;
+  ctx.lineWidth = 12;
   ctx.stroke();
 
   // Draw text with glow effect
   ctx.fillStyle = '#e0f0ff';
-  ctx.font = 'bold 46px Heebo, sans-serif';
+  ctx.font = 'bold 92px Heebo, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   // Text glow
   ctx.shadowColor = 'rgba(0, 180, 255, 0.8)';
-  ctx.shadowBlur = 20;
-  ctx.fillText('לחץ כאן', centerX, centerY - 30);
-  ctx.fillText('לפתיחת החידה', centerX, centerY + 35);
+  ctx.shadowBlur = 40;
+  ctx.fillText('לחץ כאן', centerX, centerY - 60);
+  ctx.fillText('לפתיחת החידה', centerX, centerY + 70);
   ctx.shadowBlur = 0;
 
   dynamicTexture.update();

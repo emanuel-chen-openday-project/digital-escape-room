@@ -71,6 +71,10 @@ export default function DashboardPage() {
   }, []);
 
   const handleMenuClick = (href: string, external?: boolean) => {
+    // Enter fullscreen on any menu click
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
     if (external) {
       window.open(href, '_blank');
     } else {

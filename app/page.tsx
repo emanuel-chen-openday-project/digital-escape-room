@@ -21,10 +21,6 @@ export default function LoginPage() {
   const handleGoogle = async () => {
     try {
       if (navigator.vibrate) navigator.vibrate(5);
-      // Enter fullscreen when logging in
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      }
       await signInWithPopup(auth, new GoogleAuthProvider());
       window.location.href = "/dashboard";
     } catch (err: any) {
@@ -35,10 +31,6 @@ export default function LoginPage() {
   const handleAnonymous = async () => {
     try {
       if (navigator.vibrate) navigator.vibrate(5);
-      // Enter fullscreen when logging in
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      }
       await signInAnonymously(auth);
       window.location.href = "/dashboard";
     } catch (err: any) {
