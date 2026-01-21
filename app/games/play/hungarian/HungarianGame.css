@@ -1,6 +1,7 @@
 /* Hungarian Game Styles - Converted 1:1 from original HTML */
 
-* {
+.hungarian-game-container,
+.hungarian-game-container * {
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
