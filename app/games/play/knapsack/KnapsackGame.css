@@ -1,6 +1,7 @@
 /* Knapsack Game Styles - Converted 1:1 from original HTML */
 
-* {
+.knapsack-game,
+.knapsack-game * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
