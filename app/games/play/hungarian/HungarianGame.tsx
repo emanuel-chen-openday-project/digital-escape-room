@@ -161,12 +161,7 @@ export default function HungarianGame({ onComplete }: HungarianGameProps) {
   const handleStartGame = useCallback(() => {
     setShowSplash(false);
     gameStateRef.current.started = true;
-
-    // Request fullscreen on mobile
-    const elem = document.documentElement;
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen().catch(() => {});
-    }
+    // Dashboard already handles fullscreen - no need to request again
   }, []);
 
   // Open courier modal
