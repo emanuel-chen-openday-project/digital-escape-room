@@ -13,7 +13,7 @@ export interface Item {
 }
 
 export interface GameResult {
-  solved: boolean;
+  solved: boolean | null;  // null = exited/abandoned, false = wrong answer, true = correct
   hintsUsed: number;
   timeSeconds: number;
 }

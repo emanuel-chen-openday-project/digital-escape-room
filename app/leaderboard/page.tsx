@@ -489,11 +489,13 @@ export default function LeaderboardPage() {
 
                              let bgColor = 'bg-slate-100 text-slate-300'; // default: not started
                              if (isDone) {
-                               // Check if solved correctly or failed
+                               // Check if solved correctly, wrong answer, or exited
                                if (solvedStatus === true) {
                                  bgColor = 'bg-emerald-500 text-white shadow-sm'; // Solved - green
                                } else if (solvedStatus === false) {
-                                 bgColor = 'bg-orange-500 text-white shadow-sm'; // Failed - orange
+                                 bgColor = 'bg-orange-500 text-white shadow-sm'; // Wrong answer - orange
+                               } else if (solvedStatus === null) {
+                                 bgColor = 'bg-red-500 text-white shadow-sm'; // Exited/abandoned - red
                                } else {
                                  bgColor = 'bg-emerald-500 text-white shadow-sm'; // Legacy data without solved status
                                }
@@ -506,7 +508,7 @@ export default function LeaderboardPage() {
                              return (
                                <div
                                 key={stage.id}
-                                title={isDone ? (solvedStatus === true ? 'נפתר בהצלחה ✓' : solvedStatus === false ? 'לא נפתר ✗' : 'הושלם') : isSkipped ? 'דילג' : isCurrent ? 'משחק נוכחי' : 'טרם התחיל'}
+                                title={isDone ? (solvedStatus === true ? 'נפתר בהצלחה ✓' : solvedStatus === false ? 'לא נפתר ✗' : solvedStatus === null ? 'יצא מהמשחק ✗' : 'הושלם') : isSkipped ? 'דילג' : isCurrent ? 'משחק נוכחי' : 'טרם התחיל'}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${bgColor} ${isCurrent ? 'scale-110' : ''}`}
                                >
                                  <StageIcon size={14} />

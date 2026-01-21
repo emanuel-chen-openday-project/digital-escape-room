@@ -161,7 +161,7 @@ export const LEADERBOARD_LIMIT = 10;
 export type PuzzleType = 'TSP' | 'Hungarian' | 'Knapsack';
 
 export interface MiniGameResult {
-  solved: boolean;
+  solved: boolean | null;  // null = exited/abandoned, false = wrong answer, true = correct
   hintsUsed: number;
   timeSeconds: number;
   completedAt: Timestamp;

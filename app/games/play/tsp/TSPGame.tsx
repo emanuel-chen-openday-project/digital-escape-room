@@ -228,7 +228,7 @@ export default function TSPGame({ onComplete, onUseHint }: TSPGameProps) {
     const timeSeconds = Math.floor((Date.now() - gameState.startTime) / 1000);
 
     onComplete({
-      solved: false,
+      solved: null,  // null = exited/abandoned (shows RED on leaderboard)
       hintsUsed: gameState.hintsUsed,
       timeSeconds
     });

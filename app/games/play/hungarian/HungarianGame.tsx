@@ -289,7 +289,7 @@ export default function HungarianGame({ onComplete }: HungarianGameProps) {
     const timeSeconds = gs.startTime ? Math.floor((Date.now() - gs.startTime) / 1000) : 0;
 
     onComplete({
-      solved: false,
+      solved: null,  // null = exited/abandoned (shows RED on leaderboard)
       hintsUsed: gs.hintsUsed,
       timeSeconds
     });
