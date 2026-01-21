@@ -355,7 +355,7 @@ export async function getUserSessions(odId: string): Promise<GameSessionWithId[]
 export async function savePuzzleResult(
   sessionId: string,
   puzzleType: PuzzleType,
-  result: { solved: boolean; hintsUsed: number; timeSeconds: number }
+  result: { solved: boolean | null; hintsUsed: number; timeSeconds: number }
 ): Promise<void> {
   const sessionRef = doc(db, COLLECTIONS.GAME_SESSIONS, sessionId);
 

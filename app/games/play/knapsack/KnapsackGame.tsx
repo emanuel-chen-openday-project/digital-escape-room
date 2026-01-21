@@ -301,7 +301,7 @@ export default function KnapsackGame({ onComplete }: KnapsackGameProps) {
   const handleExit = useCallback(() => {
     const timeSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
     onComplete({
-      solved: false,
+      solved: null,  // null = exited/abandoned (shows RED on leaderboard)
       hintsUsed,
       timeSeconds
     });
