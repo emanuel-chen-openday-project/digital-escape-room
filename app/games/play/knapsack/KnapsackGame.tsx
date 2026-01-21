@@ -59,24 +59,11 @@ export default function KnapsackGame({ onComplete }: KnapsackGameProps) {
     bestPossibleValue.current = best;
   }, []);
 
-  // Fullscreen
-  const goFullscreen = useCallback(() => {
-    const elem = document.documentElement;
-    if (!document.fullscreenElement) {
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen().catch(() => {});
-      } else if ((elem as any).webkitRequestFullscreen) {
-        (elem as any).webkitRequestFullscreen();
-      }
-    }
-    setTimeout(() => window.scrollTo(0, 1), 100);
-  }, []);
-
   // Start game
   const handleStart = useCallback(() => {
     setShowSplash(false);
-    goFullscreen();
-  }, [goFullscreen]);
+    // Dashboard already handles fullscreen - no need to request again
+  }, []);
 
   // Initialize Babylon.js scene
   useEffect(() => {

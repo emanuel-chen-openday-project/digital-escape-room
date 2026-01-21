@@ -85,11 +85,7 @@ export default function TSPGame({ onComplete, onUseHint }: TSPGameProps) {
   }, [gameStarted]);
 
   const handleStartGame = useCallback(() => {
-    // Enter fullscreen
-    const elem = document.documentElement;
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen().catch(() => {});
-    }
+    // Dashboard already handles fullscreen - no need to request again
     setShowSplash(false);
     setGameStarted(true);
   }, []);
