@@ -39,6 +39,10 @@ export default function GamePlay() {
   const handleTourComplete = async () => {
     try {
       isFinishingRef.current = true;
+      // Exit fullscreen BEFORE navigating to prevent viewport distortion
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      }
       router.push('/dashboard');
       await finishGame();
     } catch (error) {
