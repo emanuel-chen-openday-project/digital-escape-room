@@ -1,600 +1,540 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useAdmin } from "@/lib/hooks/useAdmin";
+import { submitFeedback, IntentValue } from "@/lib/feedbackService";
 import {
-  submitFeedback,
-  getAllFeedback,
-  deleteFeedback,
-  deleteAllFeedback,
-  FEEDBACK_CATEGORIES,
-  FeedbackEntryWithId,
-} from "@/lib/feedbackService";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Bar, Doughnut } from "react-chartjs-2";
-import { ArrowRight, BarChart3, Trash2, X, Download } from "lucide-react";
+  Clock,
+  MessageCircle,
+  Lock,
+  Check,
+} from "lucide-react";
 import "./feedback.css";
+import dynamic from "next/dynamic";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
+const AdminDashboard = dynamic(() => import("./AdminDashboard"), {
+  ssr: false,
+});
 
-const STAR_LABELS = ["גרוע", "לא טוב", "בסדר", "טוב", "מעולה"];
+const TOTAL_QUESTIONS = 6;
+const TOTAL_STEPS = 9; // welcome + 6 questions + comments + success
+
+const STAR_MESSAGES: Record<number, string> = {
+  1: "😕 אפשר יותר טוב...",
+  2: "🤔 לא הכי",
+  3: "😊 בסדר",
+  4: "😄 טוב מאוד!",
+  5: "🤩 מעולה! שמחים שנהנית",
+};
+
+interface FormData {
+  enjoyment: number;
+  clarity: number;
+  challenge: number;
+  understanding: number;
+  interest: IntentValue | "";
+  registration: IntentValue | "";
+  comments: string;
+}
 
 export default function FeedbackPage() {
-  const router = useRouter();
   const { user } = useAuth();
   const { isAdmin: userIsAdmin } = useAdmin();
 
-  // Form state
-  const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [comment, setComment] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
-  // Admin state
+  const [currentStep, setCurrentStep] = useState(0);
+  const [formData, setFormData] = useState<FormData>({
+    enjoyment: 0,
+    clarity: 0,
+    challenge: 0,
+    understanding: 0,
+    interest: "",
+    registration: "",
+    comments: "",
+  });
   const [showAdmin, setShowAdmin] = useState(false);
-  const [feedbackList, setFeedbackList] = useState<FeedbackEntryWithId[]>([]);
-  const [loadingFeedback, setLoadingFeedback] = useState(false);
-  const [deleting, setDeleting] = useState<string | null>(null);
+  const confettiRef = useRef<HTMLDivElement>(null);
 
-  // Animation
-  const [isVisible, setIsVisible] = useState(false);
+  // Progress
+  const progress =
+    currentStep === 0 ? 0 : (currentStep / (TOTAL_STEPS - 2)) * 100;
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+  // Step dots
+  const stepDots = Array.from({ length: TOTAL_QUESTIONS }, (_, i) => {
+    const stepIndex = i + 1;
+    if (stepIndex < currentStep) return "completed";
+    if (stepIndex === currentStep) return "active";
+    return "";
+  });
 
-  // Load feedback when admin modal opens
-  useEffect(() => {
-    if (showAdmin) {
-      loadFeedback();
+  // Navigation
+  const goNext = useCallback(() => {
+    if (currentStep < TOTAL_STEPS - 1) {
+      setCurrentStep((s) => s + 1);
     }
-  }, [showAdmin]);
+  }, [currentStep]);
 
-  const loadFeedback = async () => {
-    setLoadingFeedback(true);
+  const goPrev = useCallback(() => {
+    if (currentStep > 0) {
+      setCurrentStep((s) => s - 1);
+    }
+  }, [currentStep]);
+
+  // Submit
+  const handleSubmit = useCallback(async () => {
+    if (
+      formData.enjoyment === 0 ||
+      formData.clarity === 0 ||
+      formData.challenge === 0 ||
+      formData.understanding === 0 ||
+      !formData.interest ||
+      !formData.registration
+    ) {
+      return;
+    }
+
     try {
-      const data = await getAllFeedback();
-      setFeedbackList(data);
+      await submitFeedback({
+        enjoyment: formData.enjoyment,
+        clarity: formData.clarity,
+        challenge: formData.challenge,
+        understanding: formData.understanding,
+        interest: formData.interest as IntentValue,
+        registration: formData.registration as IntentValue,
+        comments: formData.comments,
+        userId: user?.uid || null,
+      });
     } catch (err) {
-      console.error("Error loading feedback:", err);
-    } finally {
-      setLoadingFeedback(false);
+      console.error("Error submitting feedback:", err);
     }
+  }, [formData, user]);
+
+  // Auto-advance on selection + submit on final step
+  const handleGoNextWithSubmit = useCallback(() => {
+    const nextStep = currentStep + 1;
+    setCurrentStep(nextStep);
+    if (nextStep === TOTAL_STEPS - 1) {
+      // Success step - submit & confetti
+      handleSubmit();
+      launchConfetti();
+    }
+  }, [currentStep, handleSubmit]);
+
+  // Star selection
+  const selectStar = (value: number) => {
+    setFormData((prev) => ({ ...prev, enjoyment: value }));
+    setTimeout(() => handleGoNextWithSubmit(), 400);
   };
 
-  const toggleCategory = (cat: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+  // Scale selection
+  const selectScale = (field: "clarity" | "challenge" | "understanding", value: number) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setTimeout(() => handleGoNextWithSubmit(), 400);
+  };
+
+  // Choice selection
+  const selectChoice = (field: "interest" | "registration", value: IntentValue) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setTimeout(() => handleGoNextWithSubmit(), 400);
+  };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && currentStep > 0 && currentStep < TOTAL_STEPS - 1) {
+        if ((e.target as HTMLElement)?.tagName !== "TEXTAREA") {
+          handleGoNextWithSubmit();
+        }
+      }
+
+      // A, B, C shortcuts for choice cards (steps 5, 6)
+      if (currentStep === 5 || currentStep === 6) {
+        const field = currentStep === 5 ? "interest" : "registration";
+        if (e.key.toLowerCase() === "a") selectChoice(field, "yes");
+        if (e.key.toLowerCase() === "b") selectChoice(field, "maybe");
+        if (e.key.toLowerCase() === "c") selectChoice(field, "no");
+      }
+
+      // Number keys for scale questions (steps 2, 3, 4)
+      if (currentStep >= 2 && currentStep <= 4) {
+        const num = parseInt(e.key);
+        if (num >= 1 && num <= 5) {
+          const fields: ("clarity" | "challenge" | "understanding")[] = [
+            "clarity",
+            "challenge",
+            "understanding",
+          ];
+          selectScale(fields[currentStep - 2], num);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, handleGoNextWithSubmit]);
+
+  // Confetti
+  const launchConfetti = () => {
+    const container = confettiRef.current;
+    if (!container) return;
+
+    const colors = ["#8b5cf6", "#7c3aed", "#f97316", "#10b981", "#ec4899", "#06b6d4"];
+
+    for (let i = 0; i < 100; i++) {
+      const piece = document.createElement("div");
+      piece.className = "confetti-piece";
+      piece.style.left = Math.random() * 100 + "%";
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+      piece.style.width = Math.random() * 10 + 5 + "px";
+      piece.style.height = Math.random() * 10 + 5 + "px";
+      piece.style.setProperty("--fall-duration", `${Math.random() * 3 + 2}s`);
+      piece.style.setProperty("--fall-delay", `${Math.random() * 0.5}s`);
+      container.appendChild(piece);
+    }
+
+    setTimeout(() => {
+      if (container) container.innerHTML = "";
+    }, 5000);
+  };
+
+  // Slide class
+  const slideClass = (step: number) => {
+    if (step === currentStep) return "question-slide active";
+    if (step < currentStep) return "question-slide exit-up";
+    return "question-slide";
+  };
+
+  // Button text
+  const getNextBtnContent = () => {
+    if (currentStep === 0) {
+      return (
+        <>
+          בואו נתחיל
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </>
+      );
+    }
+    if (currentStep === TOTAL_STEPS - 2) {
+      return (
+        <>
+          שליחת משוב
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </>
+      );
+    }
+    return (
+      <>
+        המשך
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </>
     );
   };
 
-  const handleSubmit = async () => {
-    if (rating === 0) return;
-    setSubmitting(true);
-    try {
-      await submitFeedback(
-        rating,
-        selectedCategories,
-        comment.trim(),
-        user?.uid || null
-      );
-      setSubmitted(true);
-    } catch (err) {
-      console.error("Error submitting feedback:", err);
-      alert("שגיאה בשליחת המשוב. נסה שוב.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  // Render scale question
+  const renderScaleQuestion = (
+    step: number,
+    questionNum: number,
+    question: string,
+    field: "clarity" | "challenge" | "understanding",
+    labelLeft: string,
+    labelRight: string
+  ) => (
+    <div className={slideClass(step)} key={step}>
+      <div className="question-badge">
+        <span className="question-badge-number">{questionNum}</span>
+        מתוך 6
+      </div>
+      <h2 className="question-text">{question}</h2>
+      <div className="scale-cards">
+        {[1, 2, 3, 4, 5].map((v) => (
+          <button
+            key={v}
+            type="button"
+            className={`scale-card-btn ${formData[field] === v ? "selected" : ""}`}
+            onClick={() => selectScale(field, v)}
+          >
+            <span>{v}</span>
+          </button>
+        ))}
+      </div>
+      <div className="scale-indicator">
+        {[1, 2, 3, 4, 5].map((v) => (
+          <div
+            key={v}
+            className={`scale-indicator-segment ${v <= formData[field] ? "filled" : ""}`}
+          />
+        ))}
+      </div>
+      <div className="scale-labels">
+        <span>{labelLeft}</span>
+        <span>{labelRight}</span>
+      </div>
+    </div>
+  );
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("למחוק את המשוב הזה?")) return;
-    setDeleting(id);
-    try {
-      await deleteFeedback(id);
-      setFeedbackList((prev) => prev.filter((f) => f.id !== id));
-    } catch (err) {
-      console.error("Error deleting feedback:", err);
-    } finally {
-      setDeleting(null);
-    }
-  };
-
-  const handleDeleteAll = async () => {
-    if (!confirm("למחוק את כל המשובים? פעולה זו בלתי הפיכה!")) return;
-    try {
-      await deleteAllFeedback();
-      setFeedbackList([]);
-    } catch (err) {
-      console.error("Error deleting all feedback:", err);
-    }
-  };
-
-  const handleExportCSV = () => {
-    if (feedbackList.length === 0) return;
-    const header = "דירוג,קטגוריות,הערה,תאריך\n";
-    const rows = feedbackList
-      .map((f) => {
-        const date = f.createdAt?.toDate?.()
-          ? f.createdAt.toDate().toLocaleDateString("he-IL")
-          : "";
-        const cats = f.categories.join(" | ");
-        const escapedComment = `"${(f.comment || "").replace(/"/g, '""')}"`;
-        return `${f.rating},${cats},${escapedComment},${date}`;
-      })
-      .join("\n");
-
-    const bom = "\uFEFF";
-    const blob = new Blob([bom + header + rows], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `feedback_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // ============================================
-  // Admin Stats
-  // ============================================
-
-  const stats = useMemo(() => {
-    if (feedbackList.length === 0) return null;
-
-    const total = feedbackList.length;
-    const avgRating =
-      feedbackList.reduce((sum, f) => sum + f.rating, 0) / total;
-
-    // Rating distribution
-    const ratingDist = [0, 0, 0, 0, 0];
-    feedbackList.forEach((f) => {
-      if (f.rating >= 1 && f.rating <= 5) ratingDist[f.rating - 1]++;
-    });
-
-    // Category counts
-    const catCounts: Record<string, number> = {};
-    FEEDBACK_CATEGORIES.forEach((c) => (catCounts[c] = 0));
-    feedbackList.forEach((f) => {
-      f.categories.forEach((c) => {
-        if (catCounts[c] !== undefined) catCounts[c]++;
-      });
-    });
-
-    const withComments = feedbackList.filter(
-      (f) => f.comment && f.comment.trim().length > 0
-    ).length;
-
-    return { total, avgRating, ratingDist, catCounts, withComments };
-  }, [feedbackList]);
-
-  const ratingChartData = useMemo(() => {
-    if (!stats) return null;
-    return {
-      labels: ["1 ⭐", "2 ⭐", "3 ⭐", "4 ⭐", "5 ⭐"],
-      datasets: [
-        {
-          label: "מספר תגובות",
-          data: stats.ratingDist,
-          backgroundColor: [
-            "#ef4444",
-            "#f97316",
-            "#eab308",
-            "#22c55e",
-            "#6366f1",
-          ],
-          borderRadius: 8,
-          borderSkipped: false as const,
-        },
-      ],
-    };
-  }, [stats]);
-
-  const categoryChartData = useMemo(() => {
-    if (!stats) return null;
-    return {
-      labels: Object.keys(stats.catCounts),
-      datasets: [
-        {
-          data: Object.values(stats.catCounts),
-          backgroundColor: [
-            "#6366f1",
-            "#8b5cf6",
-            "#ec4899",
-            "#f97316",
-            "#22c55e",
-          ],
-          borderWidth: 0,
-        },
-      ],
-    };
-  }, [stats]);
-
-  // ============================================
-  // Render
-  // ============================================
+  // Render choice question
+  const renderChoiceQuestion = (
+    step: number,
+    questionNum: number,
+    question: string,
+    field: "interest" | "registration",
+    options: { value: IntentValue; icon: string; label: string; key: string }[]
+  ) => (
+    <div className={slideClass(step)} key={step}>
+      <div className="question-badge">
+        <span className="question-badge-number">{questionNum}</span>
+        מתוך 6
+      </div>
+      <h2 className="question-text">{question}</h2>
+      <div className="choice-cards">
+        {options.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            className={`choice-card-btn ${formData[field] === opt.value ? "selected" : ""}`}
+            onClick={() => selectChoice(field, opt.value)}
+          >
+            <div className="choice-icon">{opt.icon}</div>
+            <div className="choice-title">{opt.label}</div>
+            <span className="choice-key">{opt.key}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className="feedback-page">
-      <div className="relative z-10 w-full min-h-screen flex flex-col items-center justify-center p-4 py-8">
-        {/* Back + Admin button row */}
+      <div className="fb-bg-gradient" />
+      <div className="floating-shapes">
+        <div className="shape" />
+        <div className="shape" />
+        <div className="shape" />
+      </div>
+      <div className="confetti-container" ref={confettiRef} />
+
+      {/* Progress Bar */}
+      <div className="progress-container">
         <div
-          className={`w-full max-w-lg flex items-center justify-between mb-6 transition-all duration-700 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
-          }`}
-        >
-          <button className="back-btn" onClick={() => router.push("/dashboard")}>
-            <ArrowRight size={18} />
-            חזרה
-          </button>
-
-          {userIsAdmin && (
-            <button
-              className="admin-btn"
-              onClick={() => setShowAdmin(true)}
-            >
-              <BarChart3 size={18} />
-              ניהול משובים
-            </button>
-          )}
-        </div>
-
-        {/* Main Card */}
-        <div
-          className={`w-full max-w-lg bg-white/90 backdrop-blur-md rounded-3xl shadow-xl border border-slate-200/60 overflow-hidden transition-all duration-700 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-          style={{ transitionDelay: "200ms" }}
-        >
-          {submitted ? (
-            /* ---- Success State ---- */
-            <div className="success-overlay">
-              <div className="success-checkmark">
-                <svg
-                  width="40"
-                  height="40"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-slate-800">
-                תודה על המשוב!
-              </h2>
-              <p className="text-slate-500">המשוב שלך התקבל בהצלחה</p>
-              <button
-                className="submit-btn mt-4"
-                style={{ maxWidth: 240 }}
-                onClick={() => router.push("/dashboard")}
-              >
-                חזרה לתפריט
-              </button>
-            </div>
-          ) : (
-            /* ---- Feedback Form ---- */
-            <div className="p-6 md:p-8 space-y-6">
-              {/* Header */}
-              <div className="text-center space-y-2">
-                <h1 className="text-3xl font-extrabold text-slate-800">
-                  משוב
-                </h1>
-                <p className="text-slate-500 text-sm">
-                  נשמח לשמוע את דעתכם על החוויה ביום הפתוח
-                </p>
-              </div>
-
-              {/* Star Rating */}
-              <div className="space-y-2">
-                <label className="block text-center text-sm font-semibold text-slate-600">
-                  איך הייתה החוויה?
-                </label>
-                <div className="star-rating">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      className={`star-btn ${
-                        star <= (hoverRating || rating) ? "active" : ""
-                      }`}
-                      onMouseEnter={() => setHoverRating(star)}
-                      onMouseLeave={() => setHoverRating(0)}
-                      onClick={() => setRating(star)}
-                      aria-label={`${star} כוכבים`}
-                    >
-                      ★
-                    </button>
-                  ))}
-                </div>
-                {(hoverRating || rating) > 0 && (
-                  <p className="text-center text-sm text-indigo-500 font-medium">
-                    {STAR_LABELS[(hoverRating || rating) - 1]}
-                  </p>
-                )}
-              </div>
-
-              {/* Categories */}
-              <div className="space-y-2">
-                <label className="block text-center text-sm font-semibold text-slate-600">
-                  על מה תרצו לתת משוב? (אופציונלי)
-                </label>
-                <div className="category-chips">
-                  {FEEDBACK_CATEGORIES.map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      className={`category-chip ${
-                        selectedCategories.includes(cat) ? "selected" : ""
-                      }`}
-                      onClick={() => toggleCategory(cat)}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Comment */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-600">
-                  הערות נוספות (אופציונלי)
-                </label>
-                <textarea
-                  className="feedback-textarea"
-                  placeholder="ספרו לנו מה חשבתם..."
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  maxLength={500}
-                />
-                <p className="text-left text-xs text-slate-400">
-                  {comment.length}/500
-                </p>
-              </div>
-
-              {/* Submit */}
-              <button
-                className="submit-btn"
-                onClick={handleSubmit}
-                disabled={rating === 0 || submitting}
-              >
-                {submitting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
-                    שולח...
-                  </span>
-                ) : (
-                  "שליחת משוב"
-                )}
-              </button>
-            </div>
-          )}
-        </div>
+          className="progress-bar"
+          style={{ width: `${Math.min(progress, 100)}%` }}
+        />
       </div>
 
-      {/* ============================================
-          Admin Modal
-          ============================================ */}
-      {showAdmin && (
-        <div className="admin-overlay" onClick={() => setShowAdmin(false)}>
-          <div
-            className="admin-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="admin-modal-header">
-              <h2 className="text-xl font-bold text-slate-800">
-                ניהול משובים
-              </h2>
-              <button
-                onClick={() => setShowAdmin(false)}
-                className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
-              >
-                <X size={20} className="text-slate-400" />
-              </button>
-            </div>
+      {/* Navigation */}
+      <nav className="fb-nav">
+        <div className="nav-brand">
+          <div className="nav-logo">
+            <MessageCircle size={18} />
+          </div>
+          <span>משוב סדנה אינטראקטיבית | יום פתוח הנדסת תעשייה וניהול</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {userIsAdmin && (
+            <button
+              className="admin-btn admin-btn-secondary"
+              onClick={() => setShowAdmin(true)}
+              style={{ padding: "8px 14px", fontSize: "0.8rem" }}
+            >
+              דשבורד
+            </button>
+          )}
+          <div className="step-dots">
+            {stepDots.map((status, i) => (
+              <div key={i} className={`step-dot ${status}`} />
+            ))}
+          </div>
+        </div>
+      </nav>
 
-            {/* Body */}
-            <div className="admin-modal-body">
-              {loadingFeedback ? (
-                <div className="text-center py-12">
-                  <div className="spinner" />
-                  <p className="text-slate-400 mt-4">טוען משובים...</p>
-                </div>
-              ) : feedbackList.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-state-icon">📭</div>
-                  <p className="text-lg font-semibold">אין משובים עדיין</p>
-                  <p className="text-sm mt-1">
-                    משובים שישלחו יופיעו כאן
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {/* Stats Cards */}
-                  {stats && (
-                    <div className="stats-grid">
-                      <div className="stat-card">
-                        <div className="stat-card-value">{stats.total}</div>
-                        <div className="stat-card-label">סה"כ משובים</div>
-                      </div>
-                      <div className="stat-card">
-                        <div className="stat-card-value">
-                          {stats.avgRating.toFixed(1)}
-                        </div>
-                        <div className="stat-card-label">דירוג ממוצע</div>
-                      </div>
-                      <div className="stat-card">
-                        <div className="stat-card-value">
-                          {stats.withComments}
-                        </div>
-                        <div className="stat-card-label">עם הערות</div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Charts */}
-                  {stats && ratingChartData && categoryChartData && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div className="chart-section">
-                        <h3 className="text-sm font-bold text-slate-600 mb-2">
-                          התפלגות דירוגים
-                        </h3>
-                        <div className="chart-container">
-                          <Bar
-                            data={ratingChartData}
-                            options={{
-                              responsive: true,
-                              maintainAspectRatio: true,
-                              plugins: {
-                                legend: { display: false },
-                              },
-                              scales: {
-                                y: {
-                                  beginAtZero: true,
-                                  ticks: { stepSize: 1 },
-                                },
-                              },
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div className="chart-section">
-                        <h3 className="text-sm font-bold text-slate-600 mb-2">
-                          קטגוריות
-                        </h3>
-                        <div className="chart-container">
-                          <Doughnut
-                            data={categoryChartData}
-                            options={{
-                              responsive: true,
-                              maintainAspectRatio: true,
-                              plugins: {
-                                legend: {
-                                  position: "bottom" as const,
-                                  labels: { font: { size: 11 } },
-                                },
-                              },
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Admin Actions */}
-                  <div className="admin-actions">
-                    <button className="admin-btn" onClick={handleExportCSV}>
-                      <Download size={16} />
-                      ייצוא CSV
-                    </button>
-                    <button className="admin-btn" onClick={loadFeedback}>
-                      רענון
-                    </button>
-                    <button
-                      className="admin-btn danger"
-                      onClick={handleDeleteAll}
-                    >
-                      <Trash2 size={16} />
-                      מחיקת הכל
-                    </button>
-                  </div>
-
-                  {/* Feedback List */}
-                  <h3 className="text-sm font-bold text-slate-600 mb-3">
-                    כל המשובים ({feedbackList.length})
-                  </h3>
-                  <div className="feedback-list">
-                    {feedbackList.map((fb) => (
-                      <div key={fb.id} className="feedback-item">
-                        <div className="feedback-item-header">
-                          <div className="feedback-item-stars">
-                            {[1, 2, 3, 4, 5].map((s) => (
-                              <span
-                                key={s}
-                                style={{
-                                  color:
-                                    s <= fb.rating ? "#fbbf24" : "#d1d5db",
-                                }}
-                              >
-                                ★
-                              </span>
-                            ))}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="feedback-item-date">
-                              {fb.createdAt?.toDate?.()
-                                ? fb.createdAt
-                                    .toDate()
-                                    .toLocaleDateString("he-IL", {
-                                      day: "numeric",
-                                      month: "short",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })
-                                : ""}
-                            </span>
-                            <button
-                              className="feedback-item-delete"
-                              onClick={() => handleDelete(fb.id)}
-                              disabled={deleting === fb.id}
-                              title="מחק משוב"
-                            >
-                              {deleting === fb.id ? (
-                                <span
-                                  className="spinner"
-                                  style={{
-                                    width: 14,
-                                    height: 14,
-                                    borderWidth: 2,
-                                  }}
-                                />
-                              ) : (
-                                <Trash2 size={14} />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-
-                        {fb.categories.length > 0 && (
-                          <div className="feedback-item-categories">
-                            {fb.categories.map((cat) => (
-                              <span key={cat} className="feedback-item-chip">
-                                {cat}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        {fb.comment && (
-                          <p className="feedback-item-comment">{fb.comment}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
+      {/* Form Container */}
+      <div className="form-container">
+        {/* Step 0: Welcome */}
+        <div className={slideClass(0)}>
+          <div className="welcome-screen">
+            <div className="welcome-icon">👋</div>
+            <h1 className="welcome-title">תודה שהשתתפת!</h1>
+            <p className="welcome-subtitle">
+              נשמח לשמוע מה חשבת על הסדנה שלנו.
+              <br />
+              המשוב שלך עוזר לנו להשתפר ולהתפתח.
+            </p>
+            <div className="welcome-features">
+              <div className="feature">
+                <Clock size={18} />
+                פחות מדקה
+              </div>
+              <div className="feature">
+                <MessageCircle size={18} />
+                6 שאלות קצרות
+              </div>
+              <div className="feature">
+                <Lock size={18} />
+                אנונימי לחלוטין
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Step 1: Star Rating - Enjoyment */}
+        <div className={slideClass(1)}>
+          <div className="question-badge">
+            <span className="question-badge-number">1</span>
+            מתוך 6
+          </div>
+          <h2 className="question-text">עד כמה נהנית מהסדנה?</h2>
+          <div className="star-rating-container">
+            <div className="star-rating">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  className={`star-btn ${star <= formData.enjoyment ? "active" : ""}`}
+                  onClick={() => selectStar(star)}
+                >
+                  <svg
+                    className="star-icon"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1}
+                    fill={star <= formData.enjoyment ? "#fbbf24" : "#e5e7eb"}
+                    stroke={star <= formData.enjoyment ? "#f59e0b" : "#d1d5db"}
+                  >
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                </button>
+              ))}
+            </div>
+            <div
+              className={`star-feedback ${formData.enjoyment > 0 ? "visible" : ""}`}
+            >
+              {formData.enjoyment > 0 && STAR_MESSAGES[formData.enjoyment]}
+            </div>
+          </div>
+        </div>
+
+        {/* Step 2: Clarity Scale */}
+        {renderScaleQuestion(
+          2, 2,
+          "עד כמה המשחקים היו מובנים?",
+          "clarity",
+          "בכלל לא מובן",
+          "מאוד מובן"
+        )}
+
+        {/* Step 3: Challenge Scale */}
+        {renderScaleQuestion(
+          3, 3,
+          "עד כמה המשחקים היו מאתגרים ברמה הנכונה?",
+          "challenge",
+          "קל/קשה מדי",
+          "בדיוק נכון"
+        )}
+
+        {/* Step 4: Understanding Scale */}
+        {renderScaleQuestion(
+          4, 4,
+          "עד כמה הבנת מה עושים בהנדסת תעשייה וניהול?",
+          "understanding",
+          "לא הבנתי",
+          "הבנתי לגמרי"
+        )}
+
+        {/* Step 5: Interest Choice */}
+        {renderChoiceQuestion(5, 5, "האם הסדנה הגבירה את העניין שלך בתחום?", "interest", [
+          { value: "yes", icon: "🚀", label: "בהחלט כן", key: "A" },
+          { value: "maybe", icon: "🤔", label: "קצת", key: "B" },
+          { value: "no", icon: "😐", label: "לא ממש", key: "C" },
+        ])}
+
+        {/* Step 6: Registration Choice */}
+        {renderChoiceQuestion(6, 6, "האם היית שוקל/ת להירשם לתואר?", "registration", [
+          { value: "yes", icon: "✅", label: "בהחלט", key: "A" },
+          { value: "maybe", icon: "💭", label: "אולי", key: "B" },
+          { value: "no", icon: "❌", label: "כנראה לא", key: "C" },
+        ])}
+
+        {/* Step 7: Comments (Optional) */}
+        <div className={slideClass(7)}>
+          <div className="optional-tag">
+            <Check size={14} />
+            אופציונלי
+          </div>
+          <h2 className="question-text">יש לך הערות או הצעות לשיפור?</h2>
+          <div className="textarea-container">
+            <textarea
+              className="feedback-textarea"
+              placeholder="נשמח לשמוע מה חשבת..."
+              maxLength={500}
+              value={formData.comments}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, comments: e.target.value }))
+              }
+            />
+            <div className="char-count">
+              <span>{formData.comments.length}</span>/500
+            </div>
+          </div>
+        </div>
+
+        {/* Step 8: Success */}
+        <div className={slideClass(8)}>
+          <div className="success-screen">
+            <div className="success-icon-circle">
+              <svg
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                width="50"
+                height="50"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={3}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <h2 className="success-title">תודה רבה! 🎉</h2>
+            <p className="success-subtitle">
+              המשוב שלך התקבל בהצלחה.
+              <br />
+              בהצלחה בבחירת מסלול הלימודים!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Buttons */}
+      {currentStep < TOTAL_STEPS - 1 && (
+        <div className="nav-buttons">
+          {currentStep > 0 && (
+            <button className="fb-btn fb-btn-secondary" onClick={goPrev}>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              הקודם
+            </button>
+          )}
+          <button
+            className="fb-btn fb-btn-primary"
+            onClick={handleGoNextWithSubmit}
+          >
+            {getNextBtnContent()}
+          </button>
+        </div>
       )}
+
+      {/* Admin Dashboard */}
+      {showAdmin && <AdminDashboard onClose={() => setShowAdmin(false)} />}
     </div>
   );
 }

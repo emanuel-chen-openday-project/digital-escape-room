@@ -15,10 +15,16 @@ import { db, COLLECTIONS } from './firebase';
 // Feedback Types
 // ============================================
 
+export type IntentValue = 'yes' | 'maybe' | 'no';
+
 export interface FeedbackEntry {
-  rating: number; // 1-5
-  categories: string[]; // selected categories
-  comment: string;
+  enjoyment: number;      // 1-5 stars
+  clarity: number;        // 1-5 scale
+  challenge: number;      // 1-5 scale
+  understanding: number;  // 1-5 scale
+  interest: IntentValue;  // yes/maybe/no
+  registration: IntentValue; // yes/maybe/no
+  comments: string;
   createdAt: Timestamp;
   userId: string | null;
 }
@@ -27,31 +33,17 @@ export interface FeedbackEntryWithId extends FeedbackEntry {
   id: string;
 }
 
-export const FEEDBACK_CATEGORIES = [
-  'חווית משחק',
-  'עיצוב וממשק',
-  'תוכן לימודי',
-  'רמת קושי',
-  'ביצועים טכניים',
-] as const;
-
 // ============================================
 // Submit Feedback
 // ============================================
 
 export async function submitFeedback(
-  rating: number,
-  categories: string[],
-  comment: string,
-  userId: string | null
+  data: Omit<FeedbackEntry, 'createdAt'>,
 ): Promise<string> {
   const feedbackRef = collection(db, COLLECTIONS.FEEDBACK);
 
   const entry = {
-    rating,
-    categories,
-    comment,
-    userId,
+    ...data,
     createdAt: serverTimestamp(),
   };
 
@@ -72,15 +64,6 @@ export async function getAllFeedback(): Promise<FeedbackEntryWithId[]> {
     id: docSnap.id,
     ...docSnap.data(),
   })) as FeedbackEntryWithId[];
-}
-
-// ============================================
-// Delete Feedback (Admin)
-// ============================================
-
-export async function deleteFeedback(feedbackId: string): Promise<void> {
-  const feedbackRef = doc(db, COLLECTIONS.FEEDBACK, feedbackId);
-  await deleteDoc(feedbackRef);
 }
 
 // ============================================
