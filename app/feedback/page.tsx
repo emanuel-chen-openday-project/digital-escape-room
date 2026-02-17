@@ -318,6 +318,9 @@ export default function FeedbackPage() {
         <div className="shape" />
         <div className="shape" />
         <div className="shape" />
+        <div className="shape" />
+        <div className="shape" />
+        <div className="shape" />
       </div>
       <div className="confetti-container" ref={confettiRef} />
 
