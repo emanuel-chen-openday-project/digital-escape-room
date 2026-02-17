@@ -39,6 +39,7 @@ export const initAnalytics = (): Analytics | null => {
 export const COLLECTIONS = {
   USERS: 'users',
   GAME_SESSIONS: 'gameSessions',
+  FEEDBACK: 'feedback',
 } as const;
 
 export default app;

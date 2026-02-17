@@ -14,7 +14,17 @@ import {
   LogOut
 } from "lucide-react";
 
-const menuItems = [
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: typeof Gamepad2;
+  color: string;
+  shadow: string;
+  href: string;
+  external?: boolean;
+}
+
+const menuItems: MenuItem[] = [
   {
     id: 'escape-room',
     label: 'חדר בריחה דיגיטלי',
@@ -138,7 +148,7 @@ export default function DashboardPage() {
             return (
               <button
                 key={item.id}
-                onClick={() => handleMenuClick(item.href, (item as any).external)}
+                onClick={() => handleMenuClick(item.href, item.external)}
                 className={`group relative flex items-center justify-between w-full p-4 md:p-5 bg-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500 ease-out overflow-hidden ${
                   isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
                 }`}
