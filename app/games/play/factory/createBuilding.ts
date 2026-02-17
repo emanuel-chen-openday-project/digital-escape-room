@@ -163,7 +163,7 @@ export function createEntrance(scene: BABYLON.Scene, advancedTexture: GUI.Advanc
 }
 
 export function drawDoorTexture(doorDynamicTexture: BABYLON.DynamicTexture, text: string): void {
-  const ctx = doorDynamicTexture.getContext();
+  const ctx = doorDynamicTexture.getContext() as unknown as CanvasRenderingContext2D;
   const width = 512;
   const height = 512 * 0.75;
 
