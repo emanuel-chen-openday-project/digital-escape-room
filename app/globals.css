@@ -25,6 +25,9 @@ body {
 body::-webkit-scrollbar { display: none; }
 body { -ms-overflow-style: none; scrollbar-width: none; }
 
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* Blob Animation */
 @keyframes blob {
   0% { transform: translate(0px, 0px) scale(1); }
