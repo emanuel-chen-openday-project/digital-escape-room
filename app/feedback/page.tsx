@@ -511,7 +511,7 @@ export default function FeedbackPage() {
               <br />
               בהצלחה בבחירת מסלול הלימודים!
             </p>
-            <Link href="/" className="fb-btn fb-btn-primary" style={{ marginTop: 28, display: "inline-flex" }}>
+            <Link href="/dashboard" className="fb-btn fb-btn-primary" style={{ marginTop: 28, display: "inline-flex" }}>
               <Home size={18} />
               חזרה לדף הבית
             </Link>
