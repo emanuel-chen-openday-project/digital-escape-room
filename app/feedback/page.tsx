@@ -9,7 +9,9 @@ import {
   MessageCircle,
   Lock,
   Check,
+  Home,
 } from "lucide-react";
+import Link from "next/link";
 import "./feedback.css";
 import dynamic from "next/dynamic";
 
@@ -509,6 +511,10 @@ export default function FeedbackPage() {
               <br />
               בהצלחה בבחירת מסלול הלימודים!
             </p>
+            <Link href="/" className="fb-btn fb-btn-primary" style={{ marginTop: 28, display: "inline-flex" }}>
+              <Home size={18} />
+              חזרה לדף הבית
+            </Link>
           </div>
         </div>
       </div>

@@ -17,7 +17,8 @@ import {
   Legend,
 } from "chart.js";
 import { Bar, Doughnut } from "react-chartjs-2";
-import { Download, RefreshCw, X, Trash2, BarChart3, PieChart, TableProperties, Inbox } from "lucide-react";
+import { Download, RefreshCw, X, Trash2, BarChart3, PieChart, TableProperties, Inbox, Home } from "lucide-react";
+import Link from "next/link";
 import "./feedback.css";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
@@ -352,6 +353,10 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               <RefreshCw size={18} />
               <span>רענון</span>
             </button>
+            <Link href="/" className="admin-btn admin-btn-secondary" style={{ textDecoration: "none" }}>
+              <Home size={18} />
+              <span>דף הבית</span>
+            </Link>
             <button className="admin-btn admin-btn-secondary" onClick={onClose}>
               <X size={18} />
               <span>סגירה</span>
