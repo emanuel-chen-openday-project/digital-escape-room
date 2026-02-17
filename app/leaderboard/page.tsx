@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { subscribeToRealtimeLeaderboard, resetLeaderboard } from "@/lib/gameService";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useAdmin } from "@/lib/hooks/useAdmin";
 import { LeaderboardPlayer } from "@/lib/types";
 import {
   Trophy,
@@ -98,6 +99,7 @@ const DonutChart = ({ data, total }: { data: { label: string; value: number; col
 export default function LeaderboardPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { isAdmin } = useAdmin();
   const [players, setPlayers] = useState<LeaderboardPlayer[]>([]);
   const [filterText, setFilterText] = useState('');
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -265,28 +267,32 @@ export default function LeaderboardPage() {
           <p className="text-slate-500 text-xs md:text-sm font-medium mt-1">הנדסת תעשייה וניהול | חדר בריחה</p>
         </div>
 
-        {/* Left side - Reset button */}
+        {/* Left side - Reset button (admin only) */}
         <div className="flex items-center gap-2">
-          {showResetConfirm && (
-            <button
-              onClick={() => setShowResetConfirm(false)}
-              className="text-slate-500 hover:text-slate-700 transition-colors px-2 py-2 rounded-xl hover:bg-slate-50 text-sm"
-            >
-              ביטול
-            </button>
+          {isAdmin && (
+            <>
+              {showResetConfirm && (
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="text-slate-500 hover:text-slate-700 transition-colors px-2 py-2 rounded-xl hover:bg-slate-50 text-sm"
+                >
+                  ביטול
+                </button>
+              )}
+              <button
+                onClick={handleReset}
+                disabled={isResetting}
+                className={`flex items-center gap-1 md:gap-2 transition-colors px-2 md:px-3 py-2 rounded-xl ${
+                  showResetConfirm
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : 'text-slate-500 hover:text-red-500 hover:bg-red-50'
+                } ${isResetting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <RotateCcw className={`w-4 h-4 md:w-5 md:h-5 ${isResetting ? 'animate-spin' : ''}`} />
+                <span className="font-medium text-sm hidden sm:inline">{showResetConfirm ? 'אישור' : 'איפוס'}</span>
+              </button>
+            </>
           )}
-          <button
-            onClick={handleReset}
-            disabled={isResetting}
-            className={`flex items-center gap-1 md:gap-2 transition-colors px-2 md:px-3 py-2 rounded-xl ${
-              showResetConfirm
-                ? 'bg-red-500 text-white hover:bg-red-600'
-                : 'text-slate-500 hover:text-red-500 hover:bg-red-50'
-            } ${isResetting ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <RotateCcw className={`w-4 h-4 md:w-5 md:h-5 ${isResetting ? 'animate-spin' : ''}`} />
-            <span className="font-medium text-sm hidden sm:inline">{showResetConfirm ? 'אישור' : 'איפוס'}</span>
-          </button>
         </div>
       </header>
 
