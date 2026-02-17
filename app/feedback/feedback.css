@@ -225,9 +225,8 @@
 
 .star-rating {
   display: flex;
-  flex-direction: row-reverse;
+  gap: 4px;
   justify-content: center;
-  direction: rtl;
 }
 
 .star-btn {
@@ -1299,7 +1298,6 @@
 
   .optional-tag { padding: 5px 12px; font-size: 0.75rem; margin-bottom: 14px; }
   .char-count { font-size: 0.7rem; bottom: 10px; left: 14px; }
-  .floating-shapes { display: none; }
 }
 
 @media (max-width: 480px) {
