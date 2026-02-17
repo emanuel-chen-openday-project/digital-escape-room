@@ -116,7 +116,7 @@ export default function InfoPage() {
       </div>
 
       {/* Main Content Container (Scrollable) */}
-      <div className="relative z-10 w-full h-full overflow-y-auto pb-24">
+      <div className="relative z-10 w-full h-full overflow-y-auto pb-24 no-scrollbar">
         <div className="flex flex-col items-center justify-start p-6 pt-12 min-h-full">
 
           {/* Back Button */}
