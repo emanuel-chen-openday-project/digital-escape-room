@@ -352,7 +352,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               <Download size={18} />
               <span>ייצוא CSV</span>
             </button>
-            <Link href="/" className="admin-btn admin-btn-secondary" style={{ textDecoration: "none" }}>
+            <Link href="/dashboard" className="admin-btn admin-btn-secondary" style={{ textDecoration: "none" }}>
               <Home size={18} />
               <span>דף הבית</span>
             </Link>
