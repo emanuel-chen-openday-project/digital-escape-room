@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
-  getAllFeedback,
+  subscribeFeedback,
   deleteAllFeedback,
   FeedbackEntryWithId,
   IntentValue,
@@ -17,7 +17,7 @@ import {
   Legend,
 } from "chart.js";
 import { Bar, Doughnut } from "react-chartjs-2";
-import { Download, RefreshCw, X, Trash2, BarChart3, PieChart, TableProperties, Inbox, Home } from "lucide-react";
+import { Download, X, Trash2, BarChart3, PieChart, TableProperties, Inbox, Home, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import "./feedback.css";
 
@@ -57,6 +57,7 @@ const INTENT_MAP: Record<IntentValue, { text: string; class: string }> = {
 export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const [feedbackList, setFeedbackList] = useState<FeedbackEntryWithId[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<Filters>({
     dateFrom: "",
@@ -72,24 +73,25 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   });
 
   // ============================================
-  // Data Loading
+  // Real-Time Data Loading
   // ============================================
 
-  const loadFeedback = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await getAllFeedback();
-      setFeedbackList(data);
-    } catch (err) {
-      console.error("Error loading feedback:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    loadFeedback();
-  }, [loadFeedback]);
+    const unsubscribe = subscribeFeedback(
+      (data) => {
+        setFeedbackList(data);
+        setLoading(false);
+        setError(null);
+      },
+      (err) => {
+        console.error("Error loading feedback:", err);
+        setError("שגיאה בטעינת משובים: " + err.message);
+        setLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   // ============================================
   // Filtering
@@ -279,9 +281,6 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     }
   };
 
-  const handleRefresh = () => {
-    loadFeedback();
-  };
 
   // ============================================
   // Helpers
@@ -345,13 +344,13 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
             </div>
           </div>
           <div className="admin-header-actions">
+            <div className="admin-live-badge" style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "rgba(16,185,129,0.1)", borderRadius: 8, fontSize: "0.8rem", color: "#10b981", fontWeight: 600 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", animation: "pulse 2s infinite" }} />
+              LIVE
+            </div>
             <button className="admin-btn admin-btn-success" onClick={handleExportCSV}>
               <Download size={18} />
               <span>ייצוא CSV</span>
-            </button>
-            <button className="admin-btn admin-btn-secondary" onClick={handleRefresh}>
-              <RefreshCw size={18} />
-              <span>רענון</span>
             </button>
             <Link href="/" className="admin-btn admin-btn-secondary" style={{ textDecoration: "none" }}>
               <Home size={18} />
@@ -371,6 +370,12 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
           <div className="admin-loading">
             <div className="spinner" />
             <p>טוען משובים...</p>
+          </div>
+        ) : error ? (
+          <div className="admin-empty-state">
+            <AlertCircle size={80} style={{ color: "#ef4444" }} />
+            <h3>שגיאה בחיבור</h3>
+            <p>{error}</p>
           </div>
         ) : feedbackList.length === 0 ? (
           <div className="admin-empty-state">

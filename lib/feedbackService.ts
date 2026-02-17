@@ -8,6 +8,8 @@ import {
   Timestamp,
   deleteDoc,
   doc,
+  onSnapshot,
+  Unsubscribe,
 } from 'firebase/firestore';
 import { db, COLLECTIONS } from './firebase';
 
@@ -64,6 +66,32 @@ export async function getAllFeedback(): Promise<FeedbackEntryWithId[]> {
     id: docSnap.id,
     ...docSnap.data(),
   })) as FeedbackEntryWithId[];
+}
+
+// ============================================
+// Subscribe to Feedback in Real-Time (Admin)
+// ============================================
+
+export function subscribeFeedback(
+  onData: (data: FeedbackEntryWithId[]) => void,
+  onError: (error: Error) => void,
+): Unsubscribe {
+  const feedbackRef = collection(db, COLLECTIONS.FEEDBACK);
+  const q = query(feedbackRef, orderBy('createdAt', 'desc'));
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const data = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      })) as FeedbackEntryWithId[];
+      onData(data);
+    },
+    (error) => {
+      onError(error);
+    },
+  );
 }
 
 // ============================================
