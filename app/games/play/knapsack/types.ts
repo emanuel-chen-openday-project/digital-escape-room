@@ -4,6 +4,7 @@
 import * as BABYLON from '@babylonjs/core';
 
 export interface Item {
+  id: number;
   name: string;
   emoji: string;
   weight: number;
@@ -37,12 +38,12 @@ export const CAPACITY = 5; // kg
 
 // Items - EXACT values from original HTML
 export const ITEMS: Item[] = [
-  { name: "מסך מחשב", emoji: "🖥️", weight: 3, value: 800, color: new BABYLON.Color3(0.2, 0.2, 0.22), type: "monitor" },
-  { name: "שעון קיר", emoji: "🕐", weight: 0.5, value: 600, color: new BABYLON.Color3(0.95, 0.95, 0.97), type: "wallclock" },
-  { name: "אוזניות", emoji: "🎧", weight: 0.3, value: 400, color: new BABYLON.Color3(0.15, 0.15, 0.18), type: "headphones" },
-  { name: "ספרים", emoji: "📚", weight: 2, value: 500, color: new BABYLON.Color3(0.6, 0.3, 0.1), type: "books" },
-  { name: "רמקול", emoji: "🔊", weight: 0.8, value: 500, color: new BABYLON.Color3(0.1, 0.1, 0.12), type: "speaker" },
-  { name: "מקלדת", emoji: "⌨️", weight: 0.4, value: 300, color: new BABYLON.Color3(0.9, 0.9, 0.92), type: "keyboard" }
+  { id: 0, name: "מסך מחשב", emoji: "🖥️", weight: 3, value: 800, color: new BABYLON.Color3(0.2, 0.2, 0.22), type: "monitor" },
+  { id: 1, name: "שעון קיר", emoji: "🕐", weight: 0.5, value: 600, color: new BABYLON.Color3(0.95, 0.95, 0.97), type: "wallclock" },
+  { id: 2, name: "אוזניות", emoji: "🎧", weight: 0.3, value: 400, color: new BABYLON.Color3(0.15, 0.15, 0.18), type: "headphones" },
+  { id: 3, name: "ספרים", emoji: "📚", weight: 2, value: 500, color: new BABYLON.Color3(0.6, 0.3, 0.1), type: "books" },
+  { id: 4, name: "רמקול", emoji: "🔊", weight: 0.8, value: 500, color: new BABYLON.Color3(0.1, 0.1, 0.12), type: "speaker" },
+  { id: 5, name: "מקלדת", emoji: "⌨️", weight: 0.4, value: 300, color: new BABYLON.Color3(0.9, 0.9, 0.92), type: "keyboard" }
 ];
 
 export function createInitialGameState(): KnapsackGameState {

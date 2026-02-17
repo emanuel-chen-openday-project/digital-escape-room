@@ -11,7 +11,6 @@
   "dependencies": {
     "@babylonjs/core": "^8.39.2",
     "@babylonjs/gui": "^8.39.2",
-    "@babylonjs/loaders": "^8.51.2",
     "chart.js": "^4.5.1",
     "firebase": "^12.6.0",
     "gsap": "^3.13.0",
