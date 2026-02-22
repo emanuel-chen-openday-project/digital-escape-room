@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -13,9 +13,22 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+};
+
 export const metadata: Metadata = {
   title: "חדר בריחה דיגיטלי | הנדסת תעשייה וניהול",
   description: "יום פתוח - הנדסת תעשייה וניהול",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: "חדר בריחה דיגיטלי",
+  },
 };
 
 export default function RootLayout({
