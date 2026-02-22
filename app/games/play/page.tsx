@@ -25,13 +25,6 @@ export default function GamePlay() {
   const { nickname, sessionId, isGameActive, finishGame, startStage, completeStage, useHint } = useGame();
   const isFinishingRef = useRef(false);
 
-  // Re-enter fullscreen if keyboard dismissed it (iOS/Safari)
-  useEffect(() => {
-    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    }
-  }, []);
-
   // Redirect if not authenticated or no active game
   useEffect(() => {
     if (!authLoading && !isFinishingRef.current) {
