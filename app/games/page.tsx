@@ -97,10 +97,6 @@ export default function GamesIntro() {
 
     setIsStarting(true);
     try {
-      // Re-request fullscreen in case the keyboard dismissed it (iOS/Safari)
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen().catch(() => {});
-      }
       await startGame(nickname.trim());
       router.push("/games/play");
     } catch (err) {
