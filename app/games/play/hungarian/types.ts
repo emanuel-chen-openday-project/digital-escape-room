@@ -37,7 +37,11 @@ export interface HungarianGameState {
 
 // Configuration from original HTML
 export const MINUTES_PER_UNIT = 0.18;
-export const IS_MOBILE = typeof window !== 'undefined' ? window.innerWidth < 900 : false;
+// Also detect modern iPad (iPadOS 13+ reports as Macintosh)
+export const IS_MOBILE = typeof window !== 'undefined'
+  ? window.innerWidth < 900 ||
+    (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent))
+  : false;
 export const COURIER_SCALE = IS_MOBILE ? 2.5 : 1.7;
 export const COURIER_HEIGHT = 0.7;
 

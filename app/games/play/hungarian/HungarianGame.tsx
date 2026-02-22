@@ -134,9 +134,13 @@ export default function HungarianGame({ onComplete }: HungarianGameProps) {
       sceneRefs.scene.render();
     });
 
-    // Handle resize
-    const handleResize = () => sceneRefs.engine.resize();
+    // Handle resize - recalculate hardware scaling like TSP does
+    const handleResize = () => {
+      sceneRefs.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+      sceneRefs.engine.resize();
+    };
     window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => setTimeout(handleResize, 300));
 
     return () => {
       window.removeEventListener('resize', handleResize);
