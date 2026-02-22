@@ -31,7 +31,11 @@ export interface KnapsackGameState {
 }
 
 // Configuration - EXACT values from original HTML
-export const IS_MOBILE = typeof window !== 'undefined' ? /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) : false;
+// Modern iPadOS (13+) reports as Macintosh in userAgent, so also check for touch support
+export const IS_MOBILE = typeof window !== 'undefined'
+  ? /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent))
+  : false;
 export const SCALE = IS_MOBILE ? 0.55 : 0.6;
 export const ITEM_SCALE = 1.25;
 export const CAPACITY = 5; // kg

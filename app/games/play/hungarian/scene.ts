@@ -31,8 +31,11 @@ export function createHungarianScene(canvas: HTMLCanvasElement): SceneRefs {
   const scene = new BABYLON.Scene(engine);
   scene.clearColor = new BABYLON.Color4(0.91, 0.94, 0.97, 1);
 
-  // GUI
+  // GUI - set idealWidth/idealHeight for consistent label sizing across DPI
   const advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI('UI');
+  advancedTexture.idealWidth = 1920;
+  advancedTexture.idealHeight = 1080;
+  advancedTexture.renderAtIdealSize = true;
 
   // Camera - from original HTML
   const isMobile = IS_MOBILE;

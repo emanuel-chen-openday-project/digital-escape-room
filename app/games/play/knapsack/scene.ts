@@ -95,8 +95,11 @@ export function createKnapsackScene(canvas: HTMLCanvasElement): SceneRefs {
   camera.lowerRadiusLimit = camRadius;
   camera.upperRadiusLimit = camRadius;
 
-  // GUI
+  // GUI - set idealWidth/idealHeight for consistent label sizing across DPI
   const ui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+  ui.idealWidth = 1920;
+  ui.idealHeight = 1080;
+  ui.renderAtIdealSize = true;
 
   // Create environment and get steps info
   const stepsInfo = createEnvironment(scene, shadowGen);
