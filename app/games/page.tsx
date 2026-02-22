@@ -314,7 +314,7 @@ export default function GamesIntro() {
                       ? "border-blue-500 bg-white"
                       : "border-slate-200 focus:border-blue-500"
                   }`}
-                  autoFocus
+                  autoFocus={false}
                 />
                 {error && (
                   <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
