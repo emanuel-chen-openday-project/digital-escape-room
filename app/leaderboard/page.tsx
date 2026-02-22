@@ -19,7 +19,8 @@ import {
   Hourglass,
   PieChart,
   ChevronRight,
-  RotateCcw
+  RotateCcw,
+  Download
 } from 'lucide-react';
 
 // נתוני משחקים - פלטת צבעים חדשה: "Cool Tech" (Sky, Rose, Indigo)
@@ -122,6 +123,76 @@ export default function LeaderboardPage() {
     } finally {
       setIsResetting(false);
     }
+  };
+
+  // Export leaderboard to Excel-compatible CSV
+  const handleExportExcel = () => {
+    if (sortedPlayers.length === 0) return;
+
+    const solvedLabel = (val: boolean | null) => {
+      if (val === true) return 'נפתר בהצלחה';
+      if (val === false) return 'לא נפתר';
+      if (val === null) return 'יצא מהמשחק';
+      return 'טרם התחיל';
+    };
+
+    const formatStageTime = (seconds: number) => {
+      if (seconds === 0) return '-';
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
+    const headers = [
+      'מיקום בדירוג',
+      'כינוי השחקן',
+      'סטטוס (פעיל / סיים)',
+      'מספר חידות שנפתרו בהצלחה (מתוך 3)',
+      'סה"כ רמזים שהתבקשו',
+      'זמן כולל (דקות:שניות)',
+      'משימה 1 - מאסטר המסלולים (TSP) - תוצאה',
+      'משימה 1 - מאסטר המסלולים (TSP) - זמן (דקות:שניות)',
+      'משימה 2 - מאסטר המשלוחים (Hungarian) - תוצאה',
+      'משימה 2 - מאסטר המשלוחים (Hungarian) - זמן (דקות:שניות)',
+      'משימה 3 - חבילה למשלוח (Knapsack) - תוצאה',
+      'משימה 3 - חבילה למשלוח (Knapsack) - זמן (דקות:שניות)',
+    ].join(',');
+
+    const rows = sortedPlayers.map((player, index) => {
+      const totalMs = getTotalTime(player);
+      const totalSeconds = Math.floor(totalMs / 1000);
+      const totalMin = Math.floor(totalSeconds / 60);
+      const totalSec = totalSeconds % 60;
+      const totalFormatted = `${totalMin.toString().padStart(2, '0')}:${totalSec.toString().padStart(2, '0')}`;
+
+      const solvedCount = player.stageSolved.filter(s => s === true).length;
+      const statusText = player.status === 'finished' ? 'סיים' : 'פעיל';
+
+      return [
+        index + 1,
+        `"${player.nickname}"`,
+        statusText,
+        solvedCount,
+        player.hints,
+        totalFormatted,
+        solvedLabel(player.stageSolved[0]),
+        formatStageTime(player.stageTimes[0]),
+        solvedLabel(player.stageSolved[1]),
+        formatStageTime(player.stageTimes[1]),
+        solvedLabel(player.stageSolved[2]),
+        formatStageTime(player.stageTimes[2]),
+      ].join(',');
+    });
+
+    const bom = '\uFEFF';
+    const csv = bom + headers + '\n' + rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `leaderboard_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   // Redirect to login if not authenticated
@@ -267,10 +338,17 @@ export default function LeaderboardPage() {
           <p className="text-slate-500 text-xs md:text-sm font-medium mt-1">הנדסת תעשייה וניהול | חדר בריחה</p>
         </div>
 
-        {/* Left side - Reset button (admin only) */}
+        {/* Left side - Export + Reset buttons (admin only) */}
         <div className="flex items-center gap-2">
           {isAdmin && (
             <>
+              <button
+                onClick={handleExportExcel}
+                className="flex items-center gap-1 md:gap-2 transition-colors px-2 md:px-3 py-2 rounded-xl text-slate-500 hover:text-emerald-600 hover:bg-emerald-50"
+              >
+                <Download className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="font-medium text-sm hidden sm:inline">ייצוא Excel</span>
+              </button>
               {showResetConfirm && (
                 <button
                   onClick={() => setShowResetConfirm(false)}
