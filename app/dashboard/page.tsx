@@ -90,8 +90,8 @@ export default function DashboardPage() {
       // Don't enter fullscreen for external links - it blocks popups
       window.open(href, '_blank');
     } else {
-      // Enter fullscreen only for internal navigation
-      if (document.documentElement.requestFullscreen) {
+      // Enter fullscreen only for game pages (not leaderboard, info, feedback)
+      if (href.startsWith('/games') && document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
       }
       router.push(href);

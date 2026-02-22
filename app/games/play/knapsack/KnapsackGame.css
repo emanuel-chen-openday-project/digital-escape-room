@@ -635,6 +635,26 @@
   transform: scale(0.95);
 }
 
+.popup-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.popup-btn-retry {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+  font-size: 14px;
+  padding: 10px 20px;
+}
+
+.popup-btn-next {
+  background: linear-gradient(135deg, #1565C0, #0D47A1);
+  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.4);
+  font-size: 14px;
+  padding: 10px 20px;
+}
+
 #popupOverlay {
   position: fixed;
   inset: 0;
