@@ -139,7 +139,7 @@ export default function KnapsackGame({ onComplete }: KnapsackGameProps) {
       }
 
       setCurrentWeight(prev => {
-        const newWeight = prev + item.weight;
+        const newWeight = Math.round((prev + item.weight) * 100) / 100;
         if (newWeight > CAPACITY) {
           setMessage("⚠️ החבילה כבדה מדי! יש להסיר מוצר");
         } else {
@@ -162,7 +162,7 @@ export default function KnapsackGame({ onComplete }: KnapsackGameProps) {
       }
 
       setCurrentWeight(prev => {
-        const newWeight = prev - item.weight;
+        const newWeight = Math.round((prev - item.weight) * 100) / 100;
         if (newWeight <= CAPACITY) {
           setMessage("ניתן להקיש על מוצרים להוספה או להסרה 📦");
         }
@@ -214,7 +214,7 @@ export default function KnapsackGame({ onComplete }: KnapsackGameProps) {
     }
   }, [currentWeight, currentValue]);
 
-  // Close result popup
+  // Close result popup (retry - just close and keep playing)
   const handleClosePopup = useCallback(() => {
     setShowResultPopup(false);
     if (resultPopupData.type === 'success') {
@@ -226,6 +226,17 @@ export default function KnapsackGame({ onComplete }: KnapsackGameProps) {
       });
     }
   }, [resultPopupData.type, startTime, hintsUsed, onComplete]);
+
+  // Continue to next puzzle (on failure)
+  const handleContinueToNext = useCallback(() => {
+    setShowResultPopup(false);
+    const timeSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+    onComplete({
+      solved: false,
+      hintsUsed,
+      timeSeconds
+    });
+  }, [startTime, hintsUsed, onComplete]);
 
   // Hint system
   const handleHint = useCallback(() => {
@@ -463,7 +474,14 @@ export default function KnapsackGame({ onComplete }: KnapsackGameProps) {
         <div className="popup-icon">{resultPopupData.icon}</div>
         <div className="popup-title">{resultPopupData.title}</div>
         <div className="popup-message">{resultPopupData.message}</div>
-        <button className="popup-btn" onClick={handleClosePopup}>המשך</button>
+        {resultPopupData.type === 'success' ? (
+          <button className="popup-btn" onClick={handleClosePopup}>המשך</button>
+        ) : (
+          <div className="popup-buttons">
+            <button className="popup-btn popup-btn-retry" onClick={handleClosePopup}>נסה שוב</button>
+            <button className="popup-btn popup-btn-next" onClick={handleContinueToNext}>המשך לחידה הבאה</button>
+          </div>
+        )}
       </div>
     </div>
   );
