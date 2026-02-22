@@ -56,9 +56,10 @@ export function createKnapsackScene(canvas: HTMLCanvasElement): SceneRefs {
   const engine = new BABYLON.Engine(canvas, true, {
     preserveDrawingBuffer: true,
     stencil: true,
-    antialias: true
+    antialias: true,
+    adaptToDeviceRatio: true
   });
-  engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 2));
+  engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 
   const scene = new BABYLON.Scene(engine);
   scene.clearColor = new BABYLON.Color4(0.89, 0.93, 0.98, 1);

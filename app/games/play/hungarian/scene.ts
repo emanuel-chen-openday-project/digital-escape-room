@@ -24,9 +24,10 @@ export interface SceneRefs {
 export function createHungarianScene(canvas: HTMLCanvasElement): SceneRefs {
   const engine = new BABYLON.Engine(canvas, true, {
     antialias: true,
-    stencil: true
+    stencil: true,
+    adaptToDeviceRatio: true
   });
-  engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 2));
+  engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 
   const scene = new BABYLON.Scene(engine);
   scene.clearColor = new BABYLON.Color4(0.91, 0.94, 0.97, 1);
