@@ -76,7 +76,7 @@
 /* Station Info - Mobile */
 .station-info {
   position: fixed;
-  top: 15px;
+  top: calc(15px + env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.94));
@@ -124,8 +124,8 @@
 /* Nickname Display */
 .nickname-display {
   position: fixed;
-  top: 15px;
-  right: 15px;
+  top: calc(15px + env(safe-area-inset-top));
+  right: calc(15px + env(safe-area-inset-right));
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
   padding: 8px 16px;
   border-radius: 12px;
@@ -139,7 +139,7 @@
 /* Instructions */
 .instructions {
   position: fixed;
-  bottom: 85px;
+  bottom: calc(85px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.95);
@@ -161,7 +161,7 @@
 /* Next Button - Mobile Touch */
 .next-btn {
   position: fixed;
-  bottom: 25px;
+  bottom: calc(25px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   padding: 16px 40px;
