@@ -16,6 +16,7 @@ export interface CourierMesh extends BABYLON.TransformNode {
 export interface SceneRefs {
   scene: BABYLON.Scene;
   engine: BABYLON.Engine;
+  camera: BABYLON.ArcRotateCamera;
   advancedTexture: GUI.AdvancedDynamicTexture;
   courierMeshes: CourierMesh[];
   assignmentLines: Record<string, BABYLON.Mesh>;
@@ -49,6 +50,12 @@ export function createHungarianScene(canvas: HTMLCanvasElement): SceneRefs {
   camera.inputs.clear();
   camera.lowerRadiusLimit = camRadius;
   camera.upperRadiusLimit = camRadius;
+
+  // Adjust FOV for iPad-like aspect ratios (1.2–1.5) without affecting other devices
+  const aspect = engine.getRenderWidth() / engine.getRenderHeight();
+  if (aspect >= 1.2 && aspect <= 1.5) {
+    camera.fov = 0.6;
+  }
 
   // Lighting - from original HTML
   const hemi = new BABYLON.HemisphericLight('hemi', new BABYLON.Vector3(0, 1, 0), scene);
@@ -92,6 +99,7 @@ export function createHungarianScene(canvas: HTMLCanvasElement): SceneRefs {
   return {
     scene,
     engine,
+    camera,
     advancedTexture,
     courierMeshes,
     assignmentLines: {}

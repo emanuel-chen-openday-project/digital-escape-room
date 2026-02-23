@@ -2,7 +2,7 @@ import * as BABYLON from '@babylonjs/core';
 import * as GUI from '@babylonjs/gui';
 import { gsap } from 'gsap';
 import { SCALE } from './stations';
-import { createWallTexts } from './createScene';
+
 
 export interface DoorRefs {
   entranceDoor: BABYLON.Mesh | null;
@@ -42,7 +42,6 @@ export function createBuilding(scene: BABYLON.Scene, advancedTexture: GUI.Advanc
     wall.material = wallMat;
   });
 
-  createWallTexts(scene, wallHeight, advancedTexture);
   doorRefs = createEntrance(scene, advancedTexture);
 
   // Roof
