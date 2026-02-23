@@ -75,11 +75,19 @@ export default function TSPGame({ onComplete, onUseHint }: TSPGameProps) {
       sceneRefs.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
       sceneRefs.engine.resize();
     };
+    // Fullscreen changes viewport on iPad - wait for it to stabilize then resize
+    const handleFullscreenChange = () => {
+      setTimeout(handleResize, 150);
+    };
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', () => setTimeout(handleResize, 300));
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       sceneRefs.engine.dispose();
     };
   }, [gameStarted]);
