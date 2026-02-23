@@ -63,12 +63,13 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
     const engine = new BABYLON.Engine(canvas, true, {
       preserveDrawingBuffer: true,
       stencil: true,
-      antialias: true
+      antialias: true,
+      adaptToDeviceRatio: true
     });
     engineRef.current = engine;
 
     // Fix resolution on high-DPI screens (mobile)
-    engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 2));
+    engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 
     // Create scene
     const { scene, camera, advancedTexture } = createScene(engine);
@@ -166,9 +167,19 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
       scene.render();
     });
 
-    // Handle resize
-    const handleResize = () => engine.resize();
+    // Handle resize - recalculate hardware scaling (like TSP/Knapsack/Hungarian)
+    const handleResize = () => {
+      engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+      engine.resize();
+    };
+    // Fullscreen changes viewport - wait for it to stabilize then resize
+    const handleFullscreenChange = () => {
+      setTimeout(handleResize, 150);
+    };
     window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => setTimeout(handleResize, 300));
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 
     // Handle click on arrow indicator to start game
     scene.onPointerDown = (evt, pickInfo) => {
@@ -206,6 +217,8 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       engine.dispose();
     };
   }, []);
