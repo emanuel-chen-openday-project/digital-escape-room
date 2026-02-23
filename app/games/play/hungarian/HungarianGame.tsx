@@ -138,6 +138,11 @@ export default function HungarianGame({ onComplete }: HungarianGameProps) {
     const handleResize = () => {
       sceneRefs.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
       sceneRefs.engine.resize();
+      // Adjust FOV for iPad-like aspect ratios (1.2–1.5)
+      const aspect = sceneRefs.engine.getRenderWidth() / sceneRefs.engine.getRenderHeight();
+      if (aspect >= 1.2 && aspect <= 1.5) {
+        sceneRefs.camera.fov = 0.6;
+      }
     };
     // Fullscreen changes viewport on iPad - wait for it to stabilize then resize
     const handleFullscreenChange = () => {
