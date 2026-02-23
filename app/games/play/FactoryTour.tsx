@@ -76,15 +76,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
     sceneRef.current = scene;
     cameraRef.current = camera;
 
-    // Adjust FOV for iPad-like aspect ratios (1.2–1.5) without affecting other devices
-    const adjustFovForTablet = () => {
-      const aspect = engine.getRenderWidth() / engine.getRenderHeight();
-      if (aspect >= 1.2 && aspect <= 1.5) {
-        camera.fov = 0.6;
-      }
-    };
-    adjustFovForTablet();
-
     // Create floor
     createFloor(scene);
 
@@ -180,7 +171,6 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
     const handleResize = () => {
       engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
       engine.resize();
-      adjustFovForTablet();
     };
     // Fullscreen changes viewport - wait for it to stabilize then resize
     const handleFullscreenChange = () => {
