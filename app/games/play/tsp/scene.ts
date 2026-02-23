@@ -8,6 +8,7 @@ import { NODES, ROAD_DEFINITIONS, TSPNode, NODE_COUNT } from './types';
 export interface SceneRefs {
   scene: BABYLON.Scene;
   engine: BABYLON.Engine;
+  camera: BABYLON.ArcRotateCamera;
   advancedTexture: GUI.AdvancedDynamicTexture;
   nodeTransforms: BABYLON.TransformNode[];
   truckParent: BABYLON.TransformNode;
@@ -36,6 +37,12 @@ export function createTSPScene(canvas: HTMLCanvasElement): SceneRefs {
   camera.lowerAlphaLimit = camera.upperAlphaLimit = fixedAlpha;
   camera.lowerBetaLimit = camera.upperBetaLimit = beta;
   camera.lowerRadiusLimit = camera.upperRadiusLimit = radius;
+
+  // Adjust FOV for iPad-like aspect ratios (1.2–1.5) without affecting other devices
+  const aspect = engine.getRenderWidth() / engine.getRenderHeight();
+  if (aspect >= 1.2 && aspect <= 1.5) {
+    camera.fov = 0.6;
+  }
 
   // Lighting
   const hemi = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
@@ -90,6 +97,7 @@ export function createTSPScene(canvas: HTMLCanvasElement): SceneRefs {
   return {
     scene,
     engine,
+    camera,
     advancedTexture,
     nodeTransforms,
     truckParent,
