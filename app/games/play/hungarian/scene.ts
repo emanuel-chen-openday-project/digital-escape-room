@@ -51,8 +51,11 @@ export function createHungarianScene(canvas: HTMLCanvasElement): SceneRefs {
   camera.lowerRadiusLimit = camRadius;
   camera.upperRadiusLimit = camRadius;
 
-  camera.fovMode = BABYLON.Camera.FOVMODE_HORIZONTAL_FIXED;
-  camera.fov = 1.2;
+  // Adjust FOV for iPad-like aspect ratios (1.2–1.5) without affecting other devices
+  const aspect = engine.getRenderWidth() / engine.getRenderHeight();
+  if (aspect >= 1.2 && aspect <= 1.5) {
+    camera.fov = 0.6;
+  }
 
   // Lighting - from original HTML
   const hemi = new BABYLON.HemisphericLight('hemi', new BABYLON.Vector3(0, 1, 0), scene);
