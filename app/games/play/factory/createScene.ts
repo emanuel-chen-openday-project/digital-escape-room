@@ -30,8 +30,6 @@ export function createScene(engine: BABYLON.Engine): SceneRefs {
   // Camera
   const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 10 * SCALE, -18 * SCALE), scene);
   camera.setTarget(new BABYLON.Vector3(0, 0, 0));
-  camera.fovMode = BABYLON.Camera.FOVMODE_HORIZONTAL_FIXED;
-  camera.fov = 1.2;
   scene.activeCamera = camera;
 
   // GUI
