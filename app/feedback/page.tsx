@@ -20,7 +20,7 @@ const AdminDashboard = dynamic(() => import("./AdminDashboard"), {
 });
 
 const TOTAL_QUESTIONS = 6;
-const TOTAL_STEPS = 9; // welcome + 6 questions + comments + success
+const TOTAL_STEPS = 10; // welcome + 6 questions + comments + name + success
 
 const STAR_MESSAGES: Record<number, string> = {
   1: "😕 אפשר יותר טוב...",
@@ -466,8 +466,12 @@ export default function FeedbackPage() {
           { value: "no", icon: "❌", label: "כנראה לא", key: "C" },
         ])}
 
-        {/* Step 7: Comments + Full Name */}
+        {/* Step 7: Comments */}
         <div className={slideClass(7)}>
+          <div className="optional-tag">
+            <Check size={14} />
+            אופציונלי
+          </div>
           <h2 className="question-text">יש לך הערות או הצעות לשיפור?</h2>
           <div className="textarea-container">
             <textarea
@@ -483,12 +487,17 @@ export default function FeedbackPage() {
               <span>{formData.comments.length}</span>/500
             </div>
           </div>
-          <div className="name-field-wrapper">
-            <label className="name-field-label">שם מלא (שם + שם משפחה)</label>
+        </div>
+
+        {/* Step 8: Full Name */}
+        <div className={slideClass(8)}>
+          <h2 className="question-text">מה השם שלך?</h2>
+          <p className="question-subtitle">כדי שנוכל לזהות את המשוב שלך</p>
+          <div className="name-field-standalone">
             <input
               type="text"
               className="name-field-input"
-              placeholder="הכנס שם מלא"
+              placeholder="שם מלא (שם + שם משפחה)"
               maxLength={50}
               value={formData.fullName}
               onChange={(e) =>
@@ -501,8 +510,8 @@ export default function FeedbackPage() {
           </div>
         </div>
 
-        {/* Step 8: Success */}
-        <div className={slideClass(8)}>
+        {/* Step 9: Success */}
+        <div className={slideClass(9)}>
           <div className="success-screen">
             <div className="success-icon-circle">
               <svg

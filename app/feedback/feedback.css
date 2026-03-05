@@ -525,19 +525,18 @@
 
 .feedback-textarea::placeholder { color: var(--fb-text-muted); }
 
-.name-field-wrapper {
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid var(--fb-border);
+.question-subtitle {
+  font-size: 0.95rem;
+  color: var(--fb-text-muted);
+  margin-top: -4px;
+  margin-bottom: 28px;
+  text-align: center;
 }
 
-.name-field-label {
-  display: block;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--fb-text);
-  margin-bottom: 12px;
-  text-align: center;
+.name-field-standalone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .name-field-input {
