@@ -525,6 +525,54 @@
 
 .feedback-textarea::placeholder { color: var(--fb-text-muted); }
 
+.name-field-wrapper {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.name-field-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--fb-text-secondary);
+  margin-bottom: 8px;
+}
+
+.name-field-input {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  display: block;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--fb-text-primary);
+  background: var(--fb-card-bg);
+  border: 2px solid var(--fb-border);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  text-align: right;
+  direction: rtl;
+}
+
+.name-field-input:focus {
+  border-color: var(--fb-accent);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+.name-field-input::placeholder {
+  color: var(--fb-text-muted);
+}
+
+.name-field-note {
+  font-size: 0.7rem;
+  color: var(--fb-text-muted);
+  margin-top: 8px;
+  text-align: center;
+  line-height: 1.6;
+}
+
 .char-count {
   position: absolute;
   bottom: 16px;

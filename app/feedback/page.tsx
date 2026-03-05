@@ -466,12 +466,8 @@ export default function FeedbackPage() {
           { value: "no", icon: "❌", label: "כנראה לא", key: "C" },
         ])}
 
-        {/* Step 7: Comments + Full Name (Optional) */}
+        {/* Step 7: Comments + Full Name */}
         <div className={slideClass(7)}>
-          <div className="optional-tag">
-            <Check size={14} />
-            אופציונלי
-          </div>
           <h2 className="question-text">יש לך הערות או הצעות לשיפור?</h2>
           <div className="textarea-container">
             <textarea
@@ -487,19 +483,19 @@ export default function FeedbackPage() {
               <span>{formData.comments.length}</span>/500
             </div>
           </div>
-          <div style={{ marginTop: 24 }}>
+          <div className="name-field-wrapper">
+            <label className="name-field-label">שם מלא (שם + שם משפחה)</label>
             <input
               type="text"
-              className="feedback-textarea"
-              placeholder="השם המלא שלך (אופציונלי)"
+              className="name-field-input"
+              placeholder="הכנס שם מלא"
               maxLength={50}
               value={formData.fullName}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, fullName: e.target.value }))
               }
-              style={{ height: "auto", padding: "14px 18px", resize: "none" }}
             />
-            <p style={{ fontSize: "0.7rem", color: "#94a3b8", marginTop: 8, textAlign: "center", lineHeight: 1.6 }}>
+            <p className="name-field-note">
               השם ישמש לצורך ניתוח והערכת הפרויקט בלבד, ולא יועבר לכל גורם אחר.
             </p>
           </div>
