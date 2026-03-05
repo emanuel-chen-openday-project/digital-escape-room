@@ -38,6 +38,7 @@ interface FormData {
   interest: IntentValue | "";
   registration: IntentValue | "";
   comments: string;
+  fullName: string;
 }
 
 export default function FeedbackPage() {
@@ -53,6 +54,7 @@ export default function FeedbackPage() {
     interest: "",
     registration: "",
     comments: "",
+    fullName: "",
   });
   const [showAdmin, setShowAdmin] = useState(false);
   const confettiRef = useRef<HTMLDivElement>(null);
@@ -104,6 +106,7 @@ export default function FeedbackPage() {
         interest: formData.interest as IntentValue,
         registration: formData.registration as IntentValue,
         comments: formData.comments,
+        fullName: formData.fullName.trim(),
         userId: user?.uid || null,
       });
     } catch (err) {
@@ -463,7 +466,7 @@ export default function FeedbackPage() {
           { value: "no", icon: "❌", label: "כנראה לא", key: "C" },
         ])}
 
-        {/* Step 7: Comments (Optional) */}
+        {/* Step 7: Comments + Full Name (Optional) */}
         <div className={slideClass(7)}>
           <div className="optional-tag">
             <Check size={14} />
@@ -483,6 +486,22 @@ export default function FeedbackPage() {
             <div className="char-count">
               <span>{formData.comments.length}</span>/500
             </div>
+          </div>
+          <div style={{ marginTop: 24 }}>
+            <input
+              type="text"
+              className="feedback-textarea"
+              placeholder="השם המלא שלך (אופציונלי)"
+              maxLength={50}
+              value={formData.fullName}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, fullName: e.target.value }))
+              }
+              style={{ height: "auto", padding: "14px 18px", resize: "none" }}
+            />
+            <p style={{ fontSize: "0.7rem", color: "#94a3b8", marginTop: 8, textAlign: "center", lineHeight: 1.6 }}>
+              השם ישמש לצורך ניתוח והערכת הפרויקט בלבד, ולא יועבר לכל גורם אחר.
+            </p>
           </div>
         </div>
 
