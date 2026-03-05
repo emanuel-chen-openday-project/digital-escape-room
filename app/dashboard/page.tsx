@@ -43,7 +43,7 @@ const menuItems: MenuItem[] = [
   },
   {
     id: 'register',
-    label: 'להרשמה מהירה',
+    label: 'הרשמה ללימודים',
     icon: UserPlus,
     color: 'from-cyan-400 to-blue-500',
     shadow: 'shadow-blue-500/30',
