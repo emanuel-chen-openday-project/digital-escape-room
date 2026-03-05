@@ -27,6 +27,7 @@ export interface FeedbackEntry {
   interest: IntentValue;  // yes/maybe/no
   registration: IntentValue; // yes/maybe/no
   comments: string;
+  fullName: string;
   createdAt: Timestamp;
   userId: string | null;
 }

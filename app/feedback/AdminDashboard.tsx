@@ -245,7 +245,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const handleExportCSV = () => {
     if (filteredFeedback.length === 0) return;
 
-    const header = "תאריך,דירוג,בהירות,אתגר,הבנה,עניין,הרשמה,הערות\n";
+    const header = "תאריך,שם מלא,דירוג,בהירות,אתגר,הבנה,עניין,הרשמה,הערות\n";
     const rows = filteredFeedback
       .map((f) => {
         const date = f.createdAt?.toDate?.()
@@ -254,7 +254,8 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
         const interest = INTENT_MAP[f.interest]?.text || "";
         const registration = INTENT_MAP[f.registration]?.text || "";
         const escapedComments = `"${(f.comments || "").replace(/"/g, '""')}"`;
-        return `${date},${f.enjoyment},${f.clarity},${f.challenge},${f.understanding},${interest},${registration},${escapedComments}`;
+        const escapedName = `"${(f.fullName || "").replace(/"/g, '""')}"`;
+        return `${date},${escapedName},${f.enjoyment},${f.clarity},${f.challenge},${f.understanding},${interest},${registration},${escapedComments}`;
       })
       .join("\n");
 
@@ -591,6 +592,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                       <thead>
                         <tr>
                           <th>תאריך</th>
+                          <th>שם</th>
                           <th>דירוג</th>
                           <th>בהירות</th>
                           <th>אתגר</th>
@@ -604,6 +606,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                         {paginatedFeedback.map((fb) => (
                           <tr key={fb.id}>
                             <td>{formatDate(fb)}</td>
+                            <td>{fb.fullName || "—"}</td>
                             <td>{renderStars(fb.enjoyment)}</td>
                             <td>{fb.clarity}/5</td>
                             <td>{fb.challenge}/5</td>
