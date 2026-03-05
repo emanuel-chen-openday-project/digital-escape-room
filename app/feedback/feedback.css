@@ -526,39 +526,42 @@
 .feedback-textarea::placeholder { color: var(--fb-text-muted); }
 
 .name-field-wrapper {
-  margin-top: 20px;
-  text-align: right;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--fb-border);
 }
 
 .name-field-label {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: var(--fb-text-secondary);
-  margin-bottom: 8px;
+  color: var(--fb-text);
+  margin-bottom: 12px;
+  text-align: center;
 }
 
 .name-field-input {
   width: 100%;
-  max-width: 320px;
+  max-width: 340px;
   margin: 0 auto;
   display: block;
-  padding: 10px 16px;
-  font-size: 0.9rem;
+  padding: 14px 20px;
+  font-size: 1rem;
   font-family: inherit;
-  color: var(--fb-text-primary);
-  background: var(--fb-card-bg);
+  color: var(--fb-text);
+  background: white;
   border: 2px solid var(--fb-border);
-  border-radius: 12px;
+  border-radius: 14px;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.3s ease;
   text-align: right;
   direction: rtl;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
 .name-field-input:focus {
-  border-color: var(--fb-accent);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+  border-color: var(--fb-primary);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
 }
 
 .name-field-input::placeholder {
@@ -566,11 +569,14 @@
 }
 
 .name-field-note {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--fb-text-muted);
-  margin-top: 8px;
+  margin-top: 12px;
   text-align: center;
   line-height: 1.6;
+  max-width: 340px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .char-count {
