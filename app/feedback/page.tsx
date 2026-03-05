@@ -38,6 +38,7 @@ interface FormData {
   interest: IntentValue | "";
   registration: IntentValue | "";
   comments: string;
+  fullName: string;
 }
 
 export default function FeedbackPage() {
@@ -53,6 +54,7 @@ export default function FeedbackPage() {
     interest: "",
     registration: "",
     comments: "",
+    fullName: "",
   });
   const [showAdmin, setShowAdmin] = useState(false);
   const confettiRef = useRef<HTMLDivElement>(null);
@@ -104,6 +106,7 @@ export default function FeedbackPage() {
         interest: formData.interest as IntentValue,
         registration: formData.registration as IntentValue,
         comments: formData.comments,
+        fullName: formData.fullName.trim(),
         userId: user?.uid || null,
       });
     } catch (err) {
@@ -463,12 +466,8 @@ export default function FeedbackPage() {
           { value: "no", icon: "❌", label: "כנראה לא", key: "C" },
         ])}
 
-        {/* Step 7: Comments (Optional) */}
+        {/* Step 7: Comments + Full Name */}
         <div className={slideClass(7)}>
-          <div className="optional-tag">
-            <Check size={14} />
-            אופציונלי
-          </div>
           <h2 className="question-text">יש לך הערות או הצעות לשיפור?</h2>
           <div className="textarea-container">
             <textarea
@@ -483,6 +482,22 @@ export default function FeedbackPage() {
             <div className="char-count">
               <span>{formData.comments.length}</span>/500
             </div>
+          </div>
+          <div className="name-field-wrapper">
+            <label className="name-field-label">שם מלא (שם + שם משפחה)</label>
+            <input
+              type="text"
+              className="name-field-input"
+              placeholder="הכנס שם מלא"
+              maxLength={50}
+              value={formData.fullName}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, fullName: e.target.value }))
+              }
+            />
+            <p className="name-field-note">
+              השם ישמש לצורך ניתוח והערכת הפרויקט בלבד, ולא יועבר לכל גורם אחר.
+            </p>
           </div>
         </div>
 

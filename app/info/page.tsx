@@ -256,7 +256,7 @@ export default function InfoPage() {
               onClick={() => window.open("https://yedion.jce.ac.il/yedion/fireflyweb.aspx?prgname=RegForm&arguments=-N60#", "_blank")}
               className="group relative w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl text-white font-bold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3"
             >
-              <span>לחצו כאן למעבר לאתר</span>
+              <span>למעבר לאתר המכללה</span>
               <ExternalLink className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
             </button>
           </div>
