@@ -240,106 +240,116 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   const isCNC = station.name.includes('CNC');
   indicatorRoot.position.y += isCNC ? 5.5 * SCALE : 4.5 * SCALE;
 
-  // === MAIN BUTTON TEXTURE - elegant round button ===
+  // === MAIN BUTTON TEXTURE - premium floating card ===
   const textureSize = 1024;
   const dynamicTexture = new BABYLON.DynamicTexture("puzzleButtonTexture", textureSize, scene, true);
   const ctx = dynamicTexture.getContext() as CanvasRenderingContext2D;
   const cx = textureSize / 2;
   const cy = textureSize / 2;
-  const r = 350;
 
   ctx.clearRect(0, 0, textureSize, textureSize);
 
-  // === OUTER GLOW RING ===
-  const outerGlow = ctx.createRadialGradient(cx, cy, r + 5, cx, cy, r + 100);
-  outerGlow.addColorStop(0, 'rgba(59, 130, 246, 0.6)');
-  outerGlow.addColorStop(0.4, 'rgba(37, 99, 235, 0.2)');
-  outerGlow.addColorStop(1, 'rgba(37, 99, 235, 0)');
-  ctx.beginPath();
-  ctx.arc(cx, cy, r + 100, 0, 2 * Math.PI);
-  ctx.fillStyle = outerGlow;
-  ctx.fill();
+  // Card dimensions - wide rounded rectangle
+  const cardW = 850;
+  const cardH = 500;
+  const cardX = cx - cardW / 2;
+  const cardY = cy - cardH / 2 - 20;
+  const rad = 55;
 
-  // Drop shadow
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-  ctx.shadowBlur = 50;
-  ctx.shadowOffsetY = 8;
+  // === OUTER GLOW (warm white) ===
+  ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+  ctx.shadowBlur = 60;
+  ctx.shadowOffsetY = 0;
 
-  // Main circle - brighter blue gradient
-  const bgGrad = ctx.createLinearGradient(cx, cy - r, cx, cy + r);
-  bgGrad.addColorStop(0, '#60a5fa');
-  bgGrad.addColorStop(0.5, '#3b82f6');
-  bgGrad.addColorStop(1, '#2563eb');
+  // Frosted glass background
+  const glassBg = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
+  glassBg.addColorStop(0, 'rgba(255, 255, 255, 0.92)');
+  glassBg.addColorStop(1, 'rgba(240, 245, 255, 0.88)');
   ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-  ctx.fillStyle = bgGrad;
+  ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+  ctx.fillStyle = glassBg;
   ctx.fill();
 
   // Reset shadow
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
-  ctx.shadowOffsetY = 0;
 
-  // Strong top glass shine
-  ctx.save();
+  // Subtle border
   ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-  ctx.clip();
-  const shine = ctx.createLinearGradient(cx, cy - r, cx, cy - r + 260);
-  shine.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
-  shine.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
-  shine.addColorStop(1, 'transparent');
-  ctx.beginPath();
-  ctx.ellipse(cx, cy - r + 130, r * 0.75, 140, 0, 0, 2 * Math.PI);
-  ctx.fillStyle = shine;
-  ctx.fill();
-  ctx.restore();
-
-  // Bright white border
-  ctx.beginPath();
-  ctx.arc(cx, cy, r - 4, 0, 2 * Math.PI);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
-  ctx.lineWidth = 6;
-  ctx.stroke();
-
-  // Clean text-only design (no emoji - unreliable on Apple Canvas)
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  // "לפתיחת החידה" - top line
-  ctx.font = 'bold 110px Heebo, sans-serif';
-  ctx.fillStyle = '#ffffff';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-  ctx.shadowBlur = 10;
-  ctx.shadowOffsetY = 3;
-  ctx.fillText('לפתיחת החידה', cx, cy - 55);
-
-  // Thin separator line
-  ctx.beginPath();
-  ctx.moveTo(cx - 180, cy + 20);
-  ctx.lineTo(cx + 180, cy + 20);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  // "לחץ עליי" - bottom line, large and bold
-  ctx.font = 'bold 140px Heebo, sans-serif';
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText('לחץ עליי', cx, cy + 120);
-  ctx.shadowBlur = 0;
-  ctx.shadowOffsetY = 0;
-
-  // Downward arrow
-  ctx.save();
-  ctx.translate(cx, cy + r + 55);
-  ctx.fillStyle = '#2563eb';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-  ctx.shadowBlur = 12;
-  ctx.shadowOffsetY = 4;
+  // Inner shadow at bottom for depth
+  const innerShadow = ctx.createLinearGradient(cx, cardY + cardH - 80, cx, cardY + cardH);
+  innerShadow.addColorStop(0, 'transparent');
+  innerShadow.addColorStop(1, 'rgba(0, 0, 0, 0.04)');
   ctx.beginPath();
-  ctx.moveTo(-50, -15);
-  ctx.lineTo(50, -15);
-  ctx.lineTo(0, 50);
+  ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+  ctx.fillStyle = innerShadow;
+  ctx.fill();
+
+  // "לפתיחת החידה" - subtitle, dark gray
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '600 78px Heebo, sans-serif';
+  ctx.fillStyle = '#64748b';
+  ctx.fillText('לפתיחת החידה', cx, cardY + 145);
+
+  // Big action button inside the card
+  const btnW = 620;
+  const btnH = 160;
+  const btnX = cx - btnW / 2;
+  const btnY = cardY + cardH - 210;
+  const btnRad = 80;
+
+  // Button shadow
+  ctx.shadowColor = 'rgba(59, 130, 246, 0.4)';
+  ctx.shadowBlur = 25;
+  ctx.shadowOffsetY = 8;
+
+  // Button gradient - vibrant blue
+  const btnGrad = ctx.createLinearGradient(btnX, btnY, btnX, btnY + btnH);
+  btnGrad.addColorStop(0, '#3b82f6');
+  btnGrad.addColorStop(1, '#2563eb');
+  ctx.beginPath();
+  ctx.roundRect(btnX, btnY, btnW, btnH, btnRad);
+  ctx.fillStyle = btnGrad;
+  ctx.fill();
+
+  // Reset shadow
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+
+  // Button shine
+  const btnShine = ctx.createLinearGradient(cx, btnY, cx, btnY + btnH * 0.5);
+  btnShine.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+  btnShine.addColorStop(1, 'transparent');
+  ctx.beginPath();
+  ctx.roundRect(btnX, btnY, btnW, btnH * 0.5, [btnRad, btnRad, 0, 0]);
+  ctx.fillStyle = btnShine;
+  ctx.fill();
+
+  // "לחץ עליי" - white on blue button
+  ctx.font = 'bold 95px Heebo, sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+  ctx.shadowBlur = 6;
+  ctx.fillText('לחץ עליי', cx, btnY + btnH / 2 + 5);
+  ctx.shadowBlur = 0;
+
+  // Downward arrow below card
+  ctx.save();
+  ctx.translate(cx, cardY + cardH + 30);
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 4;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.beginPath();
+  ctx.moveTo(-40, 0);
+  ctx.lineTo(40, 0);
+  ctx.lineTo(0, 45);
   ctx.closePath();
   ctx.fill();
   ctx.restore();
@@ -360,13 +370,13 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   buttonMaterial.backFaceCulling = false;
   buttonPlane.material = buttonMaterial;
 
-  // === PULSING GLOW (blue glow behind button) ===
+  // === PULSING GLOW (soft white glow behind card) ===
   const glowTexture = new BABYLON.DynamicTexture("glowTexture", 512, scene, true);
   const glowCtx = glowTexture.getContext() as CanvasRenderingContext2D;
   glowCtx.clearRect(0, 0, 512, 512);
   const glowGrad = glowCtx.createRadialGradient(256, 256, 60, 256, 256, 250);
-  glowGrad.addColorStop(0, 'rgba(59, 130, 246, 0.7)');
-  glowGrad.addColorStop(0.4, 'rgba(59, 130, 246, 0.3)');
+  glowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+  glowGrad.addColorStop(0.4, 'rgba(59, 130, 246, 0.2)');
   glowGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
   glowCtx.beginPath();
   glowCtx.arc(256, 256, 250, 0, 2 * Math.PI);
