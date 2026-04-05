@@ -135,6 +135,29 @@
   backdrop-filter: blur(10px);
 }
 
+/* Fullscreen Button */
+.fullscreen-btn {
+  position: fixed;
+  top: calc(15px + env(safe-area-inset-top));
+  left: calc(15px + env(safe-area-inset-left));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  color: #667eea;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fullscreen-btn:active {
+  transform: scale(0.92);
+}
+
 /* Instructions */
 .instructions {
   position: fixed;
@@ -319,7 +342,7 @@
 
 @media (max-width: 900px) and (orientation: portrait) {
   #rotateDevice { display: flex; }
-  .factory-canvas, .station-info, .nickname-display, .next-btn, .instructions { opacity: 0; pointer-events: none; }
+  .factory-canvas, .station-info, .nickname-display, .fullscreen-btn, .next-btn, .instructions { opacity: 0; pointer-events: none; }
 }
 
 /* Game Wrapper Transitions */

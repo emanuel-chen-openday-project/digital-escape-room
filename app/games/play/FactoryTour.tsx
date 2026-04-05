@@ -54,6 +54,7 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
   const [tourComplete, setTourComplete] = useState(false);
   const [gameTransition, setGameTransition] = useState<'entering' | 'exiting' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Initialize Babylon.js
   useEffect(() => {
@@ -185,7 +186,11 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
     // Fullscreen changes viewport - wait for it to stabilize then resize
     const handleFullscreenChange = () => {
       setTimeout(handleResize, 150);
+      const fsEl = document.fullscreenElement || (document as any).webkitFullscreenElement;
+      setIsFullscreen(!!fsEl);
     };
+    // Check initial fullscreen state
+    setIsFullscreen(!!(document.fullscreenElement || (document as any).webkitFullscreenElement));
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', () => setTimeout(handleResize, 300));
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -359,6 +364,26 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
 
       {/* Nickname Display */}
       <div className="nickname-display">{nickname}</div>
+
+      {/* Fullscreen Button - visible only when not in fullscreen */}
+      {!isFullscreen && (
+        <button
+          className="fullscreen-btn"
+          onClick={() => {
+            const el = document.documentElement;
+            const requestFs = el.requestFullscreen?.bind(el) || (el as any).webkitRequestFullscreen?.bind(el);
+            if (requestFs) requestFs().catch(() => {});
+          }}
+          aria-label="מסך מלא"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 3 21 3 21 9" />
+            <polyline points="9 21 3 21 3 15" />
+            <line x1="21" y1="3" x2="14" y2="10" />
+            <line x1="3" y1="21" x2="10" y2="14" />
+          </svg>
+        </button>
+      )}
 
       {/* Station Info */}
       <div className={`station-info ${showStationInfo ? 'show' : ''}`}>
