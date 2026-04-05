@@ -301,32 +301,63 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.lineWidth = 8;
   ctx.stroke();
 
-  // Puzzle icon (🧩) - drawn as text
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = '140px serif';
+  // Puzzle icon - drawn with canvas paths (no emoji for cross-device reliability)
+  ctx.save();
+  ctx.translate(cx, cy - 80);
+  ctx.scale(1.8, 1.8);
   ctx.fillStyle = 'white';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-  ctx.shadowBlur = 15;
-  ctx.shadowOffsetY = 4;
-  ctx.fillText('🧩', cx, cy - 85);
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 3;
+  // Draw a puzzle piece shape
+  ctx.beginPath();
+  ctx.moveTo(-40, -40);
+  // Top edge with tab
+  ctx.lineTo(-10, -40);
+  ctx.arc(0, -52, 12, Math.PI * 0.8, Math.PI * 0.2, true);
+  ctx.lineTo(40, -40);
+  // Right edge with tab
+  ctx.lineTo(40, -10);
+  ctx.arc(52, 0, 12, Math.PI * 1.3, Math.PI * 0.7, true);
+  ctx.lineTo(40, 40);
+  // Bottom edge with socket
+  ctx.lineTo(10, 40);
+  ctx.arc(0, 52, 12, Math.PI * 1.8, Math.PI * 1.2, true);
+  ctx.lineTo(-40, 40);
+  // Left edge with socket
+  ctx.lineTo(-40, 10);
+  ctx.arc(-52, 0, 12, Math.PI * 0.3, -Math.PI * 0.3, true);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // Main text "פתח חידה" - bold white
-  ctx.font = 'bold 105px Heebo, sans-serif';
+  // Main text "פתח חידה" - large bold white
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 130px Heebo, sans-serif';
   ctx.fillStyle = 'white';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
   ctx.shadowBlur = 12;
   ctx.shadowOffsetY = 3;
-  ctx.fillText('פתח חידה', cx, cy + 70);
+  ctx.fillText('פתח חידה', cx, cy + 100);
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // Small "tap" hint below
-  ctx.font = '600 62px Heebo, sans-serif';
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-  ctx.fillText('👆 הקש כאן', cx, cy + 185);
+  // Downward arrow triangle pointing to station
+  ctx.save();
+  ctx.translate(cx, cy + r + 50);
+  ctx.fillStyle = '#667eea';
+  ctx.shadowColor = 'rgba(102, 126, 234, 0.5)';
+  ctx.shadowBlur = 15;
+  ctx.beginPath();
+  ctx.moveTo(-50, -20);
+  ctx.lineTo(50, -20);
+  ctx.lineTo(0, 40);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 
   dynamicTexture.update();
 
@@ -344,31 +375,34 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   buttonMaterial.backFaceCulling = false;
   buttonPlane.material = buttonMaterial;
 
-  // === RIPPLE RING ===
-  const ringTexture = new BABYLON.DynamicTexture("ringTexture", 256, scene, true);
-  const ringCtx = ringTexture.getContext();
-  ringCtx.clearRect(0, 0, 256, 256);
-  ringCtx.beginPath();
-  ringCtx.arc(128, 128, 100, 0, 2 * Math.PI);
-  ringCtx.strokeStyle = 'rgba(102, 126, 234, 0.6)';
-  ringCtx.lineWidth = 5;
-  ringCtx.stroke();
-  ringTexture.update();
+  // === GLOW RING (pulsing behind button) ===
+  const glowTexture = new BABYLON.DynamicTexture("glowTexture", 512, scene, true);
+  const glowCtx = glowTexture.getContext() as CanvasRenderingContext2D;
+  glowCtx.clearRect(0, 0, 512, 512);
+  const glowGrad = glowCtx.createRadialGradient(256, 256, 100, 256, 256, 240);
+  glowGrad.addColorStop(0, 'rgba(102, 126, 234, 0.7)');
+  glowGrad.addColorStop(0.5, 'rgba(118, 75, 162, 0.3)');
+  glowGrad.addColorStop(1, 'rgba(118, 75, 162, 0)');
+  glowCtx.beginPath();
+  glowCtx.arc(256, 256, 240, 0, 2 * Math.PI);
+  glowCtx.fillStyle = glowGrad;
+  glowCtx.fill();
+  glowTexture.update();
 
-  const ringPlane = BABYLON.MeshBuilder.CreatePlane("ringPlane", { size: 3 * SCALE }, scene);
-  ringPlane.parent = indicatorRoot;
-  ringPlane.position.y = 0;
-  ringPlane.position.z = 0.02;
-  ringPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+  const glowPlane = BABYLON.MeshBuilder.CreatePlane("glowPlane", { size: 3.5 * SCALE }, scene);
+  glowPlane.parent = indicatorRoot;
+  glowPlane.position.y = 0;
+  glowPlane.position.z = -0.02;
+  glowPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
-  const ringMaterial = new BABYLON.StandardMaterial("ringMaterial", scene);
-  ringMaterial.emissiveTexture = ringTexture;
-  ringMaterial.emissiveTexture.hasAlpha = true;
-  ringMaterial.opacityTexture = ringTexture;
-  ringMaterial.disableLighting = true;
-  ringMaterial.backFaceCulling = false;
-  ringMaterial.alpha = 0.8;
-  ringPlane.material = ringMaterial;
+  const glowMaterial = new BABYLON.StandardMaterial("glowMaterial", scene);
+  glowMaterial.emissiveTexture = glowTexture;
+  glowMaterial.emissiveTexture.hasAlpha = true;
+  glowMaterial.opacityTexture = glowTexture;
+  glowMaterial.disableLighting = true;
+  glowMaterial.backFaceCulling = false;
+  glowMaterial.alpha = 0.8;
+  glowPlane.material = glowMaterial;
 
   // === CLICK AREA (invisible, larger for easy tapping) ===
   const clickArea = BABYLON.MeshBuilder.CreatePlane("clickArea", { size: 4 * SCALE }, scene);
@@ -384,7 +418,7 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
 
   buttonPlane.isPickable = true;
   clickArea.isPickable = true;
-  ringPlane.isPickable = true;
+  glowPlane.isPickable = true;
 
   // === ANIMATIONS ===
 
@@ -407,19 +441,21 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
     repeat: -1
   });
 
-  // Ripple ring expanding and fading
-  gsap.to(ringPlane.scaling, {
-    x: 1.6,
-    y: 1.6,
-    duration: 2,
-    ease: "power1.out",
+  // Pulsing glow behind button
+  gsap.to(glowPlane.scaling, {
+    x: 1.3,
+    y: 1.3,
+    duration: 1.5,
+    ease: "sine.inOut",
+    yoyo: true,
     repeat: -1
   });
 
-  gsap.to(ringMaterial, {
-    alpha: 0,
-    duration: 2,
-    ease: "power1.out",
+  gsap.to(glowMaterial, {
+    alpha: 0.3,
+    duration: 1.5,
+    ease: "sine.inOut",
+    yoyo: true,
     repeat: -1
   });
 

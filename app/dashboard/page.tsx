@@ -140,7 +140,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="bg-slate-50 overflow-y-auto h-screen w-full relative" dir="rtl">
+    <div className="bg-gradient-to-b from-slate-50 via-slate-50 to-blue-50/80 overflow-y-auto h-screen w-full relative" dir="rtl">
 
       {/* Animated Background Blobs */}
       <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
@@ -267,34 +267,33 @@ export default function DashboardPage() {
             );
           })}
 
-          {/* Logout Button */}
+        </div>
+
+        {/* Logout & Footer - inside main content for smooth flow */}
+        <div
+          className={`mt-10 mb-4 flex flex-col items-center gap-4 transition-all duration-1000 ease-out ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          }`}
+          style={{ transitionDelay: `${400 + menuItems.length * 100}ms` }}
+        >
           <button
             onClick={handleLogout}
-            className={`mt-4 flex items-center justify-center gap-2 text-slate-400 hover:text-rose-500 transition-all duration-500 ease-out text-sm font-medium ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-            style={{ transitionDelay: `${400 + menuItems.length * 100}ms` }}
+            className="flex items-center justify-center gap-2 text-slate-400 hover:text-rose-500 transition-colors text-sm font-medium"
           >
             <LogOut size={16} />
             יציאה מהמערכת
           </button>
+
+          <div className="pt-2 text-center">
+            <p className="text-xs text-slate-400 font-medium">
+              פרויקט גמר הנדסת תעשייה וניהול
+            </p>
+            <p className="text-[10px] text-slate-300 mt-1 flex items-center justify-center gap-1">
+              פותח ע״י עמנואל נתניה וחן ביאזי
+            </p>
+          </div>
         </div>
 
-      </div>
-
-      {/* Mobile App Footer */}
-      <div
-        className={`py-6 text-center transition-all duration-1000 ease-out ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-        }`}
-        style={{ transitionDelay: '1200ms' }}
-      >
-        <p className="text-xs text-slate-400 font-medium">
-          פרויקט גמר הנדסת תעשייה וניהול
-        </p>
-        <p className="text-[10px] text-slate-300 mt-1 flex items-center justify-center gap-1">
-          פותח ע״י עמנואל נתניה וחן ביאזי
-        </p>
       </div>
 
     </div>
