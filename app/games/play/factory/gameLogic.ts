@@ -302,6 +302,12 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.lineWidth = 6;
   ctx.stroke();
 
+  // White circle behind emoji so it pops on any device
+  ctx.beginPath();
+  ctx.arc(cx, cy - 105, 100, 0, 2 * Math.PI);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.fill();
+
   // Puzzle emoji - top
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
