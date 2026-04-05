@@ -115,23 +115,24 @@ export default function GamePlay() {
           aria-label="מסך מלא"
           style={{
             position: 'fixed',
-            top: 'calc(15px + env(safe-area-inset-top))',
-            left: 'calc(15px + env(safe-area-inset-left))',
-            zIndex: 150,
-            background: 'rgba(255,255,255,0.15)',
+            top: 'calc(12px + env(safe-area-inset-top))',
+            left: 'calc(12px + env(safe-area-inset-left))',
+            zIndex: 9998,
+            background: 'rgba(255,255,255,0.85)',
             backdropFilter: 'blur(10px)',
             WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.25)',
-            borderRadius: '10px',
-            padding: '8px',
-            color: 'white',
+            border: '1px solid rgba(255,255,255,0.9)',
+            borderRadius: '12px',
+            padding: '10px',
+            color: '#667eea',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
           }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 3 21 3 21 9" />
             <polyline points="9 21 3 21 3 15" />
             <line x1="21" y1="3" x2="14" y2="10" />
