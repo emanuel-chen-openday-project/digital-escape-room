@@ -290,12 +290,20 @@ function createCourier(scene: BABYLON.Scene, c: Courier, shadowGen: BABYLON.Shad
   tank.material = bodyMat;
   shadowGen.addShadowCaster(tank);
 
-  // === SEAT - long and slightly tapered ===
-  const seat = BABYLON.MeshBuilder.CreateBox('seat', { width: 0.6 * S, height: 0.2 * S, depth: 1.2 * S }, scene);
-  seat.position.set(0, 1.2 * S, -0.5 * S);
+  // === SEAT - thick and clearly visible ===
+  const seat = BABYLON.MeshBuilder.CreateBox('seat', { width: 0.65 * S, height: 0.25 * S, depth: 1.3 * S }, scene);
+  seat.position.set(0, 1.2 * S, -0.45 * S);
   seat.parent = parent;
   seat.material = darkMat;
   shadowGen.addShadowCaster(seat);
+
+  // Seat cushion (slightly rounded top)
+  const seatCushion = BABYLON.MeshBuilder.CreateCylinder('seatCush', { diameter: 0.6 * S, height: 1.2 * S, tessellation: 8 }, scene);
+  seatCushion.rotation.x = Math.PI / 2;
+  seatCushion.position.set(0, 1.35 * S, -0.45 * S);
+  seatCushion.scaling.y = 0.3;
+  seatCushion.parent = parent;
+  seatCushion.material = darkMat;
 
   // === FRONT FORKS - clearly angled from handlebar to front wheel ===
   [-1, 1].forEach(side => {
@@ -369,27 +377,86 @@ function createCourier(scene: BABYLON.Scene, c: Courier, shadowGen: BABYLON.Shad
   tlMat.emissiveColor = new BABYLON.Color3(1, 0.1, 0.1);
   taillight.material = tlMat;
 
-  // === DELIVERY BOX - small, sits on rear rack ===
+  // === RIDER sitting on the motorcycle ===
+  const skinMat = new BABYLON.StandardMaterial('skinMat' + c.id, scene);
+  skinMat.diffuseColor = new BABYLON.Color3(0.85, 0.7, 0.55);
+
+  const jacketMat = new BABYLON.StandardMaterial('jacketMat' + c.id, scene);
+  jacketMat.diffuseColor = color.scale(0.85);
+
+  // Rider body (torso)
+  const torso = BABYLON.MeshBuilder.CreateCylinder('torso', { diameterTop: 0.45 * S, diameterBottom: 0.5 * S, height: 0.9 * S, tessellation: 12 }, scene);
+  torso.position.set(0, 1.95 * S, -0.35 * S);
+  torso.parent = parent;
+  torso.material = jacketMat;
+  shadowGen.addShadowCaster(torso);
+
+  // Rider head
+  const head = BABYLON.MeshBuilder.CreateSphere('head', { diameter: 0.45 * S, segments: 12 }, scene);
+  head.position.set(0, 2.6 * S, -0.35 * S);
+  head.parent = parent;
+  head.material = skinMat;
+
+  // Helmet (half sphere on head)
+  const helmetMat = new BABYLON.StandardMaterial('helmetMat' + c.id, scene);
+  helmetMat.diffuseColor = color;
+
+  const helmet = BABYLON.MeshBuilder.CreateSphere('helmet', { diameter: 0.52 * S, segments: 12, slice: 0.5 }, scene);
+  helmet.position.set(0, 2.65 * S, -0.35 * S);
+  helmet.rotation.x = -0.3;
+  helmet.parent = parent;
+  helmet.material = helmetMat;
+
+  // Rider arms (reaching toward handlebars)
+  [-1, 1].forEach(side => {
+    const arm = BABYLON.MeshBuilder.CreateCylinder('arm', { diameter: 0.15 * S, height: 1.0 * S, tessellation: 8 }, scene);
+    arm.position.set(side * 0.35 * S, 1.8 * S, 0.3 * S);
+    arm.rotation.x = -1.1;
+    arm.rotation.z = side * 0.3;
+    arm.parent = parent;
+    arm.material = jacketMat;
+  });
+
+  // Rider legs (bent, on sides of motorcycle)
+  [-1, 1].forEach(side => {
+    // Upper leg
+    const thigh = BABYLON.MeshBuilder.CreateCylinder('thigh', { diameter: 0.2 * S, height: 0.7 * S, tessellation: 8 }, scene);
+    thigh.position.set(side * 0.28 * S, 1.4 * S, -0.2 * S);
+    thigh.rotation.x = Math.PI / 2.2;
+    thigh.parent = parent;
+    thigh.material = darkMat;
+
+    // Lower leg
+    const shin = BABYLON.MeshBuilder.CreateCylinder('shin', { diameter: 0.16 * S, height: 0.6 * S, tessellation: 8 }, scene);
+    shin.position.set(side * 0.28 * S, 1.0 * S, 0.15 * S);
+    shin.rotation.x = 0.2;
+    shin.parent = parent;
+    shin.material = darkMat;
+  });
+
+  // === DELIVERY BACKPACK on rider's back ===
   const boxMat = new BABYLON.StandardMaterial('boxMat' + c.id, scene);
-  boxMat.diffuseColor = new BABYLON.Color3(0.98, 0.98, 0.98);
+  boxMat.diffuseColor = new BABYLON.Color3(
+    Math.min(color.r * 1.1, 1), Math.min(color.g * 1.1, 1), Math.min(color.b * 1.1, 1)
+  );
 
-  const deliveryBox = BABYLON.MeshBuilder.CreateBox('dbox', { width: 0.9 * S, height: 0.7 * S, depth: 0.8 * S }, scene);
-  deliveryBox.position.set(0, 1.65 * S, -0.95 * S);
-  deliveryBox.parent = parent;
-  deliveryBox.material = boxMat;
-  shadowGen.addShadowCaster(deliveryBox);
+  const backpack = BABYLON.MeshBuilder.CreateBox('backpack', { width: 0.7 * S, height: 0.75 * S, depth: 0.5 * S }, scene);
+  backpack.position.set(0, 2.1 * S, -0.8 * S);
+  backpack.parent = parent;
+  backpack.material = boxMat;
+  shadowGen.addShadowCaster(backpack);
 
-  // Delivery box lid (colored)
+  // Backpack lid
   const lidMat = new BABYLON.StandardMaterial('lidMat' + c.id, scene);
-  lidMat.diffuseColor = color.scale(0.9);
+  lidMat.diffuseColor = new BABYLON.Color3(0.95, 0.95, 0.95);
 
-  const lid = BABYLON.MeshBuilder.CreateBox('lid', { width: 0.95 * S, height: 0.1 * S, depth: 0.85 * S }, scene);
-  lid.position.set(0, 2.05 * S, -0.95 * S);
-  lid.parent = parent;
-  lid.material = lidMat;
+  const bpLid = BABYLON.MeshBuilder.CreateBox('bpLid', { width: 0.72 * S, height: 0.08 * S, depth: 0.52 * S }, scene);
+  bpLid.position.set(0, 2.52 * S, -0.8 * S);
+  bpLid.parent = parent;
+  bpLid.material = lidMat;
 
   // Selection ring - from original HTML
-  const ringSize = IS_MOBILE ? 6 : 5;
+  const ringSize = IS_MOBILE ? 5.5 : 4.5;
   const ring = BABYLON.MeshBuilder.CreateTorus('ring', { diameter: ringSize * S, thickness: 0.3, tessellation: 64 }, scene);
   ring.rotation.x = Math.PI / 2;
   ring.position.y = 0.15;
@@ -401,8 +468,8 @@ function createCourier(scene: BABYLON.Scene, c: Courier, shadowGen: BABYLON.Shad
   parent.ringMat = ringMat;
 
   // Clickable area - invisible but larger for easier tapping
-  const clickArea = BABYLON.MeshBuilder.CreateCylinder('clickArea', { diameter: 8 * S, height: 5 * S }, scene);
-  clickArea.position.y = 2 * S;
+  const clickArea = BABYLON.MeshBuilder.CreateCylinder('clickArea', { diameter: 7 * S, height: 6 * S }, scene);
+  clickArea.position.y = 2.5 * S;
   clickArea.parent = parent;
   clickArea.visibility = 0;
   clickArea.isPickable = true;

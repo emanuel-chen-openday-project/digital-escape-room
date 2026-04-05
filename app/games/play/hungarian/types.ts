@@ -42,7 +42,7 @@ export const IS_MOBILE = typeof window !== 'undefined'
   ? window.innerWidth < 900 ||
     (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent))
   : false;
-export const COURIER_SCALE = IS_MOBILE ? 2.5 : 1.7;
+export const COURIER_SCALE = IS_MOBILE ? 3.0 : 2.1;
 export const COURIER_HEIGHT = 0.7;
 
 // Couriers - exact positions from original HTML
