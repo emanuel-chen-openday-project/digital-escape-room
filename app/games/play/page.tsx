@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useGame } from '@/lib/contexts/GameContext';
@@ -24,6 +24,7 @@ export default function GamePlay() {
   const { user, loading: authLoading } = useAuth();
   const { nickname, sessionId, isGameActive, finishGame, startStage, completeStage, useHint } = useGame();
   const isFinishingRef = useRef(false);
+  const [showFsBtn, setShowFsBtn] = useState(false);
 
   // Ensure fullscreen is active (may be lost during SPA navigation on iPad/iOS)
   useEffect(() => {
@@ -33,6 +34,27 @@ export default function GamePlay() {
       const requestFs = el.requestFullscreen?.bind(el) || (el as any).webkitRequestFullscreen?.bind(el);
       if (requestFs) requestFs().catch(() => {});
     }
+
+    // Show fullscreen button if fullscreen didn't engage after a short delay
+    const timer = setTimeout(() => {
+      const el = document.documentElement;
+      const hasApi = !!(el.requestFullscreen || (el as any).webkitRequestFullscreen);
+      const fsEl = document.fullscreenElement || (document as any).webkitFullscreenElement;
+      if (!fsEl && hasApi) setShowFsBtn(true);
+    }, 1200);
+
+    const handleFsChange = () => {
+      const fsEl = document.fullscreenElement || (document as any).webkitFullscreenElement;
+      setShowFsBtn(!fsEl);
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener('webkitfullscreenchange', handleFsChange);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('fullscreenchange', handleFsChange);
+      document.removeEventListener('webkitfullscreenchange', handleFsChange);
+    };
   }, []);
 
   // Redirect if not authenticated or no active game
@@ -71,14 +93,52 @@ export default function GamePlay() {
     );
   }
 
+  const handleRequestFullscreen = () => {
+    const el = document.documentElement;
+    const requestFs = el.requestFullscreen?.bind(el) || (el as any).webkitRequestFullscreen?.bind(el);
+    if (requestFs) requestFs().catch(() => {});
+  };
+
   return (
-    <FactoryTour
-      nickname={nickname || 'אורח'}
-      sessionId={sessionId || undefined}
-      onTourComplete={handleTourComplete}
-      startStage={startStage}
-      completeStage={completeStage}
-      useHint={useHint}
-    />
+    <>
+      <FactoryTour
+        nickname={nickname || 'אורח'}
+        sessionId={sessionId || undefined}
+        onTourComplete={handleTourComplete}
+        startStage={startStage}
+        completeStage={completeStage}
+        useHint={useHint}
+      />
+      {showFsBtn && (
+        <button
+          onClick={handleRequestFullscreen}
+          aria-label="מסך מלא"
+          style={{
+            position: 'fixed',
+            top: 'calc(15px + env(safe-area-inset-top))',
+            left: 'calc(15px + env(safe-area-inset-left))',
+            zIndex: 150,
+            background: 'rgba(255,255,255,0.15)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            borderRadius: '10px',
+            padding: '8px',
+            color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 3 21 3 21 9" />
+            <polyline points="9 21 3 21 3 15" />
+            <line x1="21" y1="3" x2="14" y2="10" />
+            <line x1="3" y1="21" x2="10" y2="14" />
+          </svg>
+        </button>
+      )}
+    </>
   );
 }
