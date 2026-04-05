@@ -240,33 +240,27 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   const isCNC = station.name.includes('CNC');
   indicatorRoot.position.y += isCNC ? 5.5 * SCALE : 4.5 * SCALE;
 
-  // === MAIN BUTTON TEXTURE - professional app-style button ===
+  // === MAIN BUTTON TEXTURE - elegant round button ===
   const textureSize = 1024;
   const dynamicTexture = new BABYLON.DynamicTexture("puzzleButtonTexture", textureSize, scene, true);
   const ctx = dynamicTexture.getContext() as CanvasRenderingContext2D;
   const cx = textureSize / 2;
   const cy = textureSize / 2;
+  const r = 370;
 
   ctx.clearRect(0, 0, textureSize, textureSize);
 
-  // Rounded rectangle dimensions
-  const btnW = 780;
-  const btnH = 320;
-  const btnX = cx - btnW / 2;
-  const btnY = cy - btnH / 2 - 40;
-  const radius = 50;
+  // Soft outer shadow
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+  ctx.shadowBlur = 60;
+  ctx.shadowOffsetY = 10;
 
-  // Strong drop shadow
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-  ctx.shadowBlur = 50;
-  ctx.shadowOffsetY = 15;
-
-  // Blue-to-dark gradient background (like a real app button)
-  const bgGrad = ctx.createLinearGradient(btnX, btnY, btnX, btnY + btnH);
-  bgGrad.addColorStop(0, '#3b82f6');
-  bgGrad.addColorStop(1, '#1d4ed8');
+  // Main circle - clean dark slate gradient
+  const bgGrad = ctx.createLinearGradient(cx, cy - r, cx, cy + r);
+  bgGrad.addColorStop(0, '#334155');
+  bgGrad.addColorStop(1, '#1e293b');
   ctx.beginPath();
-  ctx.roundRect(btnX, btnY, btnW, btnH, radius);
+  ctx.arc(cx, cy, r, 0, 2 * Math.PI);
   ctx.fillStyle = bgGrad;
   ctx.fill();
 
@@ -275,48 +269,45 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // Top shine (glass highlight)
-  const shine = ctx.createLinearGradient(cx, btnY, cx, btnY + btnH * 0.45);
-  shine.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
-  shine.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  // Subtle top shine
+  ctx.save();
   ctx.beginPath();
-  ctx.roundRect(btnX, btnY, btnW, btnH * 0.45, [radius, radius, 0, 0]);
+  ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+  ctx.clip();
+  const shine = ctx.createLinearGradient(cx, cy - r, cx, cy - r + 240);
+  shine.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
+  shine.addColorStop(1, 'transparent');
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - r + 120, r * 0.75, 130, 0, 0, 2 * Math.PI);
   ctx.fillStyle = shine;
   ctx.fill();
+  ctx.restore();
 
-  // Subtle light border
+  // Thin elegant border
   ctx.beginPath();
-  ctx.roundRect(btnX, btnY, btnW, btnH, radius);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+  ctx.arc(cx, cy, r - 5, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
   ctx.lineWidth = 4;
   ctx.stroke();
 
-  // Main text "פתח חידה" - large bold white, centered
+  // Puzzle emoji - centered top
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = 'bold 135px Heebo, sans-serif';
-  ctx.fillStyle = '#ffffff';
+  ctx.font = '180px serif';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-  ctx.shadowBlur = 8;
-  ctx.shadowOffsetY = 3;
-  ctx.fillText('פתח חידה', cx, btnY + btnH / 2);
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 4;
+  ctx.fillText('🧩', cx, cy - 65);
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // Downward pointing triangle (blue, pointing to station)
-  ctx.save();
-  ctx.translate(cx, btnY + btnH + 8);
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-  ctx.shadowBlur = 12;
-  ctx.shadowOffsetY = 5;
-  ctx.fillStyle = '#2563eb';
-  ctx.beginPath();
-  ctx.moveTo(-45, 0);
-  ctx.lineTo(45, 0);
-  ctx.lineTo(0, 50);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
+  // Text "פתח חידה" - clean white
+  ctx.font = 'bold 115px Heebo, sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+  ctx.shadowBlur = 6;
+  ctx.fillText('פתח חידה', cx, cy + 130);
+  ctx.shadowBlur = 0;
 
   dynamicTexture.update();
 
@@ -334,14 +325,14 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   buttonMaterial.backFaceCulling = false;
   buttonPlane.material = buttonMaterial;
 
-  // === SOFT GLOW (blue glow behind button) ===
+  // === SOFT GLOW (warm subtle glow behind button) ===
   const glowTexture = new BABYLON.DynamicTexture("glowTexture", 512, scene, true);
   const glowCtx = glowTexture.getContext() as CanvasRenderingContext2D;
   glowCtx.clearRect(0, 0, 512, 512);
   const glowGrad = glowCtx.createRadialGradient(256, 256, 80, 256, 256, 240);
-  glowGrad.addColorStop(0, 'rgba(59, 130, 246, 0.6)');
-  glowGrad.addColorStop(0.5, 'rgba(59, 130, 246, 0.2)');
-  glowGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
+  glowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+  glowGrad.addColorStop(0.5, 'rgba(148, 163, 184, 0.2)');
+  glowGrad.addColorStop(1, 'rgba(148, 163, 184, 0)');
   glowCtx.beginPath();
   glowCtx.arc(256, 256, 240, 0, 2 * Math.PI);
   glowCtx.fillStyle = glowGrad;
