@@ -25,10 +25,13 @@ export default function GamePlay() {
   const { nickname, sessionId, isGameActive, finishGame, startStage, completeStage, useHint } = useGame();
   const isFinishingRef = useRef(false);
 
-  // Ensure fullscreen is active (may be lost during SPA navigation on iPad)
+  // Ensure fullscreen is active (may be lost during SPA navigation on iPad/iOS)
   useEffect(() => {
-    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(() => {});
+    const fsElement = document.fullscreenElement || (document as any).webkitFullscreenElement;
+    if (!fsElement) {
+      const el = document.documentElement;
+      const requestFs = el.requestFullscreen?.bind(el) || (el as any).webkitRequestFullscreen?.bind(el);
+      if (requestFs) requestFs().catch(() => {});
     }
   }, []);
 
@@ -46,9 +49,11 @@ export default function GamePlay() {
   const handleTourComplete = async () => {
     try {
       isFinishingRef.current = true;
-      // Exit fullscreen BEFORE navigating to prevent viewport distortion
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
+      // Exit fullscreen BEFORE navigating to prevent viewport distortion (with webkit fallback for iOS)
+      const fsElement = document.fullscreenElement || (document as any).webkitFullscreenElement;
+      if (fsElement) {
+        const exitFs = document.exitFullscreen?.bind(document) || (document as any).webkitExitFullscreen?.bind(document);
+        if (exitFs) await exitFs();
       }
       router.push('/dashboard');
       await finishGame();

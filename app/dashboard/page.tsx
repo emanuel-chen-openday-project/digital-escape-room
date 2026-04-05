@@ -74,9 +74,11 @@ export default function DashboardPage() {
   const auth = getAuth(app);
 
   useEffect(() => {
-    // Exit fullscreen when returning to dashboard
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
+    // Exit fullscreen when returning to dashboard (with webkit fallback for iOS)
+    const fsElement = document.fullscreenElement || (document as any).webkitFullscreenElement;
+    if (fsElement) {
+      const exitFs = document.exitFullscreen?.bind(document) || (document as any).webkitExitFullscreen?.bind(document);
+      if (exitFs) exitFs().catch(() => {});
     }
 
     const timer = setTimeout(() => {
@@ -85,14 +87,23 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleMenuClick = (href: string, external?: boolean) => {
+  const handleMenuClick = async (href: string, external?: boolean) => {
     if (external) {
       // Don't enter fullscreen for external links - it blocks popups
       window.open(href, '_blank');
     } else {
       // Enter fullscreen only for game pages (not leaderboard, info, feedback)
-      if (href.startsWith('/games') && document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {});
+      if (href.startsWith('/games')) {
+        const el = document.documentElement;
+        const requestFs = el.requestFullscreen?.bind(el) || (el as any).webkitRequestFullscreen?.bind(el);
+        if (requestFs) {
+          try {
+            // Request fullscreen first, then navigate (iOS requires gesture context)
+            await requestFs();
+          } catch {
+            // Fullscreen denied or unavailable — continue to navigate anyway
+          }
+        }
       }
       router.push(href);
     }
