@@ -323,7 +323,7 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   // "לחץ כאן" - second line, bigger and bolder
   ctx.font = 'bold 125px Heebo, sans-serif';
   ctx.fillStyle = '#ffffff';
-  ctx.fillText('לחץ כאן', cx, cy + 180);
+  ctx.fillText('לחץ עליי', cx, cy + 180);
   ctx.shadowBlur = 0;
 
   // Downward arrow
