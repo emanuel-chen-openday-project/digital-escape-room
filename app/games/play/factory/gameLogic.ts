@@ -300,23 +300,28 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.lineWidth = 5;
   ctx.stroke();
 
-  // Puzzle emoji - big, centered top
+  // Puzzle emoji - top
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = '190px serif';
+  ctx.font = '170px serif';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
   ctx.shadowBlur = 10;
   ctx.shadowOffsetY = 4;
-  ctx.fillText('🧩', cx, cy - 80);
+  ctx.fillText('🧩', cx, cy - 105);
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // "לחץ כאן" - large clear white text
-  ctx.font = 'bold 130px Heebo, sans-serif';
+  // "לפתיחת החידה" - first line
+  ctx.font = 'bold 95px Heebo, sans-serif';
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
   ctx.shadowBlur = 8;
-  ctx.fillText('לחץ כאן', cx, cy + 105);
+  ctx.fillText('לפתיחת החידה', cx, cy + 50);
+
+  // "לחץ כאן" - second line, larger
+  ctx.font = 'bold 115px Heebo, sans-serif';
+  ctx.fillStyle = 'rgba(250, 204, 21, 1)';
+  ctx.fillText('לחץ כאן', cx, cy + 175);
   ctx.shadowBlur = 0;
 
   // Downward arrow below circle pointing to station
@@ -337,7 +342,7 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   dynamicTexture.update();
 
   // === BUTTON PLANE ===
-  const buttonPlane = BABYLON.MeshBuilder.CreatePlane("buttonPlane", { size: 2.4 * SCALE }, scene);
+  const buttonPlane = BABYLON.MeshBuilder.CreatePlane("buttonPlane", { size: 3.0 * SCALE }, scene);
   buttonPlane.parent = indicatorRoot;
   buttonPlane.position.y = 0;
   buttonPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
