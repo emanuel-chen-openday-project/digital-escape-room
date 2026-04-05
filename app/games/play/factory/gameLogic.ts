@@ -256,15 +256,15 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   const cardY = cy - cardH / 2 - 20;
   const rad = 55;
 
-  // === OUTER GLOW (warm white) ===
-  ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
-  ctx.shadowBlur = 60;
-  ctx.shadowOffsetY = 0;
+  // === STRONG DROP SHADOW for contrast ===
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+  ctx.shadowBlur = 40;
+  ctx.shadowOffsetY = 12;
 
   // Frosted glass background
   const glassBg = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
-  glassBg.addColorStop(0, 'rgba(255, 255, 255, 0.92)');
-  glassBg.addColorStop(1, 'rgba(240, 245, 255, 0.88)');
+  glassBg.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+  glassBg.addColorStop(1, 'rgba(240, 245, 255, 0.92)');
   ctx.beginPath();
   ctx.roundRect(cardX, cardY, cardW, cardH, rad);
   ctx.fillStyle = glassBg;
@@ -274,11 +274,11 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
 
-  // Subtle border
+  // Blue-tinted border for visibility
   ctx.beginPath();
   ctx.roundRect(cardX, cardY, cardW, cardH, rad);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
+  ctx.lineWidth = 4;
   ctx.stroke();
 
   // Inner shadow at bottom for depth
