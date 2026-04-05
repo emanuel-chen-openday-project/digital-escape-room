@@ -381,9 +381,9 @@ function createCourier(scene: BABYLON.Scene, c: Courier, shadowGen: BABYLON.Shad
   const skinMat = new BABYLON.StandardMaterial('skinMat' + c.id, scene);
   skinMat.diffuseColor = new BABYLON.Color3(0.82, 0.67, 0.5);
 
-  // Black leather jacket
+  // Bright yellow safety vest (like real delivery riders)
   const jacketMat = new BABYLON.StandardMaterial('jacketMat' + c.id, scene);
-  jacketMat.diffuseColor = new BABYLON.Color3(0.15, 0.15, 0.18);
+  jacketMat.diffuseColor = new BABYLON.Color3(1.0, 0.85, 0.0);
   jacketMat.specularPower = 32;
 
   // White helmet
