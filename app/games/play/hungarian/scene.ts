@@ -379,66 +379,93 @@ function createCourier(scene: BABYLON.Scene, c: Courier, shadowGen: BABYLON.Shad
 
   // === RIDER sitting on the motorcycle ===
   const skinMat = new BABYLON.StandardMaterial('skinMat' + c.id, scene);
-  skinMat.diffuseColor = new BABYLON.Color3(0.85, 0.7, 0.55);
+  skinMat.diffuseColor = new BABYLON.Color3(0.82, 0.67, 0.5);
 
+  // Black leather jacket
   const jacketMat = new BABYLON.StandardMaterial('jacketMat' + c.id, scene);
-  jacketMat.diffuseColor = color.scale(0.85);
+  jacketMat.diffuseColor = new BABYLON.Color3(0.15, 0.15, 0.18);
+  jacketMat.specularPower = 32;
 
-  // Rider body (torso)
+  // White helmet
+  const helmetMat = new BABYLON.StandardMaterial('helmetMat' + c.id, scene);
+  helmetMat.diffuseColor = new BABYLON.Color3(0.95, 0.95, 0.97);
+  helmetMat.specularPower = 64;
+
+  // Dark blue jeans
+  const jeansMat = new BABYLON.StandardMaterial('jeansMat' + c.id, scene);
+  jeansMat.diffuseColor = new BABYLON.Color3(0.15, 0.2, 0.35);
+
+  // Black shoes
+  const shoesMat = new BABYLON.StandardMaterial('shoesMat' + c.id, scene);
+  shoesMat.diffuseColor = new BABYLON.Color3(0.08, 0.08, 0.08);
+
+  // Rider body (torso) - black jacket
   const torso = BABYLON.MeshBuilder.CreateCylinder('torso', { diameterTop: 0.45 * S, diameterBottom: 0.5 * S, height: 0.9 * S, tessellation: 12 }, scene);
   torso.position.set(0, 1.95 * S, -0.35 * S);
   torso.parent = parent;
   torso.material = jacketMat;
   shadowGen.addShadowCaster(torso);
 
-  // Rider head
-  const head = BABYLON.MeshBuilder.CreateSphere('head', { diameter: 0.45 * S, segments: 12 }, scene);
-  head.position.set(0, 2.6 * S, -0.35 * S);
+  // Rider head (skin)
+  const head = BABYLON.MeshBuilder.CreateSphere('head', { diameter: 0.42 * S, segments: 12 }, scene);
+  head.position.set(0, 2.58 * S, -0.35 * S);
   head.parent = parent;
   head.material = skinMat;
 
-  // Helmet (half sphere on head)
-  const helmetMat = new BABYLON.StandardMaterial('helmetMat' + c.id, scene);
-  helmetMat.diffuseColor = color;
-
-  const helmet = BABYLON.MeshBuilder.CreateSphere('helmet', { diameter: 0.52 * S, segments: 12, slice: 0.5 }, scene);
-  helmet.position.set(0, 2.65 * S, -0.35 * S);
-  helmet.rotation.x = -0.3;
+  // Helmet (white, full sphere over head)
+  const helmet = BABYLON.MeshBuilder.CreateSphere('helmet', { diameter: 0.55 * S, segments: 12 }, scene);
+  helmet.position.set(0, 2.63 * S, -0.35 * S);
   helmet.parent = parent;
   helmet.material = helmetMat;
 
-  // Rider arms (reaching toward handlebars)
+  // Helmet visor (dark strip)
+  const visor = BABYLON.MeshBuilder.CreateBox('visor', { width: 0.4 * S, height: 0.12 * S, depth: 0.15 * S }, scene);
+  visor.position.set(0, 2.58 * S, -0.07 * S);
+  visor.parent = parent;
+  visor.material = darkMat;
+
+  // Rider arms (black jacket) - reaching toward handlebars
   [-1, 1].forEach(side => {
-    const arm = BABYLON.MeshBuilder.CreateCylinder('arm', { diameter: 0.15 * S, height: 1.0 * S, tessellation: 8 }, scene);
+    const arm = BABYLON.MeshBuilder.CreateCylinder('arm', { diameter: 0.16 * S, height: 1.0 * S, tessellation: 8 }, scene);
     arm.position.set(side * 0.35 * S, 1.8 * S, 0.3 * S);
     arm.rotation.x = -1.1;
     arm.rotation.z = side * 0.3;
     arm.parent = parent;
     arm.material = jacketMat;
+
+    // Gloves (dark)
+    const glove = BABYLON.MeshBuilder.CreateSphere('glove', { diameter: 0.14 * S, segments: 8 }, scene);
+    glove.position.set(side * 0.55 * S, 1.55 * S, 0.95 * S);
+    glove.parent = parent;
+    glove.material = darkMat;
   });
 
-  // Rider legs (bent, on sides of motorcycle)
+  // Rider legs (blue jeans)
   [-1, 1].forEach(side => {
     // Upper leg
     const thigh = BABYLON.MeshBuilder.CreateCylinder('thigh', { diameter: 0.2 * S, height: 0.7 * S, tessellation: 8 }, scene);
     thigh.position.set(side * 0.28 * S, 1.4 * S, -0.2 * S);
     thigh.rotation.x = Math.PI / 2.2;
     thigh.parent = parent;
-    thigh.material = darkMat;
+    thigh.material = jeansMat;
 
     // Lower leg
-    const shin = BABYLON.MeshBuilder.CreateCylinder('shin', { diameter: 0.16 * S, height: 0.6 * S, tessellation: 8 }, scene);
+    const shin = BABYLON.MeshBuilder.CreateCylinder('shin', { diameter: 0.17 * S, height: 0.6 * S, tessellation: 8 }, scene);
     shin.position.set(side * 0.28 * S, 1.0 * S, 0.15 * S);
     shin.rotation.x = 0.2;
     shin.parent = parent;
-    shin.material = darkMat;
+    shin.material = jeansMat;
+
+    // Shoes (black)
+    const shoe = BABYLON.MeshBuilder.CreateBox('shoe', { width: 0.16 * S, height: 0.1 * S, depth: 0.28 * S }, scene);
+    shoe.position.set(side * 0.28 * S, 0.65 * S, 0.4 * S);
+    shoe.parent = parent;
+    shoe.material = shoesMat;
   });
 
-  // === DELIVERY BACKPACK on rider's back ===
+  // === DELIVERY BACKPACK on rider's back (courier color) ===
   const boxMat = new BABYLON.StandardMaterial('boxMat' + c.id, scene);
-  boxMat.diffuseColor = new BABYLON.Color3(
-    Math.min(color.r * 1.1, 1), Math.min(color.g * 1.1, 1), Math.min(color.b * 1.1, 1)
-  );
+  boxMat.diffuseColor = color;
 
   const backpack = BABYLON.MeshBuilder.CreateBox('backpack', { width: 0.7 * S, height: 0.75 * S, depth: 0.5 * S }, scene);
   backpack.position.set(0, 2.1 * S, -0.8 * S);
@@ -446,7 +473,7 @@ function createCourier(scene: BABYLON.Scene, c: Courier, shadowGen: BABYLON.Shad
   backpack.material = boxMat;
   shadowGen.addShadowCaster(backpack);
 
-  // Backpack lid
+  // Backpack lid (white)
   const lidMat = new BABYLON.StandardMaterial('lidMat' + c.id, scene);
   lidMat.diffuseColor = new BABYLON.Color3(0.95, 0.95, 0.95);
 
