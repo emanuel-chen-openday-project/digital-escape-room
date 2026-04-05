@@ -70,6 +70,7 @@ const menuItems: MenuItem[] = [
 
 export default function DashboardPage() {
   const [isVisible, setIsVisible] = useState(false);
+  const [showIOSBanner, setShowIOSBanner] = useState(false);
   const router = useRouter();
   const auth = getAuth(app);
 
@@ -81,11 +82,27 @@ export default function DashboardPage() {
       if (exitFs) exitFs().catch(() => {});
     }
 
+    // Detect iOS Safari (not standalone/PWA) to show install banner
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+    const isStandalone = (navigator as any).standalone === true
+      || window.matchMedia('(display-mode: standalone)').matches;
+    const dismissed = localStorage.getItem('ios-pwa-banner-dismissed');
+
+    if (isIOS && !isStandalone && !dismissed) {
+      setShowIOSBanner(true);
+    }
+
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 100);
     return () => clearTimeout(timer);
   }, []);
+
+  const dismissIOSBanner = () => {
+    setShowIOSBanner(false);
+    localStorage.setItem('ios-pwa-banner-dismissed', '1');
+  };
 
   const handleMenuClick = async (href: string, external?: boolean) => {
     if (external) {
@@ -155,6 +172,63 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
+
+        {/* iOS Install Banner */}
+        {showIOSBanner && (
+          <div
+            className={`w-full max-w-md mx-auto mb-6 px-4 transition-all duration-700 ease-out ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+            style={{ transitionDelay: '300ms' }}
+          >
+            <div className="relative bg-white/90 backdrop-blur-md border border-violet-200/60 rounded-2xl shadow-sm p-4 overflow-hidden">
+              {/* Accent bar */}
+              <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-violet-500 to-purple-600"></div>
+
+              {/* Close button */}
+              <button
+                onClick={dismissIOSBanner}
+                className="absolute top-3 left-3 w-7 h-7 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label="סגור"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+
+              <p className="text-sm font-bold text-slate-700 mb-3 pr-1">
+                לחוויית מסך מלא:
+              </p>
+
+              <div className="flex flex-col gap-2 text-sm text-slate-600 pr-1">
+                <div className="flex items-center gap-2">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-xs font-bold">1</span>
+                  <span>לחצו על</span>
+                  <span className="inline-flex items-center gap-1 bg-slate-100 rounded-lg px-2 py-0.5 font-medium text-slate-700">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
+                      <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+                      <polyline points="16 6 12 2 8 6" />
+                      <line x1="12" y1="2" x2="12" y2="15" />
+                    </svg>
+                    שיתוף
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-xs font-bold">2</span>
+                  <span>בחרו</span>
+                  <span className="inline-flex items-center gap-1 bg-slate-100 rounded-lg px-2 py-0.5 font-medium text-slate-700">
+                    הוסף למסך הבית
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-slate-400 mt-3 pr-1">
+                ניתן להסיר בכל עת בלחיצה ארוכה על הסמל
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Vertical Menu */}
         <div className="w-full max-w-md flex flex-col gap-3 md:gap-4 px-4">
