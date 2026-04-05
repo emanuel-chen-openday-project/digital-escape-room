@@ -10,6 +10,7 @@ export interface CourierMesh extends BABYLON.TransformNode {
   courierId: number;
   originalX: number;
   originalZ: number;
+  originalRotY: number;
   ringMat: BABYLON.StandardMaterial | null;
 }
 
@@ -199,26 +200,30 @@ function createCourier(scene: BABYLON.Scene, c: Courier, shadowGen: BABYLON.Shad
 
   const parent = new BABYLON.TransformNode('courier_' + c.id, scene) as CourierMesh;
   parent.position.set(c.x, H, c.z);
+  // Rotate each motorcycle to face the center of the scene
+  const rotY = Math.atan2(-c.x, -c.z);
+  parent.rotation.y = rotY;
   parent.courierId = c.id;
   parent.originalX = c.x;
   parent.originalZ = c.z;
+  parent.originalRotY = rotY;
 
   const color = BABYLON.Color3.FromHexString(c.color);
   const bodyMat = new BABYLON.StandardMaterial('bodyMat' + c.id, scene);
   bodyMat.diffuseColor = color;
   bodyMat.specularPower = 64;
 
-  // Motorcycle body - from original HTML
-  const body = BABYLON.MeshBuilder.CreateBox('body', { width: 1.1 * S, height: 0.65 * S, depth: 2.8 * S }, scene);
+  // Motorcycle frame - main body
+  const body = BABYLON.MeshBuilder.CreateBox('body', { width: 0.9 * S, height: 0.5 * S, depth: 2.6 * S }, scene);
   body.position.y = 0.85 * S;
   body.parent = parent;
   body.material = bodyMat;
   shadowGen.addShadowCaster(body);
 
-  // Tank
+  // Fuel tank
   const tank = BABYLON.MeshBuilder.CreateCylinder('tank', { diameter: 0.75 * S, height: 1.3 * S }, scene);
   tank.rotation.x = Math.PI / 2;
-  tank.position.set(0, 1.05 * S, 0.45 * S);
+  tank.position.set(0, 1.1 * S, 0.45 * S);
   tank.parent = parent;
   tank.material = bodyMat;
   shadowGen.addShadowCaster(tank);
@@ -269,12 +274,31 @@ function createCourier(scene: BABYLON.Scene, c: Courier, shadowGen: BABYLON.Shad
   bRim.parent = parent;
   bRim.material = chromeMat;
 
+  // Front forks (suspension) - key visual element for motorcycle recognition
+  [-1, 1].forEach(side => {
+    const fork = BABYLON.MeshBuilder.CreateCylinder('fork', { diameter: 0.1 * S, height: 1.3 * S }, scene);
+    fork.position.set(side * 0.25 * S, 0.8 * S, 1.05 * S);
+    fork.rotation.x = 0.45;
+    fork.parent = parent;
+    fork.material = chromeMat;
+    shadowGen.addShadowCaster(fork);
+  });
+
   // Handlebar
   const handlebar = BABYLON.MeshBuilder.CreateCylinder('hbar', { diameter: 0.09 * S, height: 1.4 * S }, scene);
   handlebar.rotation.z = Math.PI / 2;
   handlebar.position.set(0, 1.55 * S, 1.1 * S);
   handlebar.parent = parent;
   handlebar.material = chromeMat;
+
+  // Handlebar grips
+  [-1, 1].forEach(side => {
+    const grip = BABYLON.MeshBuilder.CreateCylinder('grip', { diameter: 0.14 * S, height: 0.22 * S }, scene);
+    grip.rotation.z = Math.PI / 2;
+    grip.position.set(side * 0.7 * S, 1.55 * S, 1.1 * S);
+    grip.parent = parent;
+    grip.material = seatMat;
+  });
 
   // Headlight
   const headlight = BABYLON.MeshBuilder.CreateSphere('hl', { diameter: 0.35 * S }, scene);
@@ -283,6 +307,21 @@ function createCourier(scene: BABYLON.Scene, c: Courier, shadowGen: BABYLON.Shad
   const hlMat = new BABYLON.StandardMaterial('hlMat', scene);
   hlMat.emissiveColor = new BABYLON.Color3(1, 1, 0.8);
   headlight.material = hlMat;
+
+  // Exhaust pipe - chrome pipe along the side
+  const exhaust = BABYLON.MeshBuilder.CreateCylinder('exhaust', { diameter: 0.12 * S, height: 1.8 * S }, scene);
+  exhaust.rotation.x = Math.PI / 2;
+  exhaust.position.set(0.5 * S, 0.45 * S, -0.15 * S);
+  exhaust.parent = parent;
+  exhaust.material = chromeMat;
+  shadowGen.addShadowCaster(exhaust);
+
+  // Exhaust tip
+  const exhaustTip = BABYLON.MeshBuilder.CreateCylinder('extip', { diameter: 0.18 * S, height: 0.25 * S }, scene);
+  exhaustTip.rotation.x = Math.PI / 2;
+  exhaustTip.position.set(0.5 * S, 0.45 * S, -1.05 * S);
+  exhaustTip.parent = parent;
+  exhaustTip.material = chromeMat;
 
   // Taillight
   const taillight = BABYLON.MeshBuilder.CreateBox('tl', { width: 0.55 * S, height: 0.18 * S, depth: 0.12 * S }, scene);
@@ -669,7 +708,7 @@ export function resetCourierPositions(courierMeshes: CourierMesh[]): void {
   courierMeshes.forEach(mesh => {
     mesh.position.x = mesh.originalX;
     mesh.position.z = mesh.originalZ;
-    mesh.rotation.y = 0;
+    mesh.rotation.y = mesh.originalRotY;
     if (mesh.ringMat) {
       mesh.ringMat.alpha = 0;
     }
