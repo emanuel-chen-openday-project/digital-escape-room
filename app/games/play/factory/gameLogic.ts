@@ -302,35 +302,32 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.lineWidth = 6;
   ctx.stroke();
 
-  // White circle behind emoji so it pops on any device
-  ctx.beginPath();
-  ctx.arc(cx, cy - 105, 100, 0, 2 * Math.PI);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-  ctx.fill();
-
-  // Puzzle emoji - top
+  // Clean text-only design (no emoji - unreliable on Apple Canvas)
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = '180px serif';
+
+  // "לפתיחת החידה" - top line
+  ctx.font = 'bold 110px Heebo, sans-serif';
+  ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-  ctx.shadowBlur = 12;
-  ctx.shadowOffsetY = 5;
-  ctx.fillText('🧩', cx, cy - 105);
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 3;
+  ctx.fillText('לפתיחת החידה', cx, cy - 55);
+
+  // Thin separator line
+  ctx.beginPath();
+  ctx.moveTo(cx - 180, cy + 20);
+  ctx.lineTo(cx + 180, cy + 20);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // "לחץ עליי" - bottom line, large and bold
+  ctx.font = 'bold 140px Heebo, sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('לחץ עליי', cx, cy + 120);
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
-
-  // "לפתיחת החידה" - first line, bright white
-  ctx.font = 'bold 100px Heebo, sans-serif';
-  ctx.fillStyle = '#ffffff';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-  ctx.shadowBlur = 10;
-  ctx.fillText('לפתיחת החידה', cx, cy + 50);
-
-  // "לחץ כאן" - second line, bigger and bolder
-  ctx.font = 'bold 125px Heebo, sans-serif';
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText('לחץ עליי', cx, cy + 180);
-  ctx.shadowBlur = 0;
 
   // Downward arrow
   ctx.save();
