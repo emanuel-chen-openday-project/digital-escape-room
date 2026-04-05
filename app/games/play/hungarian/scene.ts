@@ -213,140 +213,178 @@ function createCourier(scene: BABYLON.Scene, c: Courier, shadowGen: BABYLON.Shad
   bodyMat.diffuseColor = color;
   bodyMat.specularPower = 64;
 
-  // Motorcycle frame - main body
-  const body = BABYLON.MeshBuilder.CreateBox('body', { width: 0.9 * S, height: 0.5 * S, depth: 2.6 * S }, scene);
-  body.position.y = 0.85 * S;
-  body.parent = parent;
-  body.material = bodyMat;
-  shadowGen.addShadowCaster(body);
+  const darkMat = new BABYLON.StandardMaterial('darkMat' + c.id, scene);
+  darkMat.diffuseColor = new BABYLON.Color3(0.12, 0.12, 0.12);
 
-  // Fuel tank
-  const tank = BABYLON.MeshBuilder.CreateCylinder('tank', { diameter: 0.75 * S, height: 1.3 * S }, scene);
-  tank.rotation.x = Math.PI / 2;
-  tank.position.set(0, 1.1 * S, 0.45 * S);
-  tank.parent = parent;
-  tank.material = bodyMat;
-  shadowGen.addShadowCaster(tank);
-
-  // Seat
-  const seatMat = new BABYLON.StandardMaterial('seatMat', scene);
-  seatMat.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-
-  const seat = BABYLON.MeshBuilder.CreateBox('seat', { width: 0.75 * S, height: 0.28 * S, depth: 1.1 * S }, scene);
-  seat.position.set(0, 1.28 * S, -0.35 * S);
-  seat.parent = parent;
-  seat.material = seatMat;
-  shadowGen.addShadowCaster(seat);
-
-  // Wheels
-  const wheelMat = new BABYLON.StandardMaterial('wheelMat', scene);
-  wheelMat.diffuseColor = new BABYLON.Color3(0.08, 0.08, 0.08);
-
-  const chromeMat = new BABYLON.StandardMaterial('chromeMat', scene);
+  const chromeMat = new BABYLON.StandardMaterial('chromeMat' + c.id, scene);
   chromeMat.diffuseColor = new BABYLON.Color3(0.82, 0.82, 0.88);
   chromeMat.specularPower = 128;
 
+  const wheelMat = new BABYLON.StandardMaterial('wheelMat' + c.id, scene);
+  wheelMat.diffuseColor = new BABYLON.Color3(0.08, 0.08, 0.08);
+
+  // === WHEELS - big and clearly visible ===
   // Front wheel
-  const fWheel = BABYLON.MeshBuilder.CreateTorus('fw', { diameter: 1.1 * S, thickness: 0.32 * S, tessellation: 32 }, scene);
+  const fWheel = BABYLON.MeshBuilder.CreateTorus('fw', { diameter: 1.2 * S, thickness: 0.28 * S, tessellation: 32 }, scene);
   fWheel.rotation.z = Math.PI / 2;
-  fWheel.position.set(0, 0.55 * S, 1.2 * S);
+  fWheel.position.set(0, 0.6 * S, 1.4 * S);
   fWheel.parent = parent;
   fWheel.material = wheelMat;
   shadowGen.addShadowCaster(fWheel);
 
-  const fRim = BABYLON.MeshBuilder.CreateCylinder('frim', { diameter: 0.55 * S, height: 0.28 * S }, scene);
-  fRim.rotation.x = Math.PI / 2;
-  fRim.position.set(0, 0.55 * S, 1.2 * S);
-  fRim.parent = parent;
-  fRim.material = chromeMat;
+  const fHub = BABYLON.MeshBuilder.CreateCylinder('fhub', { diameter: 0.3 * S, height: 0.22 * S }, scene);
+  fHub.rotation.x = Math.PI / 2;
+  fHub.position.set(0, 0.6 * S, 1.4 * S);
+  fHub.parent = parent;
+  fHub.material = chromeMat;
 
   // Back wheel
-  const bWheel = BABYLON.MeshBuilder.CreateTorus('bw', { diameter: 1.1 * S, thickness: 0.32 * S, tessellation: 32 }, scene);
+  const bWheel = BABYLON.MeshBuilder.CreateTorus('bw', { diameter: 1.2 * S, thickness: 0.32 * S, tessellation: 32 }, scene);
   bWheel.rotation.z = Math.PI / 2;
-  bWheel.position.set(0, 0.55 * S, -1 * S);
+  bWheel.position.set(0, 0.6 * S, -1.1 * S);
   bWheel.parent = parent;
   bWheel.material = wheelMat;
   shadowGen.addShadowCaster(bWheel);
 
-  const bRim = BABYLON.MeshBuilder.CreateCylinder('brim', { diameter: 0.55 * S, height: 0.28 * S }, scene);
-  bRim.rotation.x = Math.PI / 2;
-  bRim.position.set(0, 0.55 * S, -1 * S);
-  bRim.parent = parent;
-  bRim.material = chromeMat;
+  const bHub = BABYLON.MeshBuilder.CreateCylinder('bhub', { diameter: 0.3 * S, height: 0.26 * S }, scene);
+  bHub.rotation.x = Math.PI / 2;
+  bHub.position.set(0, 0.6 * S, -1.1 * S);
+  bHub.parent = parent;
+  bHub.material = chromeMat;
 
-  // Front forks (suspension) - key visual element for motorcycle recognition
+  // === FRAME - diagonal spine connecting wheels ===
+  const frame = BABYLON.MeshBuilder.CreateCylinder('frame', { diameter: 0.18 * S, height: 2.8 * S }, scene);
+  frame.rotation.x = Math.PI / 2;
+  frame.position.set(0, 0.85 * S, 0.15 * S);
+  frame.parent = parent;
+  frame.material = bodyMat;
+  shadowGen.addShadowCaster(frame);
+
+  // Down tube (diagonal from head to bottom)
+  const downTube = BABYLON.MeshBuilder.CreateCylinder('dtube', { diameter: 0.14 * S, height: 1.2 * S }, scene);
+  downTube.position.set(0, 0.65 * S, 0.6 * S);
+  downTube.rotation.x = -0.5;
+  downTube.parent = parent;
+  downTube.material = bodyMat;
+
+  // === ENGINE BLOCK - visible between wheels ===
+  const engine = BABYLON.MeshBuilder.CreateBox('engine', { width: 0.6 * S, height: 0.5 * S, depth: 0.8 * S }, scene);
+  engine.position.set(0, 0.5 * S, 0.1 * S);
+  engine.parent = parent;
+  engine.material = darkMat;
+  shadowGen.addShadowCaster(engine);
+
+  // Engine fins (horizontal lines on engine)
+  for (let i = 0; i < 3; i++) {
+    const fin = BABYLON.MeshBuilder.CreateBox('fin' + i, { width: 0.7 * S, height: 0.04 * S, depth: 0.75 * S }, scene);
+    fin.position.set(0, (0.35 + i * 0.14) * S, 0.1 * S);
+    fin.parent = parent;
+    fin.material = darkMat;
+  }
+
+  // === FUEL TANK - rounded on top ===
+  const tank = BABYLON.MeshBuilder.CreateCylinder('tank', { diameter: 0.8 * S, height: 1.2 * S, tessellation: 16 }, scene);
+  tank.rotation.x = Math.PI / 2;
+  tank.position.set(0, 1.15 * S, 0.35 * S);
+  tank.parent = parent;
+  tank.material = bodyMat;
+  shadowGen.addShadowCaster(tank);
+
+  // === SEAT - long and slightly tapered ===
+  const seat = BABYLON.MeshBuilder.CreateBox('seat', { width: 0.6 * S, height: 0.2 * S, depth: 1.2 * S }, scene);
+  seat.position.set(0, 1.2 * S, -0.5 * S);
+  seat.parent = parent;
+  seat.material = darkMat;
+  shadowGen.addShadowCaster(seat);
+
+  // === FRONT FORKS - clearly angled from handlebar to front wheel ===
   [-1, 1].forEach(side => {
-    const fork = BABYLON.MeshBuilder.CreateCylinder('fork', { diameter: 0.1 * S, height: 1.3 * S }, scene);
-    fork.position.set(side * 0.25 * S, 0.8 * S, 1.05 * S);
-    fork.rotation.x = 0.45;
+    const fork = BABYLON.MeshBuilder.CreateCylinder('fork', { diameter: 0.1 * S, height: 1.5 * S }, scene);
+    fork.position.set(side * 0.22 * S, 0.95 * S, 1.2 * S);
+    fork.rotation.x = 0.35;
     fork.parent = parent;
     fork.material = chromeMat;
     shadowGen.addShadowCaster(fork);
   });
 
-  // Handlebar
-  const handlebar = BABYLON.MeshBuilder.CreateCylinder('hbar', { diameter: 0.09 * S, height: 1.4 * S }, scene);
+  // === HANDLEBAR - wide and clear ===
+  const handlebar = BABYLON.MeshBuilder.CreateCylinder('hbar', { diameter: 0.08 * S, height: 1.5 * S }, scene);
   handlebar.rotation.z = Math.PI / 2;
-  handlebar.position.set(0, 1.55 * S, 1.1 * S);
+  handlebar.position.set(0, 1.6 * S, 1.15 * S);
   handlebar.parent = parent;
   handlebar.material = chromeMat;
 
-  // Handlebar grips
+  // Handlebar grips (rubber)
   [-1, 1].forEach(side => {
-    const grip = BABYLON.MeshBuilder.CreateCylinder('grip', { diameter: 0.14 * S, height: 0.22 * S }, scene);
+    const grip = BABYLON.MeshBuilder.CreateCylinder('grip', { diameter: 0.15 * S, height: 0.25 * S }, scene);
     grip.rotation.z = Math.PI / 2;
-    grip.position.set(side * 0.7 * S, 1.55 * S, 1.1 * S);
+    grip.position.set(side * 0.78 * S, 1.6 * S, 1.15 * S);
     grip.parent = parent;
-    grip.material = seatMat;
+    grip.material = darkMat;
   });
 
-  // Headlight
+  // === FRONT FENDER - curved over front wheel ===
+  const fFender = BABYLON.MeshBuilder.CreateCylinder('ffender', { diameter: 1.35 * S, height: 0.35 * S, arc: 0.35, tessellation: 16 }, scene);
+  fFender.rotation.z = Math.PI / 2;
+  fFender.rotation.y = Math.PI;
+  fFender.position.set(0, 0.75 * S, 1.4 * S);
+  fFender.parent = parent;
+  fFender.material = bodyMat;
+
+  // === REAR FENDER - curved over back wheel ===
+  const rFender = BABYLON.MeshBuilder.CreateCylinder('rfender', { diameter: 1.35 * S, height: 0.4 * S, arc: 0.35, tessellation: 16 }, scene);
+  rFender.rotation.z = Math.PI / 2;
+  rFender.rotation.y = Math.PI;
+  rFender.position.set(0, 0.75 * S, -1.1 * S);
+  rFender.parent = parent;
+  rFender.material = bodyMat;
+
+  // === HEADLIGHT ===
   const headlight = BABYLON.MeshBuilder.CreateSphere('hl', { diameter: 0.35 * S }, scene);
-  headlight.position.set(0, 1.15 * S, 1.45 * S);
+  headlight.position.set(0, 1.35 * S, 1.55 * S);
   headlight.parent = parent;
-  const hlMat = new BABYLON.StandardMaterial('hlMat', scene);
+  const hlMat = new BABYLON.StandardMaterial('hlMat' + c.id, scene);
   hlMat.emissiveColor = new BABYLON.Color3(1, 1, 0.8);
   headlight.material = hlMat;
 
-  // Exhaust pipe - chrome pipe along the side
-  const exhaust = BABYLON.MeshBuilder.CreateCylinder('exhaust', { diameter: 0.12 * S, height: 1.8 * S }, scene);
+  // === EXHAUST PIPE - along the side ===
+  const exhaust = BABYLON.MeshBuilder.CreateCylinder('exhaust', { diameter: 0.1 * S, height: 2.0 * S }, scene);
   exhaust.rotation.x = Math.PI / 2;
-  exhaust.position.set(0.5 * S, 0.45 * S, -0.15 * S);
+  exhaust.position.set(0.4 * S, 0.35 * S, -0.1 * S);
   exhaust.parent = parent;
   exhaust.material = chromeMat;
   shadowGen.addShadowCaster(exhaust);
 
-  // Exhaust tip
-  const exhaustTip = BABYLON.MeshBuilder.CreateCylinder('extip', { diameter: 0.18 * S, height: 0.25 * S }, scene);
+  const exhaustTip = BABYLON.MeshBuilder.CreateCylinder('extip', { diameter: 0.16 * S, height: 0.3 * S }, scene);
   exhaustTip.rotation.x = Math.PI / 2;
-  exhaustTip.position.set(0.5 * S, 0.45 * S, -1.05 * S);
+  exhaustTip.position.set(0.4 * S, 0.35 * S, -1.15 * S);
   exhaustTip.parent = parent;
   exhaustTip.material = chromeMat;
 
-  // Taillight
-  const taillight = BABYLON.MeshBuilder.CreateBox('tl', { width: 0.55 * S, height: 0.18 * S, depth: 0.12 * S }, scene);
-  taillight.position.set(0, 0.95 * S, -1.45 * S);
+  // === TAILLIGHT ===
+  const taillight = BABYLON.MeshBuilder.CreateBox('tl', { width: 0.45 * S, height: 0.15 * S, depth: 0.1 * S }, scene);
+  taillight.position.set(0, 0.95 * S, -1.6 * S);
   taillight.parent = parent;
-  const tlMat = new BABYLON.StandardMaterial('tlMat', scene);
+  const tlMat = new BABYLON.StandardMaterial('tlMat' + c.id, scene);
   tlMat.emissiveColor = new BABYLON.Color3(1, 0.1, 0.1);
   taillight.material = tlMat;
 
-  // Delivery box - compact backpack style
-  const boxMat = new BABYLON.StandardMaterial('boxMat', scene);
+  // === DELIVERY BOX - small, sits on rear rack ===
+  const boxMat = new BABYLON.StandardMaterial('boxMat' + c.id, scene);
   boxMat.diffuseColor = new BABYLON.Color3(0.98, 0.98, 0.98);
 
-  const deliveryBox = BABYLON.MeshBuilder.CreateBox('dbox', { width: 1.0 * S, height: 0.9 * S, depth: 1.0 * S }, scene);
-  deliveryBox.position.set(0, 1.55 * S, -0.85 * S);
+  const deliveryBox = BABYLON.MeshBuilder.CreateBox('dbox', { width: 0.9 * S, height: 0.7 * S, depth: 0.8 * S }, scene);
+  deliveryBox.position.set(0, 1.65 * S, -0.95 * S);
   deliveryBox.parent = parent;
   deliveryBox.material = boxMat;
   shadowGen.addShadowCaster(deliveryBox);
 
-  // Delivery box lid (colored to match courier)
+  // Delivery box lid (colored)
   const lidMat = new BABYLON.StandardMaterial('lidMat' + c.id, scene);
   lidMat.diffuseColor = color.scale(0.9);
 
-  const lid = BABYLON.MeshBuilder.CreateBox('lid', { width: 1.05 * S, height: 0.12 * S, depth: 1.05 * S }, scene);
-  lid.position.set(0, 2.05 * S, -0.85 * S);
+  const lid = BABYLON.MeshBuilder.CreateBox('lid', { width: 0.95 * S, height: 0.1 * S, depth: 0.85 * S }, scene);
+  lid.position.set(0, 2.05 * S, -0.95 * S);
   lid.parent = parent;
   lid.material = lidMat;
 
