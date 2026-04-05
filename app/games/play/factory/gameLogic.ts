@@ -250,11 +250,11 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
 
   ctx.clearRect(0, 0, textureSize, textureSize);
 
-  // === OUTER GLOW RING (drawn on same texture) ===
+  // === OUTER GLOW RING ===
   const outerGlow = ctx.createRadialGradient(cx, cy, r + 5, cx, cy, r + 100);
-  outerGlow.addColorStop(0, 'rgba(250, 204, 21, 0.7)');
-  outerGlow.addColorStop(0.4, 'rgba(250, 204, 21, 0.25)');
-  outerGlow.addColorStop(1, 'rgba(250, 204, 21, 0)');
+  outerGlow.addColorStop(0, 'rgba(59, 130, 246, 0.6)');
+  outerGlow.addColorStop(0.4, 'rgba(37, 99, 235, 0.2)');
+  outerGlow.addColorStop(1, 'rgba(37, 99, 235, 0)');
   ctx.beginPath();
   ctx.arc(cx, cy, r + 100, 0, 2 * Math.PI);
   ctx.fillStyle = outerGlow;
@@ -265,10 +265,10 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.shadowBlur = 50;
   ctx.shadowOffsetY = 8;
 
-  // Main circle - dark slate
+  // Main circle - blue gradient
   const bgGrad = ctx.createLinearGradient(cx, cy - r, cx, cy + r);
-  bgGrad.addColorStop(0, '#334155');
-  bgGrad.addColorStop(1, '#1e293b');
+  bgGrad.addColorStop(0, '#3b82f6');
+  bgGrad.addColorStop(1, '#1d4ed8');
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, 2 * Math.PI);
   ctx.fillStyle = bgGrad;
@@ -285,7 +285,7 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.arc(cx, cy, r, 0, 2 * Math.PI);
   ctx.clip();
   const shine = ctx.createLinearGradient(cx, cy - r, cx, cy - r + 220);
-  shine.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+  shine.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
   shine.addColorStop(1, 'transparent');
   ctx.beginPath();
   ctx.ellipse(cx, cy - r + 110, r * 0.7, 120, 0, 0, 2 * Math.PI);
@@ -293,10 +293,10 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.fill();
   ctx.restore();
 
-  // Thin gold border
+  // Thin white border
   ctx.beginPath();
   ctx.arc(cx, cy, r - 4, 0, 2 * Math.PI);
-  ctx.strokeStyle = 'rgba(250, 204, 21, 0.4)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
   ctx.lineWidth = 5;
   ctx.stroke();
 
@@ -311,23 +311,23 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // "לפתיחת החידה" - first line
+  // "לפתיחת החידה" - first line, white
   ctx.font = 'bold 95px Heebo, sans-serif';
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
   ctx.shadowBlur = 8;
   ctx.fillText('לפתיחת החידה', cx, cy + 50);
 
-  // "לחץ כאן" - second line, larger
+  // "לחץ כאן" - second line, white bold
   ctx.font = 'bold 115px Heebo, sans-serif';
-  ctx.fillStyle = 'rgba(250, 204, 21, 1)';
+  ctx.fillStyle = '#ffffff';
   ctx.fillText('לחץ כאן', cx, cy + 175);
   ctx.shadowBlur = 0;
 
-  // Downward arrow below circle pointing to station
+  // Downward arrow
   ctx.save();
   ctx.translate(cx, cy + r + 55);
-  ctx.fillStyle = '#334155';
+  ctx.fillStyle = '#2563eb';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
   ctx.shadowBlur = 12;
   ctx.shadowOffsetY = 4;
@@ -355,14 +355,14 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   buttonMaterial.backFaceCulling = false;
   buttonPlane.material = buttonMaterial;
 
-  // === PULSING GLOW (golden glow behind button) ===
+  // === PULSING GLOW (blue glow behind button) ===
   const glowTexture = new BABYLON.DynamicTexture("glowTexture", 512, scene, true);
   const glowCtx = glowTexture.getContext() as CanvasRenderingContext2D;
   glowCtx.clearRect(0, 0, 512, 512);
   const glowGrad = glowCtx.createRadialGradient(256, 256, 60, 256, 256, 250);
-  glowGrad.addColorStop(0, 'rgba(250, 204, 21, 0.7)');
-  glowGrad.addColorStop(0.4, 'rgba(250, 204, 21, 0.3)');
-  glowGrad.addColorStop(1, 'rgba(250, 204, 21, 0)');
+  glowGrad.addColorStop(0, 'rgba(59, 130, 246, 0.7)');
+  glowGrad.addColorStop(0.4, 'rgba(59, 130, 246, 0.3)');
+  glowGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
   glowCtx.beginPath();
   glowCtx.arc(256, 256, 250, 0, 2 * Math.PI);
   glowCtx.fillStyle = glowGrad;
