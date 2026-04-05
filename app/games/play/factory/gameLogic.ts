@@ -246,16 +246,26 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   const ctx = dynamicTexture.getContext() as CanvasRenderingContext2D;
   const cx = textureSize / 2;
   const cy = textureSize / 2;
-  const r = 370;
+  const r = 350;
 
   ctx.clearRect(0, 0, textureSize, textureSize);
 
-  // Soft outer shadow
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-  ctx.shadowBlur = 60;
-  ctx.shadowOffsetY = 10;
+  // === OUTER GLOW RING (drawn on same texture) ===
+  const outerGlow = ctx.createRadialGradient(cx, cy, r + 5, cx, cy, r + 100);
+  outerGlow.addColorStop(0, 'rgba(250, 204, 21, 0.7)');
+  outerGlow.addColorStop(0.4, 'rgba(250, 204, 21, 0.25)');
+  outerGlow.addColorStop(1, 'rgba(250, 204, 21, 0)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, r + 100, 0, 2 * Math.PI);
+  ctx.fillStyle = outerGlow;
+  ctx.fill();
 
-  // Main circle - clean dark slate gradient
+  // Drop shadow
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+  ctx.shadowBlur = 50;
+  ctx.shadowOffsetY = 8;
+
+  // Main circle - dark slate
   const bgGrad = ctx.createLinearGradient(cx, cy - r, cx, cy + r);
   bgGrad.addColorStop(0, '#334155');
   bgGrad.addColorStop(1, '#1e293b');
@@ -269,45 +279,60 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // Subtle top shine
+  // Top glass shine
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, 2 * Math.PI);
   ctx.clip();
-  const shine = ctx.createLinearGradient(cx, cy - r, cx, cy - r + 240);
-  shine.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
+  const shine = ctx.createLinearGradient(cx, cy - r, cx, cy - r + 220);
+  shine.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
   shine.addColorStop(1, 'transparent');
   ctx.beginPath();
-  ctx.ellipse(cx, cy - r + 120, r * 0.75, 130, 0, 0, 2 * Math.PI);
+  ctx.ellipse(cx, cy - r + 110, r * 0.7, 120, 0, 0, 2 * Math.PI);
   ctx.fillStyle = shine;
   ctx.fill();
   ctx.restore();
 
-  // Thin elegant border
+  // Thin gold border
   ctx.beginPath();
-  ctx.arc(cx, cy, r - 5, 0, 2 * Math.PI);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-  ctx.lineWidth = 4;
+  ctx.arc(cx, cy, r - 4, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(250, 204, 21, 0.4)';
+  ctx.lineWidth = 5;
   ctx.stroke();
 
-  // Puzzle emoji - centered top
+  // Puzzle emoji - big, centered top
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = '180px serif';
+  ctx.font = '190px serif';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
   ctx.shadowBlur = 10;
   ctx.shadowOffsetY = 4;
-  ctx.fillText('🧩', cx, cy - 65);
+  ctx.fillText('🧩', cx, cy - 80);
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // Text "פתח חידה" - clean white
-  ctx.font = 'bold 115px Heebo, sans-serif';
+  // "לחץ כאן" - large clear white text
+  ctx.font = 'bold 130px Heebo, sans-serif';
   ctx.fillStyle = '#ffffff';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
-  ctx.shadowBlur = 6;
-  ctx.fillText('פתח חידה', cx, cy + 130);
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+  ctx.shadowBlur = 8;
+  ctx.fillText('לחץ כאן', cx, cy + 105);
   ctx.shadowBlur = 0;
+
+  // Downward arrow below circle pointing to station
+  ctx.save();
+  ctx.translate(cx, cy + r + 55);
+  ctx.fillStyle = '#334155';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 4;
+  ctx.beginPath();
+  ctx.moveTo(-50, -15);
+  ctx.lineTo(50, -15);
+  ctx.lineTo(0, 50);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 
   dynamicTexture.update();
 
@@ -325,21 +350,21 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   buttonMaterial.backFaceCulling = false;
   buttonPlane.material = buttonMaterial;
 
-  // === SOFT GLOW (warm subtle glow behind button) ===
+  // === PULSING GLOW (golden glow behind button) ===
   const glowTexture = new BABYLON.DynamicTexture("glowTexture", 512, scene, true);
   const glowCtx = glowTexture.getContext() as CanvasRenderingContext2D;
   glowCtx.clearRect(0, 0, 512, 512);
-  const glowGrad = glowCtx.createRadialGradient(256, 256, 80, 256, 256, 240);
-  glowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
-  glowGrad.addColorStop(0.5, 'rgba(148, 163, 184, 0.2)');
-  glowGrad.addColorStop(1, 'rgba(148, 163, 184, 0)');
+  const glowGrad = glowCtx.createRadialGradient(256, 256, 60, 256, 256, 250);
+  glowGrad.addColorStop(0, 'rgba(250, 204, 21, 0.7)');
+  glowGrad.addColorStop(0.4, 'rgba(250, 204, 21, 0.3)');
+  glowGrad.addColorStop(1, 'rgba(250, 204, 21, 0)');
   glowCtx.beginPath();
-  glowCtx.arc(256, 256, 240, 0, 2 * Math.PI);
+  glowCtx.arc(256, 256, 250, 0, 2 * Math.PI);
   glowCtx.fillStyle = glowGrad;
   glowCtx.fill();
   glowTexture.update();
 
-  const glowPlane = BABYLON.MeshBuilder.CreatePlane("glowPlane", { size: 3.5 * SCALE }, scene);
+  const glowPlane = BABYLON.MeshBuilder.CreatePlane("glowPlane", { size: 4 * SCALE }, scene);
   glowPlane.parent = indicatorRoot;
   glowPlane.position.y = 0;
   glowPlane.position.z = -0.02;
