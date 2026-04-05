@@ -94,14 +94,18 @@ export default function DashboardPage() {
     } else {
       // Enter fullscreen only for game pages (not leaderboard, info, feedback)
       if (href.startsWith('/games')) {
-        const el = document.documentElement;
-        const requestFs = el.requestFullscreen?.bind(el) || (el as any).webkitRequestFullscreen?.bind(el);
-        if (requestFs) {
+        // Try multiple elements - different iOS versions support different targets
+        const targets = [document.body, document.documentElement];
+        for (const target of targets) {
           try {
-            // Request fullscreen first, then navigate (iOS requires gesture context)
-            await requestFs();
+            const requestFs = target.requestFullscreen?.bind(target)
+              || (target as any).webkitRequestFullscreen?.bind(target);
+            if (requestFs) {
+              await requestFs();
+              break; // Success
+            }
           } catch {
-            // Fullscreen denied or unavailable — continue to navigate anyway
+            continue; // Try next
           }
         }
       }

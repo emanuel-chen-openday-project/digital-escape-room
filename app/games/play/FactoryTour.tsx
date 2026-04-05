@@ -34,6 +34,7 @@ interface FactoryTourProps {
 }
 
 export default function FactoryTour({ nickname, sessionId, onTourComplete }: FactoryTourProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<BABYLON.Engine | null>(null);
   const sceneRef = useRef<BABYLON.Scene | null>(null);
@@ -346,7 +347,7 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
   }, [onTourComplete]);
 
   return (
-    <div className="factory-container" dir="rtl">
+    <div ref={containerRef} className="factory-container" dir="rtl">
       {/* Rotate Device */}
       <div id="rotateDevice">
         <div className="icon">📱</div>
@@ -369,10 +370,26 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
       {!isFullscreen && (
         <button
           className="fullscreen-btn"
-          onClick={() => {
-            const el = document.documentElement;
-            const requestFs = el.requestFullscreen?.bind(el) || (el as any).webkitRequestFullscreen?.bind(el);
-            if (requestFs) requestFs().catch(() => {});
+          onClick={async () => {
+            // Try multiple elements - different iOS versions support different targets
+            const targets = [
+              containerRef.current,
+              document.body,
+              document.documentElement,
+            ].filter(Boolean) as Element[];
+
+            for (const target of targets) {
+              try {
+                const requestFs = target.requestFullscreen?.bind(target)
+                  || (target as any).webkitRequestFullscreen?.bind(target);
+                if (requestFs) {
+                  await requestFs();
+                  return; // Success - exit
+                }
+              } catch {
+                continue; // Try next element
+              }
+            }
           }}
           aria-label="מסך מלא"
         >
