@@ -265,10 +265,11 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.shadowBlur = 50;
   ctx.shadowOffsetY = 8;
 
-  // Main circle - blue gradient
+  // Main circle - brighter blue gradient
   const bgGrad = ctx.createLinearGradient(cx, cy - r, cx, cy + r);
-  bgGrad.addColorStop(0, '#3b82f6');
-  bgGrad.addColorStop(1, '#1d4ed8');
+  bgGrad.addColorStop(0, '#60a5fa');
+  bgGrad.addColorStop(0.5, '#3b82f6');
+  bgGrad.addColorStop(1, '#2563eb');
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, 2 * Math.PI);
   ctx.fillStyle = bgGrad;
@@ -279,49 +280,50 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // Top glass shine
+  // Strong top glass shine
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, 2 * Math.PI);
   ctx.clip();
-  const shine = ctx.createLinearGradient(cx, cy - r, cx, cy - r + 220);
-  shine.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+  const shine = ctx.createLinearGradient(cx, cy - r, cx, cy - r + 260);
+  shine.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+  shine.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
   shine.addColorStop(1, 'transparent');
   ctx.beginPath();
-  ctx.ellipse(cx, cy - r + 110, r * 0.7, 120, 0, 0, 2 * Math.PI);
+  ctx.ellipse(cx, cy - r + 130, r * 0.75, 140, 0, 0, 2 * Math.PI);
   ctx.fillStyle = shine;
   ctx.fill();
   ctx.restore();
 
-  // Thin white border
+  // Bright white border
   ctx.beginPath();
   ctx.arc(cx, cy, r - 4, 0, 2 * Math.PI);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-  ctx.lineWidth = 5;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+  ctx.lineWidth = 6;
   ctx.stroke();
 
   // Puzzle emoji - top
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = '170px serif';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-  ctx.shadowBlur = 10;
-  ctx.shadowOffsetY = 4;
+  ctx.font = '180px serif';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 5;
   ctx.fillText('🧩', cx, cy - 105);
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // "לפתיחת החידה" - first line, white
-  ctx.font = 'bold 95px Heebo, sans-serif';
+  // "לפתיחת החידה" - first line, bright white
+  ctx.font = 'bold 100px Heebo, sans-serif';
   ctx.fillStyle = '#ffffff';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-  ctx.shadowBlur = 8;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+  ctx.shadowBlur = 10;
   ctx.fillText('לפתיחת החידה', cx, cy + 50);
 
-  // "לחץ כאן" - second line, white bold
-  ctx.font = 'bold 115px Heebo, sans-serif';
+  // "לחץ כאן" - second line, bigger and bolder
+  ctx.font = 'bold 125px Heebo, sans-serif';
   ctx.fillStyle = '#ffffff';
-  ctx.fillText('לחץ כאן', cx, cy + 175);
+  ctx.fillText('לחץ כאן', cx, cy + 180);
   ctx.shadowBlur = 0;
 
   // Downward arrow
