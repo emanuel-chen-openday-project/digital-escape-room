@@ -331,15 +331,24 @@ function createCourier(scene: BABYLON.Scene, c: Courier, shadowGen: BABYLON.Shad
   tlMat.emissiveColor = new BABYLON.Color3(1, 0.1, 0.1);
   taillight.material = tlMat;
 
-  // Delivery box
+  // Delivery box - compact backpack style
   const boxMat = new BABYLON.StandardMaterial('boxMat', scene);
   boxMat.diffuseColor = new BABYLON.Color3(0.98, 0.98, 0.98);
 
-  const deliveryBox = BABYLON.MeshBuilder.CreateBox('dbox', { width: 1.5 * S, height: 1.2 * S, depth: 1.5 * S }, scene);
-  deliveryBox.position.set(0, 1.75 * S, -0.95 * S);
+  const deliveryBox = BABYLON.MeshBuilder.CreateBox('dbox', { width: 1.0 * S, height: 0.9 * S, depth: 1.0 * S }, scene);
+  deliveryBox.position.set(0, 1.55 * S, -0.85 * S);
   deliveryBox.parent = parent;
   deliveryBox.material = boxMat;
   shadowGen.addShadowCaster(deliveryBox);
+
+  // Delivery box lid (colored to match courier)
+  const lidMat = new BABYLON.StandardMaterial('lidMat' + c.id, scene);
+  lidMat.diffuseColor = color.scale(0.9);
+
+  const lid = BABYLON.MeshBuilder.CreateBox('lid', { width: 1.05 * S, height: 0.12 * S, depth: 1.05 * S }, scene);
+  lid.position.set(0, 2.05 * S, -0.85 * S);
+  lid.parent = parent;
+  lid.material = lidMat;
 
   // Selection ring - from original HTML
   const ringSize = IS_MOBILE ? 6 : 5;

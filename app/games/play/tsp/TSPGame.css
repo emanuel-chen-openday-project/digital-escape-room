@@ -165,7 +165,7 @@
 /* HUD - Top Center */
 .tsp-hud {
   position: absolute;
-  top: max(8px, env(safe-area-inset-top, 8px));
+  top: max(4px, env(safe-area-inset-top, 4px));
   left: 50%;
   transform: translateX(-50%);
   width: auto;
@@ -186,6 +186,11 @@
   font-weight: 600;
   color: white;
   z-index: 10;
+  pointer-events: none;
+}
+
+.tsp-hud > * {
+  pointer-events: auto;
 }
 
 .tsp-hud-stats {

@@ -361,7 +361,7 @@ function addNodeLabel(advancedTexture: GUI.AdvancedDynamicTexture, parent: BABYL
     4: [-57, -15],
     5: [49, -20],
     6: [61, -20],
-    7: [0, -38]
+    7: [0, -25]
   };
   const [offsetX, offsetY] = offsets[nodeData.id] || [0, -20];
   rect.linkOffsetX = offsetX;
