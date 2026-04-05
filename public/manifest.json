@@ -1,0 +1,10 @@
+{
+  "name": "חדר בריחה דיגיטלי | הנדסת תעשייה וניהול",
+  "short_name": "חדר בריחה",
+  "description": "יום פתוח - הנדסת תעשייה וניהול",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f8fafc",
+  "theme_color": "#1565C0"
+}

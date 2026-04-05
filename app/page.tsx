@@ -1,17 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously } from "firebase/auth";
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signInAnonymously } from "firebase/auth";
 import app from "@/lib/firebase";
 import { Lock, User } from "lucide-react";
 
 export default function LoginPage() {
   const [error, setError] = useState("");
   const [isVisible, setIsVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const auth = getAuth(app);
 
   useEffect(() => {
+    // Handle redirect result (for iOS/PWA where popup fails)
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          window.location.href = "/dashboard";
+        }
+      })
+      .catch(() => {
+        // Redirect flow failed or no redirect result — ignore
+      });
+
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 100);
@@ -21,9 +33,24 @@ export default function LoginPage() {
   const handleGoogle = async () => {
     try {
       if (navigator.vibrate) navigator.vibrate(5);
+      setIsLoading(true);
       await signInWithPopup(auth, new GoogleAuthProvider());
       window.location.href = "/dashboard";
     } catch (err: any) {
+      // If popup fails (blocked on iOS standalone/PWA), fall back to redirect
+      if (
+        err.code === 'auth/popup-blocked' ||
+        err.code === 'auth/popup-closed-by-user' ||
+        err.code === 'auth/cancelled-popup-request'
+      ) {
+        try {
+          await signInWithRedirect(auth, new GoogleAuthProvider());
+          return; // Page will reload after redirect
+        } catch {
+          // Redirect also failed
+        }
+      }
+      setIsLoading(false);
       setError(err.message);
     }
   };

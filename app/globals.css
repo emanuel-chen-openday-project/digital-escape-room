@@ -26,6 +26,14 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* In PWA standalone mode, use full screen including safe areas */
+@media all and (display-mode: standalone) {
+  html, body {
+    height: 100%;
+    min-height: 100dvh;
+  }
+}
+
 /* Hide scrollbars */
 body::-webkit-scrollbar { display: none; }
 body { -ms-overflow-style: none; scrollbar-width: none; }

@@ -23,6 +23,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "חדר בריחה דיגיטלי | הנדסת תעשייה וניהול",
   description: "יום פתוח - הנדסת תעשייה וניהול",
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
