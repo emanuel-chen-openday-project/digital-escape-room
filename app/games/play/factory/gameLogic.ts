@@ -370,35 +370,6 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   buttonMaterial.backFaceCulling = false;
   buttonPlane.material = buttonMaterial;
 
-  // === PULSING GLOW (soft white glow behind card) ===
-  const glowTexture = new BABYLON.DynamicTexture("glowTexture", 512, scene, true);
-  const glowCtx = glowTexture.getContext() as CanvasRenderingContext2D;
-  glowCtx.clearRect(0, 0, 512, 512);
-  const glowGrad = glowCtx.createRadialGradient(256, 256, 60, 256, 256, 250);
-  glowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-  glowGrad.addColorStop(0.4, 'rgba(59, 130, 246, 0.2)');
-  glowGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
-  glowCtx.beginPath();
-  glowCtx.arc(256, 256, 250, 0, 2 * Math.PI);
-  glowCtx.fillStyle = glowGrad;
-  glowCtx.fill();
-  glowTexture.update();
-
-  const glowPlane = BABYLON.MeshBuilder.CreatePlane("glowPlane", { size: 4 * SCALE }, scene);
-  glowPlane.parent = indicatorRoot;
-  glowPlane.position.y = 0;
-  glowPlane.position.z = -0.02;
-  glowPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-
-  const glowMaterial = new BABYLON.StandardMaterial("glowMaterial", scene);
-  glowMaterial.emissiveTexture = glowTexture;
-  glowMaterial.emissiveTexture.hasAlpha = true;
-  glowMaterial.opacityTexture = glowTexture;
-  glowMaterial.disableLighting = true;
-  glowMaterial.backFaceCulling = false;
-  glowMaterial.alpha = 0.6;
-  glowPlane.material = glowMaterial;
-
   // === CLICK AREA (invisible, larger for easy tapping) ===
   const clickArea = BABYLON.MeshBuilder.CreatePlane("clickArea", { size: 4 * SCALE }, scene);
   clickArea.parent = indicatorRoot;
@@ -413,7 +384,6 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
 
   buttonPlane.isPickable = true;
   clickArea.isPickable = true;
-  glowPlane.isPickable = true;
 
   // === ANIMATIONS ===
 
@@ -431,24 +401,6 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
     x: 1.06,
     y: 1.06,
     duration: 1.2,
-    ease: "sine.inOut",
-    yoyo: true,
-    repeat: -1
-  });
-
-  // Pulsing glow behind button
-  gsap.to(glowPlane.scaling, {
-    x: 1.3,
-    y: 1.3,
-    duration: 1.5,
-    ease: "sine.inOut",
-    yoyo: true,
-    repeat: -1
-  });
-
-  gsap.to(glowMaterial, {
-    alpha: 0.3,
-    duration: 1.5,
     ease: "sine.inOut",
     yoyo: true,
     repeat: -1
