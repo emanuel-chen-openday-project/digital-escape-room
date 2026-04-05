@@ -301,60 +301,38 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ctx.lineWidth = 8;
   ctx.stroke();
 
-  // Puzzle icon - drawn with canvas paths (no emoji for cross-device reliability)
-  ctx.save();
-  ctx.translate(cx, cy - 80);
-  ctx.scale(1.8, 1.8);
+  // Puzzle emoji icon
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '160px serif';
   ctx.fillStyle = 'white';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-  ctx.shadowBlur = 10;
-  ctx.shadowOffsetY = 3;
-  // Draw a puzzle piece shape
-  ctx.beginPath();
-  ctx.moveTo(-40, -40);
-  // Top edge with tab
-  ctx.lineTo(-10, -40);
-  ctx.arc(0, -52, 12, Math.PI * 0.8, Math.PI * 0.2, true);
-  ctx.lineTo(40, -40);
-  // Right edge with tab
-  ctx.lineTo(40, -10);
-  ctx.arc(52, 0, 12, Math.PI * 1.3, Math.PI * 0.7, true);
-  ctx.lineTo(40, 40);
-  // Bottom edge with socket
-  ctx.lineTo(10, 40);
-  ctx.arc(0, 52, 12, Math.PI * 1.8, Math.PI * 1.2, true);
-  ctx.lineTo(-40, 40);
-  // Left edge with socket
-  ctx.lineTo(-40, 10);
-  ctx.arc(-52, 0, 12, Math.PI * 0.3, -Math.PI * 0.3, true);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
+  ctx.shadowBlur = 15;
+  ctx.shadowOffsetY = 4;
+  ctx.fillText('🧩', cx, cy - 70);
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
   // Main text "פתח חידה" - large bold white
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = 'bold 130px Heebo, sans-serif';
+  ctx.font = 'bold 125px Heebo, sans-serif';
   ctx.fillStyle = 'white';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
   ctx.shadowBlur = 12;
   ctx.shadowOffsetY = 3;
-  ctx.fillText('פתח חידה', cx, cy + 100);
+  ctx.fillText('פתח חידה', cx, cy + 110);
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
   // Downward arrow triangle pointing to station
   ctx.save();
-  ctx.translate(cx, cy + r + 50);
+  ctx.translate(cx, cy + r + 55);
   ctx.fillStyle = '#667eea';
   ctx.shadowColor = 'rgba(102, 126, 234, 0.5)';
   ctx.shadowBlur = 15;
   ctx.beginPath();
-  ctx.moveTo(-50, -20);
-  ctx.lineTo(50, -20);
-  ctx.lineTo(0, 40);
+  ctx.moveTo(-55, -20);
+  ctx.lineTo(55, -20);
+  ctx.lineTo(0, 45);
   ctx.closePath();
   ctx.fill();
   ctx.restore();

@@ -140,10 +140,10 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="bg-gradient-to-b from-slate-50 via-slate-50 to-blue-50/80 overflow-y-auto h-screen w-full relative" dir="rtl">
+    <div className="bg-slate-50 overflow-y-auto h-screen w-full relative" dir="rtl">
 
-      {/* Animated Background Blobs */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+      {/* Animated Background Blobs - fixed so they stay visible during scroll */}
+      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-20 -right-20 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
         <div className="absolute -bottom-32 -left-20 w-96 h-96 bg-cyan-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
