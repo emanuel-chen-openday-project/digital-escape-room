@@ -240,87 +240,98 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   const isCNC = station.name.includes('CNC');
   indicatorRoot.position.y += isCNC ? 5.5 * SCALE : 4.5 * SCALE;
 
-  // Create dynamic texture for the main button (1024 for high-DPI screens)
+  // === MAIN BUTTON TEXTURE ===
   const textureSize = 1024;
   const dynamicTexture = new BABYLON.DynamicTexture("puzzleButtonTexture", textureSize, scene, true);
   const ctx = dynamicTexture.getContext() as CanvasRenderingContext2D;
+  const cx = textureSize / 2;
+  const cy = textureSize / 2;
+  const r = 380;
 
-  const centerX = textureSize / 2;
-  const centerY = textureSize / 2;
-  const radius = 400;
-
-  // Clear with transparent background
   ctx.clearRect(0, 0, textureSize, textureSize);
 
-  // Draw outer glow
-  const outerGlow = ctx.createRadialGradient(centerX, centerY, radius - 60, centerX, centerY, radius + 100);
-  outerGlow.addColorStop(0, 'rgba(0, 180, 255, 0.5)');
-  outerGlow.addColorStop(0.5, 'rgba(0, 180, 255, 0.2)');
-  outerGlow.addColorStop(1, 'rgba(0, 180, 255, 0)');
+  // Outer soft glow (violet/purple halo)
+  const outerGlow = ctx.createRadialGradient(cx, cy, r - 40, cx, cy, r + 120);
+  outerGlow.addColorStop(0, 'rgba(102, 126, 234, 0.6)');
+  outerGlow.addColorStop(0.4, 'rgba(118, 75, 162, 0.3)');
+  outerGlow.addColorStop(1, 'rgba(118, 75, 162, 0)');
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius + 100, 0, 2 * Math.PI);
+  ctx.arc(cx, cy, r + 120, 0, 2 * Math.PI);
   ctx.fillStyle = outerGlow;
   ctx.fill();
 
-  // Draw main circle background (dark gradient)
-  const bgGradient = ctx.createLinearGradient(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
-  bgGradient.addColorStop(0, '#2a3040');
-  bgGradient.addColorStop(0.4, '#1a1f2a');
-  bgGradient.addColorStop(1, '#12151c');
+  // Main circle - violet to purple gradient (app theme)
+  const bgGrad = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+  bgGrad.addColorStop(0, '#7c5ce0');
+  bgGrad.addColorStop(0.5, '#667eea');
+  bgGrad.addColorStop(1, '#764ba2');
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-  ctx.fillStyle = bgGradient;
+  ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+  ctx.fillStyle = bgGrad;
   ctx.fill();
 
-  // Draw inner highlight (top-left cyan glow)
-  const innerHighlight = ctx.createRadialGradient(centerX - 100, centerY - 120, 0, centerX - 100, centerY - 120, 280);
-  innerHighlight.addColorStop(0, 'rgba(0, 180, 255, 0.3)');
-  innerHighlight.addColorStop(1, 'transparent');
+  // Inner depth shadow (bottom-right)
+  const innerShadow = ctx.createRadialGradient(cx + 60, cy + 80, 0, cx + 60, cy + 80, r);
+  innerShadow.addColorStop(0, 'rgba(50, 20, 80, 0.35)');
+  innerShadow.addColorStop(1, 'transparent');
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-  ctx.fillStyle = innerHighlight;
+  ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+  ctx.fillStyle = innerShadow;
   ctx.fill();
 
-  // Draw shine/gloss at top
+  // Glass shine at top
   ctx.save();
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.arc(cx, cy, r, 0, 2 * Math.PI);
   ctx.clip();
-
-  const shineGradient = ctx.createLinearGradient(centerX, centerY - radius, centerX, centerY - radius + 240);
-  shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
-  shineGradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.05)');
-  shineGradient.addColorStop(1, 'transparent');
+  const shine = ctx.createLinearGradient(cx, cy - r, cx, cy - r + 280);
+  shine.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+  shine.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
+  shine.addColorStop(1, 'transparent');
   ctx.beginPath();
-  ctx.ellipse(centerX, centerY - radius + 120, radius * 0.64, 120, 0, 0, 2 * Math.PI);
-  ctx.fillStyle = shineGradient;
+  ctx.ellipse(cx, cy - r + 140, r * 0.7, 140, 0, 0, 2 * Math.PI);
+  ctx.fillStyle = shine;
   ctx.fill();
   ctx.restore();
 
-  // Draw cyan border
+  // Subtle white border
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius - 4, 0, 2 * Math.PI);
-  ctx.strokeStyle = 'rgba(0, 180, 255, 0.9)';
-  ctx.lineWidth = 12;
+  ctx.arc(cx, cy, r - 6, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.lineWidth = 8;
   ctx.stroke();
 
-  // Draw text with glow effect
-  ctx.fillStyle = '#e0f0ff';
-  ctx.font = 'bold 92px Heebo, sans-serif';
+  // Puzzle icon (🧩) - drawn as text
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-
-  // Text glow
-  ctx.shadowColor = 'rgba(0, 180, 255, 0.8)';
-  ctx.shadowBlur = 40;
-  ctx.fillText('לחץ כאן', centerX, centerY - 60);
-  ctx.fillText('לפתיחת החידה', centerX, centerY + 70);
+  ctx.font = '140px serif';
+  ctx.fillStyle = 'white';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+  ctx.shadowBlur = 15;
+  ctx.shadowOffsetY = 4;
+  ctx.fillText('🧩', cx, cy - 85);
   ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+
+  // Main text "פתח חידה" - bold white
+  ctx.font = 'bold 105px Heebo, sans-serif';
+  ctx.fillStyle = 'white';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 3;
+  ctx.fillText('פתח חידה', cx, cy + 70);
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+
+  // Small "tap" hint below
+  ctx.font = '600 62px Heebo, sans-serif';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.fillText('👆 הקש כאן', cx, cy + 185);
 
   dynamicTexture.update();
 
-  // Create the visible button plane (smaller size)
-  const buttonPlane = BABYLON.MeshBuilder.CreatePlane("buttonPlane", { size: 2.2 * SCALE }, scene);
+  // === BUTTON PLANE ===
+  const buttonPlane = BABYLON.MeshBuilder.CreatePlane("buttonPlane", { size: 2.4 * SCALE }, scene);
   buttonPlane.parent = indicatorRoot;
   buttonPlane.position.y = 0;
   buttonPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
@@ -333,14 +344,14 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   buttonMaterial.backFaceCulling = false;
   buttonPlane.material = buttonMaterial;
 
-  // Create pulsing glow ring (smaller)
+  // === RIPPLE RING ===
   const ringTexture = new BABYLON.DynamicTexture("ringTexture", 256, scene, true);
   const ringCtx = ringTexture.getContext();
   ringCtx.clearRect(0, 0, 256, 256);
   ringCtx.beginPath();
   ringCtx.arc(128, 128, 100, 0, 2 * Math.PI);
-  ringCtx.strokeStyle = 'rgba(0, 180, 255, 0.5)';
-  ringCtx.lineWidth = 4;
+  ringCtx.strokeStyle = 'rgba(102, 126, 234, 0.6)';
+  ringCtx.lineWidth = 5;
   ringCtx.stroke();
   ringTexture.update();
 
@@ -356,10 +367,10 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   ringMaterial.opacityTexture = ringTexture;
   ringMaterial.disableLighting = true;
   ringMaterial.backFaceCulling = false;
-  ringMaterial.alpha = 0.7;
+  ringMaterial.alpha = 0.8;
   ringPlane.material = ringMaterial;
 
-  // Create larger transparent clickable area
+  // === CLICK AREA (invisible, larger for easy tapping) ===
   const clickArea = BABYLON.MeshBuilder.CreatePlane("clickArea", { size: 4 * SCALE }, scene);
   clickArea.parent = indicatorRoot;
   clickArea.position.y = 0;
@@ -371,12 +382,13 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
   clickMaterial.backFaceCulling = false;
   clickArea.material = clickMaterial;
 
-  // Mark as pickable
   buttonPlane.isPickable = true;
   clickArea.isPickable = true;
   ringPlane.isPickable = true;
 
-  // Add floating animation
+  // === ANIMATIONS ===
+
+  // Gentle floating up and down
   gsap.to(indicatorRoot.position, {
     y: indicatorRoot.position.y + 0.3 * SCALE,
     duration: 1.5,
@@ -385,10 +397,20 @@ export function createArrowIndicator(scene: BABYLON.Scene, station: Station): BA
     repeat: -1
   });
 
-  // Add pulsing ring animation
+  // Breathing scale pulse on button
+  gsap.to(buttonPlane.scaling, {
+    x: 1.06,
+    y: 1.06,
+    duration: 1.2,
+    ease: "sine.inOut",
+    yoyo: true,
+    repeat: -1
+  });
+
+  // Ripple ring expanding and fading
   gsap.to(ringPlane.scaling, {
-    x: 1.5,
-    y: 1.5,
+    x: 1.6,
+    y: 1.6,
     duration: 2,
     ease: "power1.out",
     repeat: -1
