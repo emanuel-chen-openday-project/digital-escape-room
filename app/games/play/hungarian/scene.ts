@@ -454,13 +454,13 @@ function createRestaurant(scene: BABYLON.Scene, o: Order, shadowGen: BABYLON.Sha
   sign.parent = parent;
   sign.material = signMat;
 
-  // Label - from original HTML
-  const labelOffset = IS_MOBILE ? -75 : -120;
-  const fontSize = IS_MOBILE ? 10 : 11;
+  // Restaurant label
+  const labelOffset = IS_MOBILE ? -80 : -120;
+  const fontSize = IS_MOBILE ? 14 : 13;
 
   const rect = new GUI.Rectangle();
-  rect.width = IS_MOBILE ? '95px' : '120px';
-  rect.height = IS_MOBILE ? '22px' : '28px';
+  rect.width = IS_MOBILE ? '120px' : '130px';
+  rect.height = IS_MOBILE ? '28px' : '30px';
   rect.cornerRadius = 14;
   rect.thickness = 2;
   rect.color = 'white';
@@ -544,13 +544,13 @@ function createHouse(scene: BABYLON.Scene, o: Order, shadowGen: BABYLON.ShadowGe
     win.material = windowMat;
   }
 
-  // Label - from original HTML
-  const labelOffset = IS_MOBILE ? -60 : -100;
-  const fontSize = IS_MOBILE ? 10 : 11;
+  // House label
+  const labelOffset = IS_MOBILE ? -65 : -100;
+  const fontSize = IS_MOBILE ? 14 : 13;
 
   const rect = new GUI.Rectangle();
-  rect.width = IS_MOBILE ? '90px' : '110px';
-  rect.height = IS_MOBILE ? '22px' : '28px';
+  rect.width = IS_MOBILE ? '115px' : '120px';
+  rect.height = IS_MOBILE ? '28px' : '30px';
   rect.cornerRadius = 14;
   rect.thickness = 2;
   rect.color = o.color;

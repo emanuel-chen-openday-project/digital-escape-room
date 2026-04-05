@@ -138,7 +138,7 @@
 /* ========== TOP BAR ========== */
 .hungarian-top-bar {
   position: fixed;
-  top: max(8px, env(safe-area-inset-top, 8px));
+  top: max(4px, env(safe-area-inset-top, 4px));
   left: 0;
   right: 0;
   padding: 0 10px;
@@ -146,6 +146,11 @@
   align-items: center;
   justify-content: space-between;
   z-index: 100;
+  pointer-events: none;
+}
+
+.hungarian-top-bar > * {
+  pointer-events: auto;
 }
 
 .hungarian-side-buttons-left,

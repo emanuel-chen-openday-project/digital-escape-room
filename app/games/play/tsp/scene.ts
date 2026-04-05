@@ -371,13 +371,13 @@ function addNodeLabel(advancedTexture: GUI.AdvancedDynamicTexture, parent: BABYL
   tb.text = text;
   tb.color = "#1565C0";
   tb.fontWeight = "bold";
-  tb.fontSize = 12;
+  tb.fontSize = 16;
   tb.fontFamily = "Heebo";
   tb.resizeToFit = true;
-  tb.paddingLeft = "3px";
-  tb.paddingRight = "3px";
-  tb.paddingTop = "1px";
-  tb.paddingBottom = "1px";
+  tb.paddingLeft = "5px";
+  tb.paddingRight = "5px";
+  tb.paddingTop = "3px";
+  tb.paddingBottom = "3px";
   rect.addControl(tb);
 }
 
@@ -420,13 +420,13 @@ function createRoadLabels(scene: BABYLON.Scene, advancedTexture: GUI.AdvancedDyn
     tb.text = r.d + " km";
     tb.color = "#1565C0";
     tb.fontWeight = "bold";
-    tb.fontSize = 18;
+    tb.fontSize = 22;
     tb.fontFamily = "Heebo";
     tb.resizeToFit = true;
-    tb.paddingLeft = "7px";
-    tb.paddingRight = "7px";
-    tb.paddingTop = "4px";
-    tb.paddingBottom = "4px";
+    tb.paddingLeft = "8px";
+    tb.paddingRight = "8px";
+    tb.paddingTop = "5px";
+    tb.paddingBottom = "5px";
     rect.addControl(tb);
   });
 }
