@@ -192,8 +192,9 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
     };
     // Check initial fullscreen state
     setIsFullscreen(!!(document.fullscreenElement || (document as any).webkitFullscreenElement));
+    const handleOrientationChange = () => setTimeout(handleResize, 300);
     window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', () => setTimeout(handleResize, 300));
+    window.addEventListener('orientationchange', handleOrientationChange);
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 
@@ -232,7 +233,9 @@ export default function FactoryTour({ nickname, sessionId, onTourComplete }: Fac
     startTour();
 
     return () => {
+      scene.onPointerDown = null;
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       engine.dispose();

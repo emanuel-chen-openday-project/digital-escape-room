@@ -49,6 +49,8 @@ export default function GamePlay() {
   const handleTourComplete = async () => {
     try {
       isFinishingRef.current = true;
+      // Finish game BEFORE exiting fullscreen/navigating to ensure data is saved
+      await finishGame();
       // Exit fullscreen BEFORE navigating to prevent viewport distortion (with webkit fallback for iOS)
       const fsElement = document.fullscreenElement || (document as any).webkitFullscreenElement;
       if (fsElement) {
@@ -56,7 +58,6 @@ export default function GamePlay() {
         if (exitFs) await exitFs();
       }
       router.push('/dashboard');
-      await finishGame();
     } catch (error) {
       console.error('Error completing game:', error);
       router.push('/dashboard');

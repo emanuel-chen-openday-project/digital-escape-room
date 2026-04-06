@@ -162,6 +162,7 @@ export default function TSPGame({ onComplete, onUseHint }: TSPGameProps) {
 
   const handleCheck = useCallback(() => {
     const gameState = gameStateRef.current;
+    if (gameState.playerPath.length === 0) return;
     const currentNode = gameState.playerPath[gameState.playerPath.length - 1];
 
     if (currentNode !== 0) {
