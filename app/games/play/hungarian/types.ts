@@ -57,7 +57,7 @@ export const COURIERS: Courier[] = [
 export const ORDERS: Order[] = [
   { id: 1, restX: -7, restZ: -2, custX: 18, custZ: 8, color: '#FFD93D', restaurant: 'פיצה רומא', family: 'משפחת כהן' },
   { id: 2, restX: 26, restZ: 16, custX: -26, custZ: 24, color: '#6BCF7F', restaurant: 'סושי טוקיו', family: 'משפחת לוי' },
-  { id: 3, restX: -13, restZ: 24, custX: 30, custZ: -6, color: '#B4A7D6', restaurant: 'בורגר האוס', family: 'משפחת אברהם' },
+  { id: 3, restX: -11, restZ: 22, custX: 30, custZ: -6, color: '#B4A7D6', restaurant: 'בורגר האוס', family: 'משפחת אברהם' },
   { id: 4, restX: 10, restZ: -28, custX: -30, custZ: -14, color: '#FF9FF3', restaurant: 'פלאפל הזהב', family: 'משפחת דוד' }
 ];
 
