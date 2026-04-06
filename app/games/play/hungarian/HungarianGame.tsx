@@ -52,6 +52,7 @@ export default function HungarianGame({ onComplete }: HungarianGameProps) {
   const [hintText, setHintText] = useState('');
   const [showHint, setShowHint] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const modalOpenTimeRef = useRef<number>(0);
 
   // Initialize audio
   useEffect(() => {
@@ -117,8 +118,11 @@ export default function HungarianGame({ onComplete }: HungarianGameProps) {
           mesh = mesh.parent as BABYLON.AbstractMesh;
         }
         if (mesh && (mesh as any).courierId) {
+          // Prevent browser from synthesizing a click event that could land on the modal
+          evt.preventDefault();
           const courierId = (mesh as any).courierId;
           playHorn();
+          modalOpenTimeRef.current = Date.now();
           setSelectedCourier(courierId);
           setShowCourierModal(true);
 
@@ -191,6 +195,8 @@ export default function HungarianGame({ onComplete }: HungarianGameProps) {
   // Assign order to courier
   const handleAssignOrder = useCallback((orderId: number) => {
     if (selectedCourier === null) return;
+    // Guard against synthesized click from touch that opened the modal
+    if (Date.now() - modalOpenTimeRef.current < 150) return;
 
     setAssignments(prev => {
       const newAssignments = { ...prev };
@@ -487,7 +493,7 @@ export default function HungarianGame({ onComplete }: HungarianGameProps) {
 
       {/* Courier Modal */}
       {showCourierModal && selectedCourier !== null && (
-        <div className="hungarian-courier-modal">
+        <div className="hungarian-courier-modal" onPointerDown={e => e.stopPropagation()}>
           <div className="hungarian-modal-content">
             <div className="hungarian-modal-header">
               <div className="hungarian-modal-courier-info">

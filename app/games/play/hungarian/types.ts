@@ -42,7 +42,7 @@ export const IS_MOBILE = typeof window !== 'undefined'
   ? window.innerWidth < 900 ||
     (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent))
   : false;
-export const COURIER_SCALE = IS_MOBILE ? 3.0 : 2.1;
+export const COURIER_SCALE = IS_MOBILE ? 2.7 : 2.1;
 export const COURIER_HEIGHT = 0.7;
 
 // Couriers - exact positions from original HTML
@@ -53,12 +53,12 @@ export const COURIERS: Courier[] = [
   { id: 1, x: -38, z: -28, color: '#FF6B6B', name: 'יוסי' }
 ];
 
-// Orders - exact positions from original HTML
+// Orders - positions spread out for larger motorcycles
 export const ORDERS: Order[] = [
-  { id: 1, restX: -5, restZ: 0, custX: 15, custZ: 5, color: '#FFD93D', restaurant: 'פיצה רומא', family: 'משפחת כהן' },
-  { id: 2, restX: 24, restZ: 14, custX: -24, custZ: 22, color: '#6BCF7F', restaurant: 'סושי טוקיו', family: 'משפחת לוי' },
-  { id: 3, restX: -10, restZ: 22, custX: 28, custZ: 5, color: '#B4A7D6', restaurant: 'בורגר האוס', family: 'משפחת אברהם' },
-  { id: 4, restX: 8, restZ: -26, custX: -28, custZ: -10, color: '#FF9FF3', restaurant: 'פלאפל הזהב', family: 'משפחת דוד' }
+  { id: 1, restX: -7, restZ: -2, custX: 18, custZ: 8, color: '#FFD93D', restaurant: 'פיצה רומא', family: 'משפחת כהן' },
+  { id: 2, restX: 26, restZ: 16, custX: -26, custZ: 24, color: '#6BCF7F', restaurant: 'סושי טוקיו', family: 'משפחת לוי' },
+  { id: 3, restX: -13, restZ: 24, custX: 30, custZ: -6, color: '#B4A7D6', restaurant: 'בורגר האוס', family: 'משפחת אברהם' },
+  { id: 4, restX: 10, restZ: -28, custX: -30, custZ: -14, color: '#FF9FF3', restaurant: 'פלאפל הזהב', family: 'משפחת דוד' }
 ];
 
 export function createInitialGameState(): HungarianGameState {
